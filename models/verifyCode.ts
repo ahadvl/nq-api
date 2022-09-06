@@ -11,7 +11,7 @@ class VerifyCode extends Model {
         id: { primaryKey: true, autoIncrement: true },
         status: STRING,
         code: INTEGER,
-        phoneNumber: STRING,
+        email: STRING,
     };
 
     static defaults = {};
