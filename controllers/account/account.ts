@@ -39,7 +39,7 @@ class Account extends Controller {
             .first() as Model;
 
         if (!lastSendedCode)
-            return new Response("You are Not in", { status: 400 })
+            return new Response("You are Not in", { status: 403 })
 
         if (lastSendedCode.code === body.code) {
             // Update Status Of Code
@@ -67,13 +67,13 @@ class Account extends Controller {
             const createdAtAsMilliSecond = Date.parse(lastSendedCode.createdAt! as string);
 
             if (currentDate - createdAtAsMilliSecond < 5000) {
-                return Response.json({ code: lastSendedCode.code })
+                return Response.json({ message: "Code is sended" })
             }
         }
 
         VerifyCode.create({ status: "waiting", code: randomCode, email: body.email });
 
-        return Response.json({ code: randomCode });
+        return Response.json({ message: "Code is sended." });
     }
 
     private generateRandomCode(length = 6): Promise<number> {
