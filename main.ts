@@ -1,7 +1,7 @@
 import { config } from "std@env";
 import { Db, Server, cors, Logger, App } from 'lib';
 import { PostgresConnector, Database } from "denodb";
-import { LogModel, VerifyCode } from "models";
+import { LogModel, VerifyCode, User } from "models";
 import { Status, Account } from "./controllers/mod.ts";
 
 const env = await config();
@@ -16,6 +16,7 @@ const connector = new PostgresConnector({
 new Db(new Database(connector))
     .pushModel(LogModel)
     .pushModel(VerifyCode)
+    .pushModel(User)
     .done();
 
 const logger = new Logger(`logs/log.log`);
