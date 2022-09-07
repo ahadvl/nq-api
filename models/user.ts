@@ -1,6 +1,6 @@
 import { Model, DataTypes } from "denodb";
 
-const { STRING, INTEGER } = DataTypes;
+const { STRING } = DataTypes;
 
 class User extends Model {
     static table = "app_users";
@@ -10,8 +10,7 @@ class User extends Model {
     static fields = {
         id: { primaryKey: true, autoIncrement: true },
         username: STRING,
-        countryCode: INTEGER,
-        phoneNumber: INTEGER,
+        email: STRING,
     };
 
     static defaults = {};
