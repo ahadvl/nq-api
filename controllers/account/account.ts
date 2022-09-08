@@ -33,14 +33,14 @@ class Account extends Controller {
             .limit(1)
             .first() as Model;
 
+        if (!lastSendedCode)
+            return new Response("No code sended to this email!", { status: 403 });
+
         const currentDate = Date.now();
         const codeCreatedAtDate = Date.parse(lastSendedCode.createdAt as string);
 
         if (currentDate - codeCreatedAtDate > 70000)
             return new Response("Code is deprecated!");
-
-        if (!lastSendedCode)
-            return new Response("No code sended to this email!", { status: 403 });
 
         if (lastSendedCode.code === body.code) {
             // Update Status Of Code
