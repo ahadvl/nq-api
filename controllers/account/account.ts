@@ -1,6 +1,7 @@
 import { Controller, SchemaValidator } from 'lib';
 import { Model } from "denodb";
 import { VerifyCode } from 'models';
+import { TokenGenerator, stringToBytes } from './token.ts';
 
 const sendCodeSchema = new SchemaValidator({
     email: { type: "string", required: true, maxLength: 30 }
@@ -27,7 +28,7 @@ class Account extends Controller {
 
         await verifyCodeSchema.validate(body);
 
-        const lastSendedCode = await VerifyCode.select("email", "code", "created_at")
+        const lastSendedCode = await VerifyCode.select("email", "code", "created_at", "status")
             .where({ email: body.email })
             .orderBy("created_at", "desc")
             .limit(1)
@@ -39,6 +40,9 @@ class Account extends Controller {
         const currentDate = Date.now();
         const codeCreatedAtDate = Date.parse(lastSendedCode.createdAt as string);
 
+        if (lastSendedCode.status === "used")
+            return new Response("This Code is used!");
+
         if (currentDate - codeCreatedAtDate > 70000)
             return new Response("Code is deprecated!");
 
@@ -46,7 +50,10 @@ class Account extends Controller {
             // Update Status Of Code
             VerifyCode.where("code", lastSendedCode.code as number).update({ status: "used" });
 
-            return new Response("Token: ######");
+            const newToken = new TokenGenerator(stringToBytes(JSON.stringify(body)), Date.now() * (Math.floor(Math.random() * 0xFFFF)), 100);
+            await newToken.generate();
+
+            return Response.json({ token: newToken.getTokenAsString });
         }
 
         return new Response("Code is not currect!", { status: 400 })
