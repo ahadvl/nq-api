@@ -5,6 +5,8 @@
         "std@http": "https://deno.land/std@0.152.0/http/mod.ts",
         "std@env": "https://deno.land/std@0.148.0/dotenv/mod.ts",
         "std@test": "https://deno.land/std@0.148.0/testing/asserts.ts",
+        "std@crypto": "https://deno.land/std@0.155.0/crypto/mod.ts",
+        "std@encoding/hex": "https://deno.land/std@0.155.0/encoding/hex.ts",
         "models": "./models/mod.ts"
     }
 }
