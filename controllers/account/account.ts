@@ -1,6 +1,7 @@
 import { Controller, SchemaValidator } from 'lib';
 import { Model } from "denodb";
 import { VerifyCode } from 'models';
+import { TokenGenerator, stringToBytes } from './token.ts';
 
 const sendCodeSchema = new SchemaValidator({
     email: { type: "string", required: true, maxLength: 30 }
@@ -27,29 +28,35 @@ class Account extends Controller {
 
         await verifyCodeSchema.validate(body);
 
-        const lastSendedCode = await VerifyCode.select("email", "code", "created_at")
+        const lastSendedCode = await VerifyCode.select("email", "code", "created_at", "status")
             .where({ email: body.email })
             .orderBy("created_at", "desc")
             .limit(1)
             .first() as Model;
 
+        if (!lastSendedCode)
+            return new Response("Code is not valid", { status: 404 });
+
         const currentDate = Date.now();
         const codeCreatedAtDate = Date.parse(lastSendedCode.createdAt as string);
 
+        if (lastSendedCode.status === "used")
+            return new Response("Code is not valid!");
+
         if (currentDate - codeCreatedAtDate > 70000)
-            return new Response("Code is deprecated!");
+            return new Response("Code is not valid!");
 
-        if (!lastSendedCode)
-            return new Response("No code sended to this email!", { status: 403 });
-
-        if (lastSendedCode.code === body.code) {
-            // Update Status Of Code
-            VerifyCode.where("code", lastSendedCode.code as number).update({ status: "used" });
-
-            return new Response("Token: ######");
+        if (lastSendedCode.code !== body.code) {
+            return new Response("Code is not valid!")
         }
 
-        return new Response("Code is not currect!", { status: 400 })
+        // Update Status Of Code
+        VerifyCode.where("code", lastSendedCode.code as number).update({ status: "used" });
+
+        const newToken = new TokenGenerator(Uint8Array.from([10]));
+        await newToken.generate();
+
+        return Response.json({ token: newToken.getTokenAsString });
     }
 
     async sendCode(): Promise<Response> {
