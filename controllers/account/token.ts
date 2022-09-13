@@ -15,44 +15,19 @@ const stringToBytes = (input: string) => {
     return Uint32Array.from(array);
 }
 
-/**
- * Runs (repeat) times fn
- * And return just one result
- * And result every time overwrites
- */
-const times = <T>(fn: () => T, repeat: number) => {
-    let result;
-    for (let i = 0; i < repeat; i++) {
-        result = fn();
-    }
-
-    return result;
-}
-
 class TokenGenerator {
-    readonly value: Uint32Array;
-    readonly salt: number;
-    readonly round: number;
+    readonly input: Uint8Array;
 
     private token: Uint8Array;
 
-    constructor(value: Uint32Array, salt: number, round = 1) {
-        this.value = value;
-        this.salt = salt
-        this.round = round;
+    constructor(input: Uint8Array) {
+        this.input = input;
         this.token = new Uint8Array();
     }
 
     public async generate(): Promise<this> {
-        // Map the value bytes and for each run this op and reverse result array
-        // And Run this Function 0..this.round
-        const result = times(
-            () => this.value.map(byte => this.salt * (byte * this.round) * (byte ** 2)).reverse(),
-            this.round
-        );
-
         // At the End Hash the random array with SHA-256
-        const hash = new Uint8Array(await mod.crypto.subtle.digest("SHA-256", result!));
+        const hash = new Uint8Array(await mod.crypto.subtle.digest("SHA-256", this.input));
 
         this.token = hash;
 

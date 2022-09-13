@@ -35,28 +35,28 @@ class Account extends Controller {
             .first() as Model;
 
         if (!lastSendedCode)
-            return new Response("No code sended to this email!", { status: 403 });
+            return new Response("Code is not valid", { status: 404 });
 
         const currentDate = Date.now();
         const codeCreatedAtDate = Date.parse(lastSendedCode.createdAt as string);
 
         if (lastSendedCode.status === "used")
-            return new Response("This Code is used!");
+            return new Response("Code is not valid!");
 
         if (currentDate - codeCreatedAtDate > 70000)
-            return new Response("Code is deprecated!");
+            return new Response("Code is not valid!");
 
-        if (lastSendedCode.code === body.code) {
-            // Update Status Of Code
-            VerifyCode.where("code", lastSendedCode.code as number).update({ status: "used" });
-
-            const newToken = new TokenGenerator(stringToBytes(JSON.stringify(body)), Date.now() * (Math.floor(Math.random() * 0xFFFF)), 100);
-            await newToken.generate();
-
-            return Response.json({ token: newToken.getTokenAsString });
+        if (lastSendedCode.code !== body.code) {
+            return new Response("Code is not valid!")
         }
 
-        return new Response("Code is not currect!", { status: 400 })
+        // Update Status Of Code
+        VerifyCode.where("code", lastSendedCode.code as number).update({ status: "used" });
+
+        const newToken = new TokenGenerator(Uint8Array.from([10]));
+        await newToken.generate();
+
+        return Response.json({ token: newToken.getTokenAsString });
     }
 
     async sendCode(): Promise<Response> {
