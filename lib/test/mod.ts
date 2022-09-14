@@ -1,5 +1,3 @@
-import { assertEquals, assertRejects, assert } from "std@test";
-
 interface Case {
     name: string;
     fn: () => void;
@@ -24,4 +22,4 @@ async function runCases(cases: Case[], t: Deno.TestContext): Promise<void> {
 }
 
 export type { Case }
-export { assertEquals, assertRejects, runCasesConcurrent, runCases, assert }
+export { runCasesConcurrent, runCases }

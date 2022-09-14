@@ -1,5 +1,6 @@
-import { Case, assertEquals, runCasesConcurrent } from "./mod.ts";
-import { Router } from "../mod.ts";
+import { Case, runCasesConcurrent } from "./mod.ts";
+import { assertEquals } from "std@test";
+import { Router } from "lib";
 
 Deno.test("Parse Router Path", async (t) => {
     const cases: Case[] = [

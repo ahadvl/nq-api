@@ -1,5 +1,5 @@
-import { cors } from "../mod.ts";
-import { assertEquals } from "./mod.ts";
+import { cors } from "lib";
+import { assertEquals } from "std@test";
 
 Deno.test("Cors Middleware", () => {
     const exampleRequest = new Request("http://localhost", { method: "GET" });

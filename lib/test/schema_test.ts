@@ -1,5 +1,6 @@
 import { SchemaValidator } from "lib";
-import { runCasesConcurrent, Case, assertRejects } from "./mod.ts";
+import { runCasesConcurrent, Case, } from "./mod.ts";
+import { assertRejects } from "std@test";
 
 Deno.test("Test Schema", async (t) => {
     const schema = new SchemaValidator({
