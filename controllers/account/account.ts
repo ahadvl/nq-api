@@ -1,7 +1,7 @@
 import { Controller, SchemaValidator } from 'lib';
 import { Model } from "denodb";
 import { VerifyCode } from 'models';
-import { TokenGenerator, stringToBytes } from './token.ts';
+import { Token } from './token.ts';
 
 const sendCodeSchema = new SchemaValidator({
     email: { type: "string", required: true, maxLength: 30 }
@@ -53,7 +53,7 @@ class Account extends Controller {
         // Update Status Of Code
         VerifyCode.where("code", lastSendedCode.code as number).update({ status: "used" });
 
-        const newToken = new TokenGenerator(Uint8Array.from([10]));
+        const newToken = new Token(10);
         await newToken.generate();
 
         return Response.json({ token: newToken.getTokenAsString });

@@ -1,33 +1,25 @@
 import * as mod from "std@crypto";
 import { encode } from "std@encoding/hex";
+import { Salt } from "lib";
 
-/**
- * Recives String and returns Array of numbers
- * Covert each char of string to number as UTF-16
- */
-const stringToBytes = (input: string) => {
-    const array = [];
-
-    for (let index = 0; index < input.length; index++) {
-        array.push(input.charCodeAt(index));
-    }
-
-    return Uint32Array.from(array);
-}
-
-class TokenGenerator {
-    readonly input: Uint8Array;
+class Token {
+    readonly input: number;
 
     private token: Uint8Array;
 
-    constructor(input: Uint8Array) {
+    constructor(input: number) {
         this.input = input;
         this.token = new Uint8Array();
     }
 
     public async generate(): Promise<this> {
+        const salt = new Salt(32)
+            .dateAsString()
+            .string(this.input.toString())
+            .randomBytes();
+
         // At the End Hash the random array with SHA-256
-        const hash = new Uint8Array(await mod.crypto.subtle.digest("SHA-256", this.input));
+        const hash = new Uint8Array(await mod.crypto.subtle.digest("SHA-256", salt.getResult));
 
         this.token = hash;
 
@@ -43,4 +35,4 @@ class TokenGenerator {
     }
 }
 
-export { stringToBytes, TokenGenerator }
+export { Token }
