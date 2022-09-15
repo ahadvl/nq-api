@@ -46,9 +46,8 @@ class Account extends Controller {
         if (currentDate - codeCreatedAtDate > 70000)
             return new Response("Code is not valid!");
 
-        if (lastSendedCode.code !== body.code) {
-            return new Response("Code is not valid!")
-        }
+        if (lastSendedCode.code !== body.code)
+            return new Response("Code is not valid!");
 
         // Update Status Of Code
         VerifyCode.where("code", lastSendedCode.code as number).update({ status: "used" });
