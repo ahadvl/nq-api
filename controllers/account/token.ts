@@ -17,12 +17,12 @@ class Token {
             .dateAsString()
             .randomBytes(32);
 
-        const userIdAsString = new TextEncoder().encode(this.userId.toString());
+        const userIdAsBytes = new TextEncoder().encode(this.userId.toString());
 
-        const dataWithSalt = new Uint32Array([...userIdAsString, ...salt.getResult]);
+        const userIdAndSalt = new Uint32Array([...userIdAsBytes, ...salt.getResult]);
 
         // At the End Hash the random array with SHA-256
-        const hash = new Uint8Array(await mod.crypto.subtle.digest("SHA-256", dataWithSalt));
+        const hash = new Uint8Array(await mod.crypto.subtle.digest("SHA-256", userIdAndSalt));
 
         this.token = hash;
 
