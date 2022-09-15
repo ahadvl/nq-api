@@ -1,4 +1,4 @@
-import { assertEquals } from "./mod.ts";
+import { assertEquals } from "std@test";
 import { Router, Controller } from 'lib';
 
 Deno.test("Controller Test", () => {

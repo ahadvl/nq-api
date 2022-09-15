@@ -6,8 +6,9 @@ import { unsafe } from "./unsafe.ts";
 import { Router } from "./router.ts";
 import { Middleware, ResponseFunction, HttpMethod, App } from "./app.ts";
 import { Db } from "./db.ts";
-import { SchemaValidator} from "./schema.ts";
+import { SchemaValidator } from "./schema.ts";
 import CustomError from "./customError.ts";
+import Salt from "./salt.ts";
 
 export type { Middleware, ResponseFunction, HttpMethod, Log }
-export { Controller, Db, Server, Logger, cors, unsafe, Router, App, SchemaValidator, CustomError }
+export { Controller, Db, Server, Logger, cors, unsafe, Router, App, SchemaValidator, CustomError, Salt }

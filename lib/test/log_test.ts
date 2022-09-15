@@ -1,4 +1,5 @@
-import { Case, assertEquals, runCases } from "./mod.ts";
+import { Case, runCases } from "./mod.ts";
+import { assertEquals } from "std@test";
 import { Router, Log, Logger, unsafe } from 'lib';
 import { ConnInfo } from "std@http";
 
