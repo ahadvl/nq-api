@@ -1,0 +1,93 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "NatiqQuran Api V1",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080/"
+        }
+    ],
+    "paths": {
+        "/status": {
+            "get": {
+                "description": "Just for example",
+                "responses": {
+                    "200": {
+                        "description": "Status Response",
+                        "content": {
+                            "plain/text": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "example": "Hello World"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/account/verify": {
+            "post": {
+                "description": "Verify Sended Code to email",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "code",
+                        "schema": {
+                            "type": "number"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "plain/text": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": "{token: ###}"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/account/sendCode": {
+            "post": {
+                "description": "Request a new code",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Code sended.",
+                        "content": {
+                            "plain/text": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "example": "Code is sended."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

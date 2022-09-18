@@ -1,6 +1,6 @@
 import { Controller, SchemaValidator } from 'lib';
 import { Model } from "denodb";
-import { VerifyCode } from 'models';
+import { VerifyCode, TokenModel, User } from 'models';
 import { Token } from './token.ts';
 
 const sendCodeSchema = new SchemaValidator({
@@ -52,8 +52,24 @@ class Account extends Controller {
         // Update Status Of Code
         VerifyCode.where("code", lastSendedCode.code as number).update({ status: "used" });
 
-        const newToken = new Token(10);
+        const user = await User.select().where({ email: body.email }).first();
+        let userId: number;
+
+        if (!user) {
+            const newUser = await User.create({ email: body.email });
+            const newUserId = newUser.id as number;
+            newUser.username = `u${newUserId}`;
+            await newUser.update();
+
+            userId = newUserId;
+        } else {
+            userId = user.id as number;
+        }
+
+        const newToken = new Token(userId);
         await newToken.generate();
+
+        await TokenModel.create({ token: newToken.getTokenAsString, userId: userId })
 
         return Response.json({ token: newToken.getTokenAsString });
     }
