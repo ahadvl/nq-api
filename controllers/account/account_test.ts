@@ -11,9 +11,9 @@ Deno.test("Token", async () => {
     assertEquals(token.getToken.length, 32);
 });
 
-Deno.test("Random Code", async () => {
+Deno.test("Account Rejects", async () => {
     const exampleRequest = new Request("http://localhost:8080/");
-    const exampleRouter = new Router("/account/");
+    const exampleRouter = new Router("/account/").parse();
 
     const account = new Account(exampleRequest, exampleRouter);
     assertRejects(() => account.verify());
