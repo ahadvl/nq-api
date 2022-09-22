@@ -1,4 +1,4 @@
-import {CustomError} from "lib";
+import { CustomError } from "lib";
 
 interface Schema {
     /**
@@ -18,6 +18,11 @@ interface Schema {
      * Max Length of value
      */
     maxLength: number;
+
+    /**
+     * Min length of value
+     */
+    minLength: number;
 }
 
 // Schema is for client request verifying 
@@ -81,11 +86,14 @@ class SchemaValidator {
      * @param targetValue 
      */
     private lengthCheck(thisKey: string, targetValue: any): Promise<boolean> {
-        const requiredLength = this.schemas[thisKey].maxLength;
+        const requiredMaxLength = this.schemas[thisKey].maxLength;
+        const requiredMinLength = this.schemas[thisKey].minLength;
         const targetLength = targetValue.toString().length;
 
-        if (targetLength > requiredLength)
-            return Promise.reject(new CustomError(400, 'Schema', `Target length is more than expected length ${requiredLength} found ${targetLength}`));
+        if (targetLength > requiredMaxLength)
+            return Promise.reject(new CustomError(400, 'Schema', `Target length is more than expected length ${requiredMaxLength} found ${targetLength}`));
+        else if (targetLength < requiredMinLength)
+            return Promise.reject(new CustomError(400, 'Schema', `Target length is less than expected length ${requiredMinLength} found ${targetLength}`));
 
         return Promise.resolve(true);
     }
@@ -113,4 +121,4 @@ class SchemaValidator {
     }
 }
 
-export {SchemaValidator};
+export { SchemaValidator };
