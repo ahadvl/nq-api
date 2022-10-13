@@ -38,12 +38,12 @@ class App {
             const router = new Router(new URL(url).pathname).parse();
 
             // If there is no Controller sent in path then return 400 which means Bad Request
-            if (router.getController === null) Promise.reject(new CustomError(403, "Controller", "Controller is not specified"));
+            if (router.getController === null) await Promise.reject(new CustomError(403, "Controller", "Controller is not specified"));
 
             const controller = this.controllers.get(router.getController!);
 
             // Check if Controller exists
-            if (controller === undefined) Promise.reject(new CustomError(404, "Controller", "Controller not found"));
+            if (controller === undefined) await Promise.reject(new CustomError(404, "Controller", "Controller not found"));
 
             const controllerObject = new controller!(request.clone(), router);
 
@@ -57,7 +57,7 @@ class App {
                 if (httpMethod === "OPTIONS")
                     return new Response();
                 else
-                    Promise.reject(new CustomError(403, "Controller", "Method not allowed"));
+                    await Promise.reject(new CustomError(403, "Controller", "Method not allowed"));
             }
 
             response = await handleFromMethod!();

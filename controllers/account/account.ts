@@ -4,11 +4,11 @@ import { VerifyCode, TokenModel, User } from 'models';
 import { Token } from './token.ts';
 
 const sendCodeSchema = new SchemaValidator({
-    email: { type: "string", required: true, maxLength: 30, minLength: 13 },
+    email: { type: "string", required: true, maxLength: 30, minLength: 4 },
 });
 
 const verifyCodeSchema = new SchemaValidator({
-    email: { type: "string", required: true, maxLength: 30, minLength: 13 },
+    email: { type: "string", required: true, maxLength: 30, minLength: 4 },
     code: { type: "number", required: true, maxLength: 6, minLength: 6 }
 });
 
