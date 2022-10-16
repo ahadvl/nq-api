@@ -1,7 +1,7 @@
 import { config } from "std@env";
 import { Db, Server, cors, Logger, App } from 'lib';
 import { PostgresConnector, Database } from "denodb";
-import { LogModel, VerifyCode, User, TokenModel, QuranText } from 'models';
+import { LogModel, VerifyCode, User, TokenModel, QuranText, QuranSura } from 'models';
 import { Status, Account, Quran } from "./controllers/mod.ts";
 
 const env = await config();
@@ -19,6 +19,7 @@ new Db(new Database(connector))
     .pushModel(User)
     .pushModel(TokenModel)
     .pushModel(QuranText)
+    .pushModel(QuranSura)
     .done();
 
 const logger = new Logger(`logs/log.log`);

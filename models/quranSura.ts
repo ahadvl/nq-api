@@ -1,20 +1,19 @@
 import { Model, DATA_TYPES } from "denodb";
 
-const { INTEGER, TEXT } = DATA_TYPES;
+const { STRING } = DATA_TYPES;
 
-class QuranText extends Model {
-    static table = "quran_text";
+class QuranSura extends Model {
+    static table = "quranSura";
 
     static timestamps = false;
 
     static fields = {
         id: { primaryKey: true, autoIncrement: true },
-        sura: INTEGER,
-        aya: INTEGER,
-        text: TEXT,
+        name: STRING,
+        period: STRING,
     };
 
     static defaults = {};
 }
 
-export default QuranText;
+export default QuranSura;

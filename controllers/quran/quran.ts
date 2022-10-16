@@ -1,54 +1,25 @@
+import { Model } from "https://deno.land/x/denodb@v1.0.40/mod.ts";
 import { Controller, CustomError } from "lib";
-import { QuranText } from 'models';
+import { QuranSura, QuranText } from "models";
 
 class Quran extends Controller {
-    // Get Suran from quran
     async get() {
-        const obj = this.parseId();
-
-        if (obj.from.sura === null || obj.to.sura === null && obj.to.aya !== null)
+        if (this.router.getId === null)
             await Promise.reject(new CustomError(400, "quran", "Spicify Sura"));
 
-        const result = await QuranText.select('text', 'sura', 'aya')
-            .where("sura", ">=", obj.from.sura)
-            .where("sura", "<=", obj.to.sura)
-            .offset(parseInt(obj.from.aya!, 10) - 1)
-            .get();
+        const sura = await QuranSura.select("id", "name", "period").where("id", this.router.getId).first();
 
-        console.log((result as any).concat(0, parseInt(obj.from.aya!, 10)));
+        const suraAyas = await QuranText.select('aya', 'text')
+            .where("sura", sura.id as number)
+            .orderBy("aya")
+            .get() as Model[];
 
-        return Response.json(obj);
-    }
-
-    parseId() {
-        const id = this.router.getId;
-        const splitedId = id?.split('-');
-        const sura = splitedId![0] || "";
-        const aya = splitedId![1] || "";
-        const from = this.parseAyaSura(sura);
-        const to = this.parseAyaSura(aya);
-
-        return {
-            from: {
-                sura: from.sura,
-                aya: from.aya
-            },
-            to: {
-                sura: to.sura,
-                aya: to.aya
-            }
-        }
-    }
-
-    parseAyaSura(num: string) {
-        const splitedNum = num.split(':')
-        const sura = splitedNum[0] || null;
-        const aya = splitedNum[1] || null;
-
-        return {
-            sura,
-            aya
-        }
+        return Response.json({
+            id: sura.id,
+            name: sura.name,
+            period: sura.period,
+            ayas: suraAyas,
+        });
     }
 }
 
