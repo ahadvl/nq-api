@@ -9,16 +9,16 @@ class Quran extends Controller {
 
         const sura = await QuranSura.select("id", "name", "period").where("id", this.router.getId).first();
 
-        const suraAyas = await QuranText.select('aya', 'text')
+        const verses = await QuranText.select("verse", "text")
             .where("sura", sura.id as number)
-            .orderBy("aya")
+            .orderBy("verse")
             .get() as Model[];
 
         return Response.json({
             id: sura.id,
             name: sura.name,
             period: sura.period,
-            ayas: suraAyas,
+            verses: verses,
         });
     }
 }

@@ -9,8 +9,8 @@ class QuranText extends Model {
 
     static fields = {
         id: { primaryKey: true, autoIncrement: true },
-        sura: INTEGER,
-        aya: INTEGER,
+        surah: INTEGER,
+        verse: INTEGER,
         text: TEXT,
     };
 
