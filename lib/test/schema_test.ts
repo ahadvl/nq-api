@@ -4,9 +4,9 @@ import { assertRejects } from "std@test";
 
 Deno.test("Test Schema", async (t) => {
     const schema = new SchemaValidator({
-        name: { required: true, maxLength: 10, type: "string" },
-        username: { required: true, maxLength: 5, type: "string" },
-        test: { required: false, maxLength: 10, type: "string" }
+        name: { required: true, maxLength: 10, minLength: 0, type: "string" },
+        username: { required: true, maxLength: 5, minLength: 0, type: "string" },
+        test: { required: false, maxLength: 10, minLength: 5, type: "string" }
     });
 
     const cases: Case[] = [
@@ -36,6 +36,7 @@ Deno.test("Test Schema", async (t) => {
                 assertRejects(async () => await schema.validate({ name: "", username: "13391391931" }));
                 assertRejects(async () => await schema.validate({ name: "1234567891011", username: "13391391931" }));
                 assertRejects(async () => await schema.validate({ name: "0", username: "133", test: "10000000000000" }));
+                assertRejects(async () => await schema.validate({ name: "0", username: "133", test: "" }));
             }
         },
     ]
