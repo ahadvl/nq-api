@@ -2,8 +2,8 @@ import { Model, DATA_TYPES } from "denodb";
 
 const { STRING } = DATA_TYPES;
 
-class QuranSura extends Model {
-    static table = "quranSura";
+class QuranSurah extends Model {
+    static table = "quranSurah";
 
     static timestamps = false;
 
@@ -16,4 +16,4 @@ class QuranSura extends Model {
     static defaults = {};
 }
 
-export default QuranSura;
+export default QuranSurah;
