@@ -1,7 +1,0 @@
-{
-    "tasks": {
-        "run": "deno run --allow-read --allow-write --allow-env --allow-net ./main.ts",
-        "test": "deno test --allow-read --allow-write"
-    },
-    "importMap": "./import_map.json"
-}
