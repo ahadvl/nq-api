@@ -1,7 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    app_verify_code (id) {
+    app_verify_codes (id) {
         id -> Int4,
         code -> Int4,
         email -> Text,

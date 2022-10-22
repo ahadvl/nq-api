@@ -1,7 +1,6 @@
 use actix_web::{web, App, HttpServer};
 
 use diesel::pg::PgConnection;
-use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenvy::dotenv;
 use std::env;
@@ -32,6 +31,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(pool.clone()))
             .service(routers::account::send_code)
+            .service(routers::account::verify)
     })
     .bind(("0.0.0.0", 8080))?
     .run()

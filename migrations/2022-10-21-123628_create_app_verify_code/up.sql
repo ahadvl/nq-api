@@ -1,6 +1,6 @@
 -- Your SQL goes here
 
-CREATE TABLE app_verify_code (
+CREATE TABLE app_verify_codes (
     id serial NOT NULL,
     code INT NOT NULL,
     email TEXT NOT NULL,

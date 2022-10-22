@@ -1,8 +1,9 @@
-use crate::schema::app_verify_code;
+use crate::schema::app_verify_codes;
 use chrono::NaiveDateTime;
-use diesel::{Insertable, Queryable};
+use diesel::{Identifiable, Insertable, Queryable};
 
-#[derive(Queryable, Debug)]
+#[derive(Identifiable, Queryable, Debug)]
+#[diesel(table_name = app_verify_codes)]
 pub struct VerifyCode {
     pub id: i32,
     pub code: i32,
@@ -13,7 +14,7 @@ pub struct VerifyCode {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = app_verify_code)]
+#[diesel(table_name = app_verify_codes)]
 pub struct NewVerifyCode<'a> {
     pub status: &'a String,
     pub code: &'a i32,
