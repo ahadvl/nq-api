@@ -1,14 +1,12 @@
-use crate::models::{NewVerifyCode, VerifyCode};
-use crate::schema::app_verify_codes::dsl::*;
+use crate::models::{NewUser, NewVerifyCode, User, VerifyCode};
 use crate::DbPool;
 use actix_web::http::StatusCode;
 use actix_web::{post, web, HttpResponse};
+use chrono::{Duration, NaiveTime};
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
-use std::fmt::Write;
-
-use chrono::{Duration, NaiveTime};
+use sha2::{Digest, Sha256};
 
 /// Get deference between Current time and past_time
 pub fn time_deference(past_time: NaiveTime) -> Duration {
@@ -27,15 +25,51 @@ fn generate_random_code(min: i32, max: i32) -> i32 {
     num
 }
 
+#[derive(Clone)]
+pub(self) struct Token<'a> {
+    /// Target data
+    source: &'a Vec<u8>,
+
+    /// Final Generated Token
+    result: Option<String>,
+}
+
+impl<'a> Token<'a> {
+    /// Creates a new Token object
+    pub fn new(source: &'a Vec<u8>) -> Self {
+        Self {
+            source,
+            result: None,
+        }
+    }
+
+    /// Generates the final hash and set to result
+    pub fn generate(&mut self) {
+        let mut hasher = Sha256::new();
+
+        hasher.update(self.source);
+
+        self.result = Some(format!("{:x}", hasher.finalize()));
+    }
+}
+
 #[derive(Deserialize, Clone)]
 pub struct SendCodeInfo {
     email: String,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct VerifyCodeInfo {
+    email: String,
+    code: i32,
 }
 
 /// <data> -> Email,
 /// Send Random generated code to user email
 #[post("/account/sendCode")]
 pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -> HttpResponse {
+    use crate::schema::app_verify_codes::dsl::*;
+
     let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
     let mut conn = pool.get().unwrap();
 
@@ -85,25 +119,17 @@ pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -
     HttpResponse::Ok().body(result_msg)
 }
 
-#[derive(Deserialize, Clone)]
-pub struct VerifyCodeInfo {
-    email: String,
-    code: i32,
-}
-
-// TODO:
-pub struct Token {
-    result_source: [u8; 32],
-}
-
 /// Verify verification code that sended to email
 /// from /account/sendCode router
 #[post("/account/verify")]
 pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) -> HttpResponse {
+    use crate::schema::app_users;
+    use crate::schema::app_verify_codes::dsl::*;
+
     let mut conn = pool.get().unwrap();
 
     // Ok (token) , Err(Message, status_code)
-    let token: Result<Token, (String, StatusCode)> = web::block(move || {
+    let token_as_string: Result<String, (String, StatusCode)> = web::block(move || {
         let last_sended_code = app_verify_codes
             .filter(email.eq(info.clone().email))
             .order(created_at.desc())
@@ -111,7 +137,7 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             .load::<VerifyCode>(&mut conn)
             .unwrap();
 
-        if last_sended_code.len() <= 0 {
+        if last_sended_code.len() == 0 {
             return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
         }
 
@@ -139,24 +165,63 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             .execute(&mut conn)
             .unwrap();
 
-        // TODO: Create new user , Grab id and create Token
+        // Check if user exists
+        let user_from_db = app_users::dsl::app_users
+            .filter(app_users::dsl::email.eq(&info.email))
+            .load::<User>(&mut conn)
+            .unwrap();
 
-        Ok(Token {
-            result_source: [0; 32],
-        })
+        // If we dont have user with request (email) then create it
+        // else return it
+        let user: User = if &user_from_db.len() == &0 {
+            let user = NewUser {
+                email: &info.email,
+                username: &"".to_string(),
+            };
+
+            let new_user: User = diesel::insert_into(app_users::dsl::app_users)
+                .values(&user)
+                .get_result(&mut conn)
+                .unwrap();
+
+            diesel::update(app_users::dsl::app_users)
+                .set(app_users::dsl::username.eq(format!("u{}", &new_user.id)))
+                .execute(&mut conn)
+                .unwrap();
+
+            new_user.clone()
+        } else {
+            let u = user_from_db.get(0).unwrap();
+
+            u.clone()
+        };
+
+        // Some salts
+        let user_id_as_string = user.id.to_string();
+        let time_as_string = chrono::offset::Utc::now().timestamp().to_string();
+        let mut random_bytes = rand::thread_rng().gen::<[u8; 32]>().to_vec();
+
+        // source buffer for token
+        let mut source = vec![];
+
+        // append slats to the source
+        source.append(&mut user_id_as_string.as_bytes().to_vec());
+        source.append(&mut random_bytes);
+        source.append(&mut time_as_string.as_bytes().to_vec());
+
+        let mut token = Token::new(&source);
+
+        token.generate();
+
+        let result = token.result.unwrap();
+
+        Ok(result)
     })
     .await
     .unwrap();
 
-    let response = match token {
-        Ok(token) => {
-            let mut as_string = String::with_capacity(2 * 32);
-            for byte in token.result_source {
-                write!(as_string, "{:02X}", byte).unwrap();
-            }
-
-            HttpResponse::Ok().body(as_string)
-        }
+    let response = match token_as_string {
+        Ok(token) => HttpResponse::Ok().body(token),
 
         Err(error) => HttpResponse::build(error.1).body(error.0),
     };
