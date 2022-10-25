@@ -40,6 +40,7 @@ impl<'a> TokenGenerator<'a> {
         self.result = Some(format!("{:x}", hasher.finalize()));
     }
 
+    /// Returns the copy of result
     pub fn get_result(&self) -> Option<String> {
         self.result.clone()
     }
