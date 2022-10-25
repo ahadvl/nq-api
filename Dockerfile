@@ -14,7 +14,7 @@ COPY --from=builder /usr/src/nq-api/target/release/nq-api /usr/local/bin/nq-api
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt install -y systemd postgresql postgresql-contrib && apt install -y libpq-dev && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y postgresql postgresql-contrib && apt install -y libpq-dev && rm -rf /var/lib/apt/lists/*
 RUN systemctl start postgresql.service
 
 WORKDIR /usr/local/bin

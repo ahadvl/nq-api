@@ -9,6 +9,9 @@ mod models;
 mod routers;
 mod schema;
 
+use routers::account::send_code;
+use routers::account::verify;
+
 type DbPool = Pool<ConnectionManager<PgConnection>>;
 
 pub fn establish_connection() -> ConnectionManager<PgConnection> {
@@ -30,8 +33,8 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
-            .service(routers::account::send_code)
-            .service(routers::account::verify)
+            .service(send_code::send_code)
+            .service(verify::verify)
     })
     .bind(("0.0.0.0", 8080))?
     .run()
