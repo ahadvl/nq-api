@@ -11,9 +11,8 @@ use sha2::{Digest, Sha256};
 /// Get deference between Current time and past_time
 pub fn time_deference(past_time: NaiveTime) -> Duration {
     let current_date = chrono::offset::Utc::now().time();
-    let diff = current_date - past_time;
 
-    diff
+    current_date - past_time
 }
 
 const MIN_RANDOM_CODE: i32 = 100000;
@@ -83,7 +82,7 @@ pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -
             .unwrap();
 
         // Is there any code we sent ?
-        if last_sended_code.len() > 0 {
+        if !last_sended_code.is_empty() {
             let diff = time_deference(last_sended_code[0].created_at.time());
 
             // Time deference between current date and last code created_at
@@ -111,7 +110,7 @@ pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -
         // TODO: Send code here.
         // (email)
 
-        return "Code sended".to_string();
+        "Code sended".to_string()
     })
     .await
     .unwrap();
@@ -137,11 +136,11 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             .load::<VerifyCode>(&mut conn)
             .unwrap();
 
-        if last_sended_code.len() == 0 {
+        if last_sended_code.is_empty() {
             return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
         }
 
-        if last_sended_code[0].status == "used".to_string() {
+        if last_sended_code[0].status == *"used".to_string() {
             return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
         }
 
@@ -173,7 +172,7 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
 
         // If we dont have user with request (email) then create it
         // else return it
-        let user: User = if &user_from_db.len() == &0 {
+        let user: User = if user_from_db.is_empty() {
             let user = NewUser {
                 email: &info.email,
                 username: &"".to_string(),
@@ -189,7 +188,7 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
                 .execute(&mut conn)
                 .unwrap();
 
-            new_user.clone()
+            new_user
         } else {
             let u = user_from_db.get(0).unwrap();
 
@@ -220,11 +219,9 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
     .await
     .unwrap();
 
-    let response = match token_as_string {
+    match token_as_string {
         Ok(token) => HttpResponse::Ok().body(token),
 
         Err(error) => HttpResponse::build(error.1).body(error.0),
-    };
-
-    response
+    }
 }
