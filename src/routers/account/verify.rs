@@ -1,28 +1,12 @@
-use crate::models::{NewToken, NewUser, NewVerifyCode, User, VerifyCode};
+use super::time_deference;
+use crate::models::{NewToken, NewUser, User, VerifyCode};
 use crate::DbPool;
 use actix_web::http::StatusCode;
 use actix_web::{post, web, HttpResponse};
-use chrono::{Duration, NaiveTime};
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
-
-/// Get deference between Current time and past_time
-pub fn time_deference(past_time: NaiveTime) -> Duration {
-    let current_date = chrono::offset::Utc::now().time();
-
-    current_date - past_time
-}
-
-const MIN_RANDOM_CODE: i32 = 100000;
-const MAX_RANDOM_CODE: i32 = 999999;
-
-fn generate_random_code(min: i32, max: i32) -> i32 {
-    let num: i32 = rand::thread_rng().gen_range(min..max);
-
-    num
-}
 
 #[derive(Clone)]
 pub(self) struct TokenGenerator<'a> {
@@ -42,6 +26,11 @@ impl<'a> TokenGenerator<'a> {
         }
     }
 
+    /// Change the source
+    pub fn set_source(&mut self, new_source: &'a Vec<u8>) {
+        self.source = new_source;
+    }
+
     /// Generates the final hash and set to result
     pub fn generate(&mut self) {
         let mut hasher = Sha256::new();
@@ -50,72 +39,16 @@ impl<'a> TokenGenerator<'a> {
 
         self.result = Some(format!("{:x}", hasher.finalize()));
     }
-}
 
-#[derive(Deserialize, Clone)]
-pub struct SendCodeInfo {
-    email: String,
+    pub fn get_result(&self) -> Option<String> {
+        self.result.clone()
+    }
 }
 
 #[derive(Deserialize, Clone)]
 pub struct VerifyCodeInfo {
     email: String,
     code: i32,
-}
-
-/// <data> -> Email,
-/// Send Random generated code to user email
-#[post("/account/sendCode")]
-pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -> HttpResponse {
-    use crate::schema::app_verify_codes::dsl::*;
-
-    let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
-    let mut conn = pool.get().unwrap();
-
-    let result_msg = web::block(move || {
-        // Get last sended code, order by created_at
-        let last_sended_code = app_verify_codes
-            .filter(email.eq(&info.email))
-            .order(created_at.desc())
-            .limit(1)
-            .load::<VerifyCode>(&mut conn)
-            .unwrap();
-
-        // Is there any code we sent ?
-        if !last_sended_code.is_empty() {
-            let diff = time_deference(last_sended_code[0].created_at.time());
-
-            // Time deference between current date and last code created_at
-
-            // Check if code not expired
-            if diff.num_seconds() < 5 {
-                // TODO: Send same code here, do not create a new code
-                return "Code sended :)".to_string();
-            }
-        }
-
-        // Create new code
-        let new_code = NewVerifyCode {
-            code: &random_code,
-            email: &info.email,
-            status: &"notUsed".to_string(),
-        };
-
-        // Insert code to app_verify_code table
-        diesel::insert_into(app_verify_codes)
-            .values(&new_code)
-            .execute(&mut conn)
-            .unwrap();
-
-        // TODO: Send code here.
-        // (email)
-
-        "Code sended".to_string()
-    })
-    .await
-    .unwrap();
-
-    HttpResponse::Ok().body(result_msg)
 }
 
 /// Verify verification code that sended to email
@@ -213,11 +146,21 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
 
         token.generate();
 
-        let result = token.result.unwrap();
+        let result = token.get_result().unwrap();
+
+        // Hash the token itself
+        let token_hash = {
+            let result_bytes = result.as_bytes().to_vec();
+
+            token.set_source(&result_bytes);
+            token.generate();
+
+            token.get_result().unwrap()
+        };
 
         let new_token = NewToken {
             user_id: &user.id,
-            token: &result,
+            token: &token_hash,
         };
 
         // Save token to the Db
