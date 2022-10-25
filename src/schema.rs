@@ -4,7 +4,7 @@ diesel::table! {
     app_tokens (id) {
         id -> Int4,
         user_id -> Int4,
-        token -> Varchar,
+        token_hash -> Varchar,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }

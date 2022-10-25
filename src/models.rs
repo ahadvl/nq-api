@@ -38,12 +38,12 @@ pub struct NewUser<'a> {
     pub email: &'a String,
 }
 
-#[derive(Identifiable, Queryable, Debug, Clone)]
+#[derive(Queryable, Debug, Clone)]
 #[diesel(table_name = app_tokens)]
 pub struct Token {
     pub id: i32,
     pub user_id: i32,
-    pub token: String,
+    pub token_hash: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -52,5 +52,5 @@ pub struct Token {
 #[diesel(table_name = app_tokens)]
 pub struct NewToken<'a> {
     pub user_id: &'a i32,
-    pub token: &'a String,
+    pub token_hash: &'a String,
 }

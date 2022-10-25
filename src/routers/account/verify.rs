@@ -118,7 +118,7 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
                 .get_result(&mut conn)
                 .unwrap();
 
-            diesel::update(app_users::dsl::app_users)
+            diesel::update(&new_user)
                 .set(app_users::dsl::username.eq(format!("u{}", &new_user.id)))
                 .execute(&mut conn)
                 .unwrap();
@@ -161,7 +161,7 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
 
         let new_token = NewToken {
             user_id: &user.id,
-            token: &token_hash,
+            token_hash: &token_hash,
         };
 
         // Save token to the Db
