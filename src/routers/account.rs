@@ -203,7 +203,7 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
         // source buffer for token
         let mut source = vec![];
 
-        // append slats to the source
+        // append salts to the source
         source.append(&mut user_id_as_string.as_bytes().to_vec());
         source.append(&mut random_bytes);
         source.append(&mut time_as_string.as_bytes().to_vec());
