@@ -1,6 +1,16 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    app_tokens (id) {
+        id -> Int4,
+        user_id -> Int4,
+        token -> Varchar,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     app_users (id) {
         id -> Int4,
         username -> Varchar,
@@ -21,7 +31,4 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(
-    app_users,
-    app_verify_codes,
-);
+diesel::allow_tables_to_appear_in_same_query!(app_tokens, app_users, app_verify_codes);

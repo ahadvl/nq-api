@@ -1,4 +1,4 @@
-use crate::models::{NewUser, NewVerifyCode, User, VerifyCode};
+use crate::models::{NewToken, NewUser, NewVerifyCode, User, VerifyCode};
 use crate::DbPool;
 use actix_web::http::StatusCode;
 use actix_web::{post, web, HttpResponse};
@@ -25,7 +25,7 @@ fn generate_random_code(min: i32, max: i32) -> i32 {
 }
 
 #[derive(Clone)]
-pub(self) struct Token<'a> {
+pub(self) struct TokenGenerator<'a> {
     /// Target data
     source: &'a Vec<u8>,
 
@@ -33,7 +33,7 @@ pub(self) struct Token<'a> {
     result: Option<String>,
 }
 
-impl<'a> Token<'a> {
+impl<'a> TokenGenerator<'a> {
     /// Creates a new Token object
     pub fn new(source: &'a Vec<u8>) -> Self {
         Self {
@@ -122,6 +122,7 @@ pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -
 /// from /account/sendCode router
 #[post("/account/verify")]
 pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) -> HttpResponse {
+    use crate::schema::app_tokens;
     use crate::schema::app_users;
     use crate::schema::app_verify_codes::dsl::*;
 
@@ -208,11 +209,22 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
         source.append(&mut random_bytes);
         source.append(&mut time_as_string.as_bytes().to_vec());
 
-        let mut token = Token::new(&source);
+        let mut token = TokenGenerator::new(&source);
 
         token.generate();
 
         let result = token.result.unwrap();
+
+        let new_token = NewToken {
+            user_id: &user.id,
+            token: &result,
+        };
+
+        // Save token to the Db
+        diesel::insert_into(app_tokens::dsl::app_tokens)
+            .values(&new_token)
+            .execute(&mut conn)
+            .unwrap();
 
         Ok(result)
     })
