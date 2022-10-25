@@ -1,6 +1,5 @@
 use super::time_deference;
 use crate::models::{NewVerifyCode, VerifyCode};
-use crate::schema::app_verify_codes::dsl::*;
 use crate::DbPool;
 use actix_web::{post, web, HttpResponse};
 use diesel::prelude::*;
@@ -25,6 +24,8 @@ pub struct SendCodeInfo {
 /// Send Random generated code to user email
 #[post("/account/sendCode")]
 pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -> HttpResponse {
+    use crate::schema::app_verify_codes::dsl::*;
+
     let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
     let mut conn = pool.get().unwrap();
 
@@ -38,7 +39,7 @@ pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -
             .unwrap();
 
         // Is there any code we sent ?
-        if last_sended_code.len() > 0 {
+        if !last_sended_code.is_empty() {
             let diff = time_deference(last_sended_code[0].created_at.time());
 
             // Time deference between current date and last code created_at
