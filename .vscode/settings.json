@@ -1,8 +1,0 @@
-{
-    "deno.enable": true,
-    "deno.unstable": true,
-    "deno.testing.args": [
-        "--allow-read",
-        "--allow-write",
-    ]
-}
