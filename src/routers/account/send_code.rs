@@ -1,4 +1,5 @@
 use super::time_deference;
+use crate::email::EmailManager;
 use crate::models::{NewVerifyCode, VerifyCode};
 use crate::DbPool;
 use actix_web::{post, web, HttpResponse};
@@ -23,16 +24,21 @@ pub struct SendCodeInfo {
 /// <data> -> Email,
 /// Send Random generated code to user email
 #[post("/account/sendCode")]
-pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -> HttpResponse {
+pub async fn send_code(
+    pool: web::Data<DbPool>,
+    emailer: web::Data<EmailManager>,
+    info: web::Json<SendCodeInfo>,
+) -> HttpResponse {
     use crate::schema::app_verify_codes::dsl::*;
 
     let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
     let mut conn = pool.get().unwrap();
+    let info_copy = info.clone();
 
-    let result_msg = web::block(move || {
+    let final_code: String = web::block(move || {
         // Get last sended code, order by created_at
         let last_sended_code = app_verify_codes
-            .filter(email.eq(&info.email))
+            .filter(email.eq(&info_copy.email))
             .order(created_at.desc())
             .limit(1)
             .load::<VerifyCode>(&mut conn)
@@ -46,15 +52,14 @@ pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -
 
             // Check if code not expired
             if diff.num_seconds() < 5 {
-                // TODO: Send same code here, do not create a new code
-                return "Code sended :)".to_string();
+                return random_code.to_string();
             }
         }
 
         // Create new code
         let new_code = NewVerifyCode {
             code: &random_code,
-            email: &info.email,
+            email: &info_copy.email,
             status: &"notUsed".to_string(),
         };
 
@@ -64,13 +69,19 @@ pub async fn send_code(pool: web::Data<DbPool>, info: web::Json<SendCodeInfo>) -
             .execute(&mut conn)
             .unwrap();
 
-        // TODO: Send code here.
-        // (email)
-
-        "Code sended".to_string()
+        random_code.to_string()
     })
     .await
     .unwrap();
 
-    HttpResponse::Ok().body(result_msg)
+    emailer
+        .send_email(
+            &info.email,
+            &"Verification Code",
+            format!("Code: {}", final_code),
+        )
+        .await
+        .unwrap();
+
+    HttpResponse::Ok().body("Code Sended.")
 }
