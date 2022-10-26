@@ -22,18 +22,14 @@ fn create_emailer() -> EmailManager {
 
     let host = env::var("SMTP_HOST").expect("SMTP_HOST must be set");
     let port = env::var("SMTP_PORT").expect("SMTP_PORT must be set");
+    let from = env::var("SMTP_FROM").expect("SMTP_FROM must be set");
     let username = env::var("SMTP_USERNAME").expect("SMTP_USERNAME must be set");
     let password = env::var("SMTP_PASSWORD").expect("SMTP_PASSWORD must be set");
 
     let credentials = Credentials::new(username, password);
 
-    EmailManager::new(
-        &host,
-        port.parse().unwrap(),
-        credentials,
-        "telifesite@gmail.com".to_string(),
-    )
-    .expect("Cant create EmailManager")
+    EmailManager::new(&host, port.parse().unwrap(), credentials, from)
+        .expect("Cant create EmailManager")
 }
 
 fn establish_connection() -> ConnectionManager<PgConnection> {

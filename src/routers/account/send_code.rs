@@ -74,14 +74,16 @@ pub async fn send_code(
     .await
     .unwrap();
 
-    emailer
+    let result = emailer
         .send_email(
             &info.email,
             &"Verification Code",
             format!("Code: {}", final_code),
         )
-        .await
-        .unwrap();
+        .await;
 
-    HttpResponse::Ok().body("Code Sended.")
+    match result {
+        Ok(()) => HttpResponse::Ok().body("Code Sended."),
+        Err(_error) => HttpResponse::InternalServerError().body("Cant send code."),
+    }
 }
