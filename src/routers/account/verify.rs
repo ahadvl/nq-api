@@ -130,6 +130,7 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             u.clone()
         };
 
+        // TODO: create function to create token operation
         // Some salts
         let user_id_as_string = user.id.to_string();
         let time_as_string = chrono::offset::Utc::now().timestamp().to_string();

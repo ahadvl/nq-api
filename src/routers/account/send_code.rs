@@ -31,6 +31,7 @@ pub async fn send_code(
 ) -> HttpResponse {
     use crate::schema::app_verify_codes::dsl::*;
 
+    // TODO: validate Email
     let info_copy = info.clone();
 
     let final_code: String = web::block(move || {
@@ -50,7 +51,9 @@ pub async fn send_code(
             let diff = time_deference(last_sended_code[0].created_at.time());
 
             // Check if code not expired
-            if diff.num_seconds() < 5 {
+            if diff.num_seconds() < 10 {
+                // TODO: Dont send code to email
+                // return code is sended.
                 return random_code.to_string();
             }
         }
