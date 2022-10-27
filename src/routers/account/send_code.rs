@@ -31,11 +31,12 @@ pub async fn send_code(
 ) -> HttpResponse {
     use crate::schema::app_verify_codes::dsl::*;
 
-    let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
-    let mut conn = pool.get().unwrap();
     let info_copy = info.clone();
 
     let final_code: String = web::block(move || {
+        let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
+        let mut conn = pool.get().unwrap();
+
         // Get last sended code, order by created_at
         let last_sended_code = app_verify_codes
             .filter(email.eq(&info_copy.email))
@@ -47,8 +48,6 @@ pub async fn send_code(
         // Is there any code we sent ?
         if !last_sended_code.is_empty() {
             let diff = time_deference(last_sended_code[0].created_at.time());
-
-            // Time deference between current date and last code created_at
 
             // Check if code not expired
             if diff.num_seconds() < 5 {
@@ -77,7 +76,7 @@ pub async fn send_code(
     let result = emailer
         .send_email(
             &info.email,
-            &"Verification Code",
+            "Verification Code",
             format!("Code: {}", final_code),
         )
         .await;
