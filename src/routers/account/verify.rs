@@ -1,12 +1,50 @@
 use super::time_deference;
-use crate::models::VerifyCode;
-use crate::schema::app_verify_codes::dsl::*;
+use crate::models::{NewToken, NewUser, User, VerifyCode};
 use crate::DbPool;
 use actix_web::http::StatusCode;
 use actix_web::{post, web, HttpResponse};
 use diesel::prelude::*;
+use rand::Rng;
 use serde::Deserialize;
-use std::fmt::Write;
+use sha2::{Digest, Sha256};
+
+#[derive(Clone)]
+pub(self) struct TokenGenerator<'a> {
+    /// Target data
+    source: &'a Vec<u8>,
+
+    /// Final Generated Token
+    result: Option<String>,
+}
+
+impl<'a> TokenGenerator<'a> {
+    /// Creates a new Token object
+    pub fn new(source: &'a Vec<u8>) -> Self {
+        Self {
+            source,
+            result: None,
+        }
+    }
+
+    /// Change the source
+    pub fn set_source(&mut self, new_source: &'a Vec<u8>) {
+        self.source = new_source;
+    }
+
+    /// Generates the final hash and set to result
+    pub fn generate(&mut self) {
+        let mut hasher = Sha256::new();
+
+        hasher.update(self.source);
+
+        self.result = Some(format!("{:x}", hasher.finalize()));
+    }
+
+    /// Returns the copy of result
+    pub fn get_result(&self) -> Option<String> {
+        self.result.clone()
+    }
+}
 
 #[derive(Deserialize, Clone)]
 pub struct VerifyCodeInfo {
@@ -14,19 +52,18 @@ pub struct VerifyCodeInfo {
     code: i32,
 }
 
-// TODO:
-pub struct Token {
-    result_source: [u8; 32],
-}
-
 /// Verify verification code that sended to email
 /// from /account/sendCode router
 #[post("/account/verify")]
 pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) -> HttpResponse {
+    use crate::schema::app_tokens;
+    use crate::schema::app_users;
+    use crate::schema::app_verify_codes::dsl::*;
+
     let mut conn = pool.get().unwrap();
 
     // Ok (token) , Err(Message, status_code)
-    let token: Result<Token, (String, StatusCode)> = web::block(move || {
+    let token_as_string: Result<String, (String, StatusCode)> = web::block(move || {
         let last_sended_code = app_verify_codes
             .filter(email.eq(info.clone().email))
             .order(created_at.desc())
@@ -34,11 +71,11 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             .load::<VerifyCode>(&mut conn)
             .unwrap();
 
-        if last_sended_code.len() <= 0 {
+        if last_sended_code.is_empty() {
             return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
         }
 
-        if last_sended_code[0].status == "used".to_string() {
+        if last_sended_code[0].status == *"used".to_string() {
             return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
         }
 
@@ -62,27 +99,85 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             .execute(&mut conn)
             .unwrap();
 
-        // TODO: Create new user , Grab id and create Token
+        // Check if user exists
+        let user_from_db = app_users::dsl::app_users
+            .filter(app_users::dsl::email.eq(&info.email))
+            .load::<User>(&mut conn)
+            .unwrap();
 
-        Ok(Token {
-            result_source: [0; 32],
-        })
+        // If we dont have user with request (email) then create it
+        // else return it
+        let user: User = if user_from_db.is_empty() {
+            let user = NewUser {
+                email: &info.email,
+                username: &"".to_string(),
+            };
+
+            let new_user: User = diesel::insert_into(app_users::dsl::app_users)
+                .values(&user)
+                .get_result(&mut conn)
+                .unwrap();
+
+            diesel::update(&new_user)
+                .set(app_users::dsl::username.eq(format!("u{}", &new_user.id)))
+                .execute(&mut conn)
+                .unwrap();
+
+            new_user
+        } else {
+            let u = user_from_db.get(0).unwrap();
+
+            u.clone()
+        };
+
+        // Some salts
+        let user_id_as_string = user.id.to_string();
+        let time_as_string = chrono::offset::Utc::now().timestamp().to_string();
+        let mut random_bytes = rand::thread_rng().gen::<[u8; 32]>().to_vec();
+
+        // source buffer for token
+        let mut source = vec![];
+
+        // append salts to the source
+        source.append(&mut user_id_as_string.as_bytes().to_vec());
+        source.append(&mut random_bytes);
+        source.append(&mut time_as_string.as_bytes().to_vec());
+
+        let mut token = TokenGenerator::new(&source);
+
+        token.generate();
+
+        let result = token.get_result().unwrap();
+
+        // Hash the token itself
+        let token_hash = {
+            let result_bytes = result.as_bytes().to_vec();
+
+            token.set_source(&result_bytes);
+            token.generate();
+
+            token.get_result().unwrap()
+        };
+
+        let new_token = NewToken {
+            user_id: &user.id,
+            token_hash: &token_hash,
+        };
+
+        // Save token to the Db
+        diesel::insert_into(app_tokens::dsl::app_tokens)
+            .values(&new_token)
+            .execute(&mut conn)
+            .unwrap();
+
+        Ok(result)
     })
     .await
     .unwrap();
 
-    let response = match token {
-        Ok(token) => {
-            let mut as_string = String::with_capacity(2 * 32);
-            for byte in token.result_source {
-                write!(as_string, "{:02X}", byte).unwrap();
-            }
-
-            HttpResponse::Ok().body(as_string)
-        }
+    match token_as_string {
+        Ok(token) => HttpResponse::Ok().body(token),
 
         Err(error) => HttpResponse::build(error.1).body(error.0),
-    };
-
-    response
+    }
 }
