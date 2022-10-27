@@ -60,10 +60,10 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
     use crate::schema::app_users;
     use crate::schema::app_verify_codes::dsl::*;
 
-    let mut conn = pool.get().unwrap();
-
     // Ok (token) , Err(Message, status_code)
     let token_as_string: Result<String, (String, StatusCode)> = web::block(move || {
+        let mut conn = pool.get().unwrap();
+
         let last_sended_code = app_verify_codes
             .filter(email.eq(info.clone().email))
             .order(created_at.desc())
