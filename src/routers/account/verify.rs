@@ -1,12 +1,13 @@
-use super::time_deference;
+use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
 use crate::models::{NewToken, NewUser, User, VerifyCode};
-use crate::DbPool;
+use crate::{validate::validate, DbPool};
 use actix_web::http::StatusCode;
-use actix_web::{post, web, HttpResponse};
+use actix_web::{post, web, Error, HttpResponse};
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+use validator::Validate;
 
 #[derive(Clone)]
 pub(self) struct TokenGenerator<'a> {
@@ -46,19 +47,27 @@ impl<'a> TokenGenerator<'a> {
     }
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Validate)]
 pub struct VerifyCodeInfo {
+    #[validate(email)]
     email: String,
+
+    #[validate(range(min = "MIN_RANDOM_CODE", max = "MAX_RANDOM_CODE"))]
     code: i32,
 }
 
 /// Verify verification code that sended to email
 /// from /account/sendCode router
 #[post("/account/verify")]
-pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) -> HttpResponse {
+pub async fn verify(
+    pool: web::Data<DbPool>,
+    info: web::Json<VerifyCodeInfo>,
+) -> Result<HttpResponse, Error> {
     use crate::schema::app_tokens;
     use crate::schema::app_users;
     use crate::schema::app_verify_codes::dsl::*;
+
+    validate(&info.0)?;
 
     // Ok (token) , Err(Message, status_code)
     let token_as_string: Result<String, (String, StatusCode)> = web::block(move || {
@@ -177,8 +186,8 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
     .unwrap();
 
     match token_as_string {
-        Ok(token) => HttpResponse::Ok().body(token),
+        Ok(token) => Ok(HttpResponse::Ok().body(token)),
 
-        Err(error) => HttpResponse::build(error.1).body(error.0),
+        Err(error) => Ok(HttpResponse::build(error.1).body(error.0)),
     }
 }

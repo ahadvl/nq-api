@@ -1,14 +1,13 @@
-use super::time_deference;
+use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
 use crate::email::EmailManager;
 use crate::models::{NewVerifyCode, VerifyCode};
+use crate::validate::validate;
 use crate::DbPool;
-use actix_web::{post, web, HttpResponse};
+use actix_web::{post, web, Error, HttpResponse};
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
-
-const MIN_RANDOM_CODE: i32 = 100000;
-const MAX_RANDOM_CODE: i32 = 999999;
+use validator::Validate;
 
 pub fn generate_random_code(min: i32, max: i32) -> i32 {
     let num: i32 = rand::thread_rng().gen_range(min..max);
@@ -16,8 +15,9 @@ pub fn generate_random_code(min: i32, max: i32) -> i32 {
     num
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Validate)]
 pub struct SendCodeInfo {
+    #[validate(email)]
     email: String,
 }
 
@@ -28,10 +28,11 @@ pub async fn send_code(
     pool: web::Data<DbPool>,
     emailer: web::Data<EmailManager>,
     info: web::Json<SendCodeInfo>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     use crate::schema::app_verify_codes::dsl::*;
 
-    // TODO: validate Email
+    validate(&info.0)?;
+
     let info_copy = info.clone();
 
     let final_code: String = web::block(move || {
@@ -85,7 +86,7 @@ pub async fn send_code(
         .await;
 
     match result {
-        Ok(()) => HttpResponse::Ok().body("Code Sended."),
-        Err(_error) => HttpResponse::InternalServerError().body("Cant send code."),
+        Ok(()) => Ok(HttpResponse::Ok().body("Code Sended.")),
+        Err(_error) => Ok(HttpResponse::InternalServerError().body("Cant send code.")),
     }
 }
