@@ -3,16 +3,27 @@ use crate::email::EmailManager;
 use crate::models::{NewVerifyCode, VerifyCode};
 use crate::validate::validate;
 use crate::DbPool;
-use actix_web::{post, web, Error, HttpResponse};
+use actix_web::{error, post, web, Error, HttpResponse};
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
 use validator::Validate;
 
+/// Generate random code with range (min, max)
 pub fn generate_random_code(min: i32, max: i32) -> i32 {
     let num: i32 = rand::thread_rng().gen_range(min..max);
 
     num
+}
+
+enum SendCodeStatus {
+    /// This means we need to send code
+    /// to email
+    SendCode(String),
+
+    /// This means we already sended code
+    /// in past 10 seconds
+    AlreadySent,
 }
 
 #[derive(Deserialize, Clone, Validate)]
@@ -35,7 +46,7 @@ pub async fn send_code(
 
     let info_copy = info.clone();
 
-    let final_code: String = web::block(move || {
+    let send_status: SendCodeStatus = web::block(move || {
         let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
         let mut conn = pool.get().unwrap();
 
@@ -55,7 +66,7 @@ pub async fn send_code(
             if diff.num_seconds() < 10 {
                 // TODO: Dont send code to email
                 // return code is sended.
-                return random_code.to_string();
+                return SendCodeStatus::AlreadySent;
             }
         }
 
@@ -72,21 +83,27 @@ pub async fn send_code(
             .execute(&mut conn)
             .unwrap();
 
-        random_code.to_string()
+        SendCodeStatus::SendCode(random_code.to_string())
     })
     .await
     .unwrap();
 
-    let result = emailer
-        .send_email(
-            &info.email,
-            "Verification Code",
-            format!("Code: {}", final_code),
-        )
-        .await;
+    match send_status {
+        SendCodeStatus::SendCode(new_code) => {
+            let result = emailer
+                .send_email(
+                    &info.email,
+                    "Verification Code",
+                    format!("Code: {}", new_code),
+                )
+                .await;
 
-    match result {
-        Ok(()) => Ok(HttpResponse::Ok().body("Code Sended.")),
-        Err(_error) => Ok(HttpResponse::InternalServerError().body("Cant send code.")),
+            match result {
+                Ok(()) => Ok(HttpResponse::Ok().body("Code sended")),
+                // TODO: maybe its not good idea to send error here
+                Err(error) => Err(error::ErrorInternalServerError(error)),
+            }
+        }
+        SendCodeStatus::AlreadySent => Ok(HttpResponse::Ok().body("Already sent")),
     }
 }
