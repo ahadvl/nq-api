@@ -11,9 +11,11 @@ mod email;
 mod models;
 mod routers;
 mod schema;
+mod validate;
 
 use routers::account::send_code;
 use routers::account::verify;
+use routers::quran::quran;
 
 type DbPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -56,6 +58,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(mailer.clone()))
             .service(send_code::send_code)
             .service(verify::verify)
+            .service(quran::quran)
     })
     .bind(("0.0.0.0", 8080))?
     .run()
