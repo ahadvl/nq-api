@@ -3,8 +3,8 @@
 diesel::table! {
     quran_text (id) {
         id -> Int4,
-        surah -> Int4,
-        verse -> Int4,
+        surah_id -> Int4,
+        verse_number -> Int4,
         text -> Text,
     }
 }

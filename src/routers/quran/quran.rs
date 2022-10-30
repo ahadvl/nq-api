@@ -31,7 +31,7 @@ pub async fn quran(
         // Get quran surahs
         // example BETWEEN 1 to 100
         quran_text
-            .filter(surah.between(query.from as i32, query.to as i32))
+            .filter(surah_id.between(query.from as i32, query.to as i32))
             .load::<models::QuranText>(&mut conn)
             .unwrap()
     })

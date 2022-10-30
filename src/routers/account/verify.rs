@@ -186,6 +186,7 @@ pub async fn verify(
     .unwrap();
 
     match token_as_string {
+        // TODO: get status code from result ( 200 or 201 )
         Ok(token) => Ok(HttpResponse::Ok().body(token)),
 
         Err(error) => Ok(HttpResponse::build(error.1).body(error.0)),
