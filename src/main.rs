@@ -9,9 +9,9 @@ use std::env;
 
 mod email;
 mod models;
-mod query_validator;
 mod routers;
 mod schema;
+mod validate;
 
 use routers::account::send_code;
 use routers::account::verify;
