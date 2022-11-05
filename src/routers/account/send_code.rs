@@ -1,23 +1,34 @@
-use super::time_deference;
+use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
 use crate::email::EmailManager;
 use crate::models::{NewVerifyCode, VerifyCode};
+use crate::validate::validate;
 use crate::DbPool;
-use actix_web::{post, web, HttpResponse};
+use actix_web::{error, post, web, Error, HttpResponse};
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
+use validator::Validate;
 
-const MIN_RANDOM_CODE: i32 = 100000;
-const MAX_RANDOM_CODE: i32 = 999999;
-
+/// Generate random code with range (min, max)
 pub fn generate_random_code(min: i32, max: i32) -> i32 {
     let num: i32 = rand::thread_rng().gen_range(min..max);
 
     num
 }
 
-#[derive(Deserialize, Clone)]
+enum SendCodeStatus {
+    /// This means we need to send code
+    /// to email
+    SendCode(String),
+
+    /// This means we already sended code
+    /// in past 10 seconds
+    AlreadySent,
+}
+
+#[derive(Deserialize, Clone, Validate)]
 pub struct SendCodeInfo {
+    #[validate(email)]
     email: String,
 }
 
@@ -28,12 +39,14 @@ pub async fn send_code(
     pool: web::Data<DbPool>,
     emailer: web::Data<EmailManager>,
     info: web::Json<SendCodeInfo>,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     use crate::schema::app_verify_codes::dsl::*;
+
+    validate(&info.0)?;
 
     let info_copy = info.clone();
 
-    let final_code: String = web::block(move || {
+    let send_status: SendCodeStatus = web::block(move || {
         let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
         let mut conn = pool.get().unwrap();
 
@@ -50,8 +63,8 @@ pub async fn send_code(
             let diff = time_deference(last_sended_code[0].created_at.time());
 
             // Check if code not expired
-            if diff.num_seconds() < 5 {
-                return random_code.to_string();
+            if diff.num_seconds() < 10 {
+                return SendCodeStatus::AlreadySent;
             }
         }
 
@@ -68,21 +81,27 @@ pub async fn send_code(
             .execute(&mut conn)
             .unwrap();
 
-        random_code.to_string()
+        SendCodeStatus::SendCode(random_code.to_string())
     })
     .await
     .unwrap();
 
-    let result = emailer
-        .send_email(
-            &info.email,
-            "Verification Code",
-            format!("Code: {}", final_code),
-        )
-        .await;
+    match send_status {
+        SendCodeStatus::SendCode(new_code) => {
+            let result = emailer
+                .send_email(
+                    &info.email,
+                    "Verification Code",
+                    format!("Code: {}", new_code),
+                )
+                .await;
 
-    match result {
-        Ok(()) => HttpResponse::Ok().body("Code Sended."),
-        Err(_error) => HttpResponse::InternalServerError().body("Cant send code."),
+            match result {
+                Ok(()) => Ok(HttpResponse::Ok().body("Code sended")),
+                // TODO: maybe its not good idea to send error here
+                Err(error) => Err(error::ErrorInternalServerError(error)),
+            }
+        }
+        SendCodeStatus::AlreadySent => Ok(HttpResponse::Ok().body("Already sent")),
     }
 }

@@ -1,12 +1,13 @@
-use super::time_deference;
+use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
 use crate::models::{NewToken, NewUser, User, VerifyCode};
-use crate::DbPool;
+use crate::{validate::validate, DbPool};
 use actix_web::http::StatusCode;
-use actix_web::{post, web, HttpResponse};
+use actix_web::{post, web, Error, HttpResponse};
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+use validator::Validate;
 
 #[derive(Clone)]
 pub(self) struct TokenGenerator<'a> {
@@ -46,24 +47,31 @@ impl<'a> TokenGenerator<'a> {
     }
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Validate)]
 pub struct VerifyCodeInfo {
+    #[validate(email)]
     email: String,
+
+    #[validate(range(min = "MIN_RANDOM_CODE", max = "MAX_RANDOM_CODE"))]
     code: i32,
 }
 
 /// Verify verification code that sended to email
 /// from /account/sendCode router
 #[post("/account/verify")]
-pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) -> HttpResponse {
+pub async fn verify(
+    pool: web::Data<DbPool>,
+    info: web::Json<VerifyCodeInfo>,
+) -> Result<HttpResponse, Error> {
     use crate::schema::app_tokens;
     use crate::schema::app_users;
     use crate::schema::app_verify_codes::dsl::*;
 
-    let mut conn = pool.get().unwrap();
+    validate(&info.0)?;
 
-    // Ok (token) , Err(Message, status_code)
-    let token_as_string: Result<String, (String, StatusCode)> = web::block(move || {
+    let result: (String, StatusCode) = web::block(move || {
+        let mut conn = pool.get().unwrap();
+
         let last_sended_code = app_verify_codes
             .filter(email.eq(info.clone().email))
             .order(created_at.desc())
@@ -72,11 +80,11 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             .unwrap();
 
         if last_sended_code.is_empty() {
-            return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
+            return ("Code is not valid".to_string(), StatusCode::NOT_FOUND);
         }
 
         if last_sended_code[0].status == *"used".to_string() {
-            return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
+            return ("Code is not valid".to_string(), StatusCode::NOT_FOUND);
         }
 
         let diff = time_deference(last_sended_code[0].created_at.time());
@@ -86,11 +94,11 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             // The requested resource is no longer available at the server and no forwarding
             // address is known. This condition is expected to be considered permanent.
 
-            return Err(("Code expired".to_string(), StatusCode::GONE));
+            return ("Code expired".to_string(), StatusCode::GONE);
         }
 
         if last_sended_code[0].code != info.code {
-            return Err(("Code is not correct".to_string(), StatusCode::NOT_FOUND));
+            return ("Code is not correct".to_string(), StatusCode::NOT_FOUND);
         }
 
         // Everything is ok now change code status to used
@@ -170,14 +178,10 @@ pub async fn verify(pool: web::Data<DbPool>, info: web::Json<VerifyCodeInfo>) ->
             .execute(&mut conn)
             .unwrap();
 
-        Ok(result)
+        (result, StatusCode::OK)
     })
     .await
     .unwrap();
 
-    match token_as_string {
-        Ok(token) => HttpResponse::Ok().body(token),
-
-        Err(error) => HttpResponse::build(error.1).body(error.0),
-    }
+    Ok(HttpResponse::build(result.1).body(result.0))
 }
