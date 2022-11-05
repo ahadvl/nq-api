@@ -69,8 +69,7 @@ pub async fn verify(
 
     validate(&info.0)?;
 
-    // Ok (token) , Err(Message, status_code)
-    let token_as_string: Result<String, (String, StatusCode)> = web::block(move || {
+    let result: (String, StatusCode) = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         let last_sended_code = app_verify_codes
@@ -81,11 +80,11 @@ pub async fn verify(
             .unwrap();
 
         if last_sended_code.is_empty() {
-            return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
+            return ("Code is not valid".to_string(), StatusCode::NOT_FOUND);
         }
 
         if last_sended_code[0].status == *"used".to_string() {
-            return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
+            return ("Code is not valid".to_string(), StatusCode::NOT_FOUND);
         }
 
         let diff = time_deference(last_sended_code[0].created_at.time());
@@ -95,11 +94,11 @@ pub async fn verify(
             // The requested resource is no longer available at the server and no forwarding
             // address is known. This condition is expected to be considered permanent.
 
-            return Err(("Code expired".to_string(), StatusCode::GONE));
+            return ("Code expired".to_string(), StatusCode::GONE);
         }
 
         if last_sended_code[0].code != info.code {
-            return Err(("Code is not correct".to_string(), StatusCode::NOT_FOUND));
+            return ("Code is not correct".to_string(), StatusCode::NOT_FOUND);
         }
 
         // Everything is ok now change code status to used
@@ -139,7 +138,6 @@ pub async fn verify(
             u.clone()
         };
 
-        // TODO: create function to create token operation
         // Some salts
         let user_id_as_string = user.id.to_string();
         let time_as_string = chrono::offset::Utc::now().timestamp().to_string();
@@ -180,15 +178,10 @@ pub async fn verify(
             .execute(&mut conn)
             .unwrap();
 
-        Ok(result)
+        (result, StatusCode::OK)
     })
     .await
     .unwrap();
 
-    match token_as_string {
-        // TODO: get status code from result ( 200 or 201 )
-        Ok(token) => Ok(HttpResponse::Ok().body(token)),
-
-        Err(error) => Ok(HttpResponse::build(error.1).body(error.0)),
-    }
+    Ok(HttpResponse::build(result.1).body(result.0))
 }
