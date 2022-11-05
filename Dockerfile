@@ -14,9 +14,15 @@ COPY --from=builder /usr/src/nq-api/target/release/nq-api /usr/local/bin/nq-api
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt install -y postgresql postgresql-contrib && apt install -y libpq-dev && rm -rf /var/lib/apt/lists/*
-RUN systemctl start postgresql.service
+RUN apt update && apt install -y libpq-dev && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/local/bin
+
 ENV DATABASE_URL=postgres://postgres:1234@localhost/base
+ENV SMTP_HOST=smtp.gmail.com
+ENV SMTP_PORT=465
+ENV SMTP_USERNAME=value
+ENV SMTP_PASSWORD=password
+ENV SMTP_FROM=natiq
+
 CMD ["nq-api"]
