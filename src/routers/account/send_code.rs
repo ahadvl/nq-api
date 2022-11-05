@@ -64,8 +64,6 @@ pub async fn send_code(
 
             // Check if code not expired
             if diff.num_seconds() < 10 {
-                // TODO: Dont send code to email
-                // return code is sended.
                 return SendCodeStatus::AlreadySent;
             }
         }
