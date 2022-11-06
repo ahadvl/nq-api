@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+    app:
+        build: ./
+
+        ports:
+            - 8080:8080
+
+        depends_on:
+            - database
+
+        environment:
+            DATABASE_URL: postgresql://username:password@database:5432/base
+            SMTP_HOST: smtp.gmail.com
+            SMTP_PORT: 465
+            SMTP_USERNAME: natiq@gmail.com
+            SMTP_PASSWORD: pass
+            SMTP_FROM: natiq<natiq@gmail.com>
+
+    database:
+        image: "postgres:latest"
+
+        ports:
+            - 5436:5432
+
+        environment:
+            POSTGRES_USER: username
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: base

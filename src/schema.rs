@@ -1,15 +1,6 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    quran_text (id) {
-        id -> Int4,
-        surah_id -> Int4,
-        verse_number -> Int4,
-        text -> Text,
-    }
-}
-
-diesel::table! {
     app_tokens (id) {
         id -> Int4,
         user_id -> Int4,
@@ -40,4 +31,13 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(app_tokens, app_users, app_verify_codes, quran_text);
+diesel::table! {
+    quran_text (id) {
+        id -> Int4,
+        surah_id -> Int4,
+        verse_number -> Int4,
+        text -> Text,
+    }
+}
+
+diesel::allow_tables_to_appear_in_same_query!(app_tokens, app_users, app_verify_codes, quran_text,);

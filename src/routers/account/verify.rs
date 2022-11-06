@@ -56,6 +56,24 @@ pub struct VerifyCodeInfo {
     code: i32,
 }
 
+enum UserStatus {
+    /// This means user created at verifying email
+    Created,
+
+    /// This means user exists and just wants to get token (login)
+    Exists,
+}
+
+impl UserStatus {
+    /// Returns the status code of UserStatus
+    pub fn as_status_code(&self) -> StatusCode {
+        match *self {
+            UserStatus::Created => StatusCode::CREATED,
+            UserStatus::Exists => StatusCode::OK,
+        }
+    }
+}
+
 /// Verify verification code that sended to email
 /// from /account/sendCode router
 #[post("/account/verify")]
@@ -69,8 +87,7 @@ pub async fn verify(
 
     validate(&info.0)?;
 
-    // Ok (token) , Err(Message, status_code)
-    let token_as_string: Result<String, (String, StatusCode)> = web::block(move || {
+    let result: (String, StatusCode) = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         let last_sended_code = app_verify_codes
@@ -81,11 +98,18 @@ pub async fn verify(
             .unwrap();
 
         if last_sended_code.is_empty() {
-            return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
+            return (
+                "No coded sended to this email".to_string(),
+                StatusCode::GONE,
+            );
+        }
+
+        if last_sended_code[0].code != info.code {
+            return ("Code is not correct".to_string(), StatusCode::OK);
         }
 
         if last_sended_code[0].status == *"used".to_string() {
-            return Err(("Code is not valid".to_string(), StatusCode::NOT_FOUND));
+            return ("Code is already used".to_string(), StatusCode::OK);
         }
 
         let diff = time_deference(last_sended_code[0].created_at.time());
@@ -95,11 +119,7 @@ pub async fn verify(
             // The requested resource is no longer available at the server and no forwarding
             // address is known. This condition is expected to be considered permanent.
 
-            return Err(("Code expired".to_string(), StatusCode::GONE));
-        }
-
-        if last_sended_code[0].code != info.code {
-            return Err(("Code is not correct".to_string(), StatusCode::NOT_FOUND));
+            return ("Code expired".to_string(), StatusCode::GONE);
         }
 
         // Everything is ok now change code status to used
@@ -116,7 +136,7 @@ pub async fn verify(
 
         // If we dont have user with request (email) then create it
         // else return it
-        let user: User = if user_from_db.is_empty() {
+        let (user, user_status): (User, UserStatus) = if user_from_db.is_empty() {
             let user = NewUser {
                 email: &info.email,
                 username: &"".to_string(),
@@ -132,14 +152,13 @@ pub async fn verify(
                 .execute(&mut conn)
                 .unwrap();
 
-            new_user
+            (new_user, UserStatus::Created)
         } else {
             let u = user_from_db.get(0).unwrap();
 
-            u.clone()
+            (u.clone(), UserStatus::Exists)
         };
 
-        // TODO: create function to create token operation
         // Some salts
         let user_id_as_string = user.id.to_string();
         let time_as_string = chrono::offset::Utc::now().timestamp().to_string();
@@ -180,15 +199,10 @@ pub async fn verify(
             .execute(&mut conn)
             .unwrap();
 
-        Ok(result)
+        (result, user_status.as_status_code())
     })
     .await
     .unwrap();
 
-    match token_as_string {
-        // TODO: get status code from result ( 200 or 201 )
-        Ok(token) => Ok(HttpResponse::Ok().body(token)),
-
-        Err(error) => Ok(HttpResponse::build(error.1).body(error.0)),
-    }
+    Ok(HttpResponse::build(result.1).body(result.0))
 }
