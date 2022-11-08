@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 
 use diesel::pg::PgConnection;
@@ -53,7 +54,11 @@ async fn main() -> std::io::Result<()> {
     let mailer = create_emailer();
 
     HttpServer::new(move || {
+        // Set All to the cors
+        let cors = Cors::default().supports_credentials();
+
         App::new()
+            .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(mailer.clone()))
             .service(send_code::send_code)
