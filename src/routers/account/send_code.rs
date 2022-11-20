@@ -1,12 +1,13 @@
 use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
 use crate::email::EmailManager;
 use crate::models::{NewVerifyCode, VerifyCode};
+use crate::test::Test;
 use crate::validate::validate;
 use crate::DbPool;
 use actix_web::{error, post, web, Error, HttpResponse};
 use diesel::prelude::*;
 use rand::Rng;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 /// Generate random code with range (min, max)
@@ -26,10 +27,18 @@ enum SendCodeStatus {
     AlreadySent,
 }
 
-#[derive(Deserialize, Clone, Validate)]
+#[derive(Deserialize, Serialize, Clone, Validate)]
 pub struct SendCodeInfo {
     #[validate(email)]
     email: String,
+}
+
+impl Test for SendCodeInfo {
+    fn test() -> Self {
+        Self {
+            email: "example@example.com".to_string(),
+        }
+    }
 }
 
 /// <data> -> Email,
