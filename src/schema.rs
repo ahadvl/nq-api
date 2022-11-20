@@ -40,4 +40,9 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(app_tokens, app_users, app_verify_codes, quran_text,);
+diesel::allow_tables_to_appear_in_same_query!(
+    app_tokens,
+    app_users,
+    app_verify_codes,
+    quran_text,
+);
