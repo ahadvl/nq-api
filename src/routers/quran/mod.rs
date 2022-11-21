@@ -1,2 +1,2 @@
 pub mod quran;
-mod tests;
+mod test;

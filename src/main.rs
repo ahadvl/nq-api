@@ -35,7 +35,7 @@ fn create_emailer() -> EmailManager {
         .expect("Cant create EmailManager")
 }
 
-fn establish_connection() -> ConnectionManager<PgConnection> {
+pub fn establish_database_connection() -> ConnectionManager<PgConnection> {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
@@ -45,7 +45,7 @@ fn establish_connection() -> ConnectionManager<PgConnection> {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let pg_manager = establish_connection();
+    let pg_manager = establish_database_connection();
 
     let pool = Pool::builder()
         .build(pg_manager)
