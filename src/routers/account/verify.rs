@@ -10,7 +10,7 @@ use sha2::{Digest, Sha256};
 use validator::Validate;
 
 #[derive(Clone)]
-pub(self) struct TokenGenerator<'a> {
+pub(super) struct TokenGenerator<'a> {
     /// Target data
     source: &'a Vec<u8>,
 

@@ -12,6 +12,7 @@ mod email;
 mod models;
 mod routers;
 mod schema;
+mod test;
 mod validate;
 
 use routers::account::send_code;
@@ -20,7 +21,7 @@ use routers::quran::quran;
 
 type DbPool = Pool<ConnectionManager<PgConnection>>;
 
-fn create_emailer() -> EmailManager {
+pub fn create_emailer() -> EmailManager {
     dotenv().ok();
 
     let host = env::var("SMTP_HOST").expect("SMTP_HOST must be set");
