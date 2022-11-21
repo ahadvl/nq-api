@@ -3,49 +3,11 @@ use crate::models::{NewToken, NewUser, User, VerifyCode};
 use crate::{validate::validate, DbPool};
 use actix_web::http::StatusCode;
 use actix_web::{post, web, Error, HttpResponse};
+use auth::token::TokenGenerator;
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
-use sha2::{Digest, Sha256};
 use validator::Validate;
-
-#[derive(Clone)]
-pub(super) struct TokenGenerator<'a> {
-    /// Target data
-    source: &'a Vec<u8>,
-
-    /// Final Generated Token
-    result: Option<String>,
-}
-
-impl<'a> TokenGenerator<'a> {
-    /// Creates a new Token object
-    pub fn new(source: &'a Vec<u8>) -> Self {
-        Self {
-            source,
-            result: None,
-        }
-    }
-
-    /// Change the source
-    pub fn set_source(&mut self, new_source: &'a Vec<u8>) {
-        self.source = new_source;
-    }
-
-    /// Generates the final hash and set to result
-    pub fn generate(&mut self) {
-        let mut hasher = Sha256::new();
-
-        hasher.update(self.source);
-
-        self.result = Some(format!("{:x}", hasher.finalize()));
-    }
-
-    /// Returns the copy of result
-    pub fn get_result(&self) -> Option<String> {
-        self.result.clone()
-    }
-}
 
 #[derive(Deserialize, Clone, Validate)]
 pub struct VerifyCodeInfo {

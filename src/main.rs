@@ -1,6 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 
+use auth::token::token;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenvy::dotenv;
@@ -17,6 +18,7 @@ mod validate;
 
 use routers::account::send_code;
 use routers::account::verify;
+use routers::profile::profile;
 use routers::quran::quran;
 
 type DbPool = Pool<ConnectionManager<PgConnection>>;
@@ -65,6 +67,13 @@ async fn main() -> std::io::Result<()> {
             .service(send_code::send_code)
             .service(verify::verify)
             .service(quran::quran)
+            .service(
+                web::resource("/profile").route(
+                    web::get()
+                        .guard(token("secret".to_string()))
+                        .to(profile::view_profile),
+                ),
+            )
     })
     .bind(("0.0.0.0", 8080))?
     .run()
