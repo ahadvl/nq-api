@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        create_emailer, establish_connection,
+        create_emailer, establish_database_connection,
         routers::account::{
             send_code::{send_code, SendCodeInfo},
             verify::TokenGenerator,
@@ -18,7 +18,7 @@ mod tests {
 
     #[test]
     pub async fn send_code_test() {
-        let pg_manager = establish_connection();
+        let pg_manager = establish_database_connection();
 
         let pool = Pool::builder()
             .build(pg_manager)
