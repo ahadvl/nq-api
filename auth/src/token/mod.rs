@@ -1,6 +1,6 @@
 mod test;
 mod token;
-mod token_guard;
+mod token_middleware;
 
 pub use token::TokenGenerator;
-pub use token_guard::token;
+pub use token_middleware::TokenAuth;

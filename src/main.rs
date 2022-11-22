@@ -1,7 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 
-use auth::token::token;
+use auth::token::TokenAuth;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenvy::dotenv;
@@ -68,11 +68,9 @@ async fn main() -> std::io::Result<()> {
             .service(verify::verify)
             .service(quran::quran)
             .service(
-                web::resource("/profile").route(
-                    web::get()
-                        .guard(token("secret".to_string()))
-                        .to(profile::view_profile),
-                ),
+                web::resource("/profile")
+                    .wrap(TokenAuth::new("secret"))
+                    .route(web::get().to(profile::view_profile)),
             )
     })
     .bind(("0.0.0.0", 8080))?
