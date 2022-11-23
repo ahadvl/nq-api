@@ -226,6 +226,7 @@ dependencies = [
 name = "auth"
 version = "0.0.1"
 dependencies = [
+ "actix-utils",
  "actix-web",
  "sha2",
 ]

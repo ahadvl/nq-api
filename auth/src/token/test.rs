@@ -1,12 +1,23 @@
 #[cfg(test)]
 mod tests {
-    use crate::token::{token, TokenGenerator};
-    use actix_web::guard::Guard;
-    use actix_web::http::header;
-    use actix_web::test::TestRequest;
+    use crate::token::token_middleware::TokenChecker;
+    use crate::token::{TokenAuth, TokenGenerator};
+    use actix_web::dev::Service;
+    use actix_web::http::{header};
+    use actix_web::test::{self, TestRequest};
+    use actix_web::App;
 
-    #[test]
-    fn test_token_generator() {
+    #[derive(Default, Clone)]
+    struct FindToken;
+
+    impl TokenChecker for FindToken {
+        fn check_token(&self, _request_token: &str) -> bool {
+            true
+        }
+    }
+
+    #[actix_web::test]
+    async fn test_token_generator() {
         let source: Vec<u8> = vec![1, 2, 3];
 
         let mut token_generator = TokenGenerator::new(&source);
@@ -16,18 +27,22 @@ mod tests {
         assert_eq!(token_generator.get_result().unwrap().len(), 64);
     }
 
-    #[test]
-    fn test_token_guard() {
-        let get_req = TestRequest::get()
-            .insert_header((header::AUTHORIZATION, "secret-token"))
-            .to_srv_request();
+    #[actix_web::test]
+    async fn test_token_middleware() {
+        let token_auth = TokenAuth::new(FindToken {});
 
-        let guard = token(String::from("secret-token"));
+        let app = test::init_service(App::new().wrap(token_auth)).await;
 
-        assert!(guard.check(&get_req.guard_ctx()));
+        let bad_req = TestRequest::get().to_request();
 
-        let guard = token(String::from("-secret-whoops($#@!)"));
+        let res = app.call(bad_req).await;
 
-        assert!(!guard.check(&get_req.guard_ctx()));
+        assert!(res.is_err());
+
+        let good_req = TestRequest::get().append_header((header::AUTHORIZATION, "secret-token")).to_request();
+
+        let res = app.call(good_req).await;
+
+        assert!(res.is_ok());
     }
 }
