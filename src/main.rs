@@ -8,14 +8,14 @@ use dotenvy::dotenv;
 use email::EmailManager;
 use lettre::transport::smtp::authentication::Credentials;
 use std::env;
-use token_finder::TokenFromDatabase;
+use token_checker::TokenFromDatabase;
 
 mod email;
 mod models;
 mod routers;
 mod schema;
 mod test;
-mod token_finder;
+mod token_checker;
 mod validate;
 
 use routers::account::send_code;
