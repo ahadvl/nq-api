@@ -8,8 +8,12 @@ use actix_web::{
 };
 
 pub trait TokenChecker {
-    /// Returns token, to qualify with request token
-    fn check_token(&self, request_token: &str) -> bool
+    /// This function will return option
+    /// if the request token valid return
+    /// Some with sized data to pass to the router
+    /// otherwise retun None to response with status code 401
+    /// Unauthorized
+    fn check_token<T>(&self, request_token: &str) -> Option<T>
     where
         Self: Sized;
 }
@@ -79,7 +83,7 @@ where
             .get(header::AUTHORIZATION)
             .and_then(|token| token.to_str().ok())
         {
-            if self.token_finder.check_token(token) {
+            if let Some(token) = self.token_finder.check_token(token) {
                 return Either::left(self.service.call(req));
             };
         }
