@@ -58,7 +58,7 @@ async fn main() -> std::io::Result<()> {
 
     let mailer = create_emailer();
 
-    let token_finder = TokenFromDatabase::new(pool.clone());
+    let token_checker = TokenFromDatabase::new(pool.clone());
 
     HttpServer::new(move || {
         // Set All to the cors
@@ -73,7 +73,7 @@ async fn main() -> std::io::Result<()> {
             .service(quran::quran)
             .service(
                 web::resource("/profile")
-                    .wrap(TokenAuth::new(token_finder.clone()))
+                    .wrap(TokenAuth::new(token_checker.clone()))
                     .route(web::get().to(profile::view_profile)),
             )
     })
