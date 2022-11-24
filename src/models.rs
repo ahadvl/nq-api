@@ -1,7 +1,7 @@
 use crate::schema::{app_tokens, app_users, app_verify_codes};
 use chrono::NaiveDateTime;
 use diesel::{Identifiable, Insertable, Queryable};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Identifiable, Queryable, Debug)]
 #[diesel(table_name = app_verify_codes)]
@@ -56,7 +56,7 @@ pub struct NewToken<'a> {
     pub token_hash: &'a String,
 }
 
-#[derive(Queryable, PartialEq, Debug, Serialize)]
+#[derive(Queryable, PartialEq, Debug, Serialize, Deserialize)]
 pub struct QuranText {
     id: i32,
     surah: i32,

@@ -1,2 +1,2 @@
 -- This file should undo anything in `up.sql`
-DROP TABLE app_verify_code;
+DROP TABLE app_verify_codes;

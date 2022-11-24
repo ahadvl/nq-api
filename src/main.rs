@@ -1,22 +1,26 @@
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 
+use auth::token::TokenAuth;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenvy::dotenv;
 use email::EmailManager;
 use lettre::transport::smtp::authentication::Credentials;
 use std::env;
+use token_checker::TokenFromDatabase;
 
 mod email;
 mod models;
 mod routers;
 mod schema;
 mod test;
+mod token_checker;
 mod validate;
 
 use routers::account::send_code;
 use routers::account::verify;
+use routers::profile::profile;
 use routers::quran::quran;
 
 type DbPool = Pool<ConnectionManager<PgConnection>>;
@@ -36,7 +40,7 @@ pub fn create_emailer() -> EmailManager {
         .expect("Cant create EmailManager")
 }
 
-pub fn establish_connection() -> ConnectionManager<PgConnection> {
+pub fn establish_database_connection() -> ConnectionManager<PgConnection> {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
@@ -46,13 +50,15 @@ pub fn establish_connection() -> ConnectionManager<PgConnection> {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let pg_manager = establish_connection();
+    let pg_manager = establish_database_connection();
 
     let pool = Pool::builder()
         .build(pg_manager)
         .expect("Failed to create pool.");
 
     let mailer = create_emailer();
+
+    let token_finder = TokenFromDatabase::new(pool.clone());
 
     HttpServer::new(move || {
         // Set All to the cors
@@ -65,6 +71,11 @@ async fn main() -> std::io::Result<()> {
             .service(send_code::send_code)
             .service(verify::verify)
             .service(quran::quran)
+            .service(
+                web::resource("/profile")
+                    .wrap(TokenAuth::new(token_finder.clone()))
+                    .route(web::get().to(profile::view_profile)),
+            )
     })
     .bind(("0.0.0.0", 8080))?
     .run()
