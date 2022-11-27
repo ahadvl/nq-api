@@ -8,8 +8,11 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
     use crate::models::User;
     use crate::schema::app_users::dsl::*;
 
+    // Get userId from token Checker
     let user_id = data.into_inner();
 
+    // select user form db
+    // with user_id
     let user_profile = web::block(move || {
         let mut conn = pool.get().unwrap();
 
@@ -25,5 +28,6 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
     .await
     .unwrap();
 
+    // Response with user as json
     web::Json(user_profile)
 }
