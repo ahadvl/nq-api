@@ -8,7 +8,7 @@ use dotenvy::dotenv;
 use email::EmailManager;
 use lettre::transport::smtp::authentication::Credentials;
 use std::env;
-use token_checker::TokenFromDatabase;
+use token_checker::UserIdFromToken;
 
 mod email;
 mod models;
@@ -58,7 +58,7 @@ async fn main() -> std::io::Result<()> {
 
     let mailer = create_emailer();
 
-    let token_checker = TokenFromDatabase::new(pool.clone());
+    let user_id_from_token = UserIdFromToken::new(pool.clone());
 
     HttpServer::new(move || {
         // Set All to the cors
@@ -73,7 +73,7 @@ async fn main() -> std::io::Result<()> {
             .service(quran::quran)
             .service(
                 web::resource("/profile")
-                    .wrap(TokenAuth::new(token_checker.clone()))
+                    .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route(web::get().to(profile::view_profile)),
             )
     })

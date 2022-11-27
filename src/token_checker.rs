@@ -5,18 +5,18 @@ use diesel::prelude::*;
 /// Returns the token selected
 /// from database
 #[derive(Clone)]
-pub struct TokenFromDatabase {
+pub struct UserIdFromToken {
     pool: DbPool,
 }
 
-impl TokenFromDatabase {
+impl UserIdFromToken {
     pub fn new(pool: DbPool) -> Self {
         Self { pool }
     }
 }
 
-impl TokenChecker for TokenFromDatabase {
-    fn check_token(&self, request_token: &str) -> Option<u32> {
+impl TokenChecker for UserIdFromToken {
+    fn get_user_id(&self, request_token: &str) -> Option<u32> {
         use crate::schema::app_tokens::dsl::*;
 
         let token_bytes: Vec<u8> = request_token.bytes().collect();

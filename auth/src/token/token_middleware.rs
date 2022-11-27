@@ -16,7 +16,7 @@ pub trait TokenChecker {
     /// Unauthorized
     ///
     /// This function returns the verifyed user ID
-    fn check_token(&self, request_token: &str) -> Option<u32>
+    fn get_user_id(&self, request_token: &str) -> Option<u32>
     where
         Self: Sized;
 }
@@ -86,7 +86,7 @@ where
             .get(header::AUTHORIZATION)
             .and_then(|token| token.to_str().ok())
         {
-            let token_data = self.token_finder.check_token(token);
+            let token_data = self.token_finder.get_user_id(token);
 
             if let Some(data) = token_data {
                 req.extensions_mut().insert(data);
