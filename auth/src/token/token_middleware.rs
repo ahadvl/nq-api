@@ -1,6 +1,7 @@
 use actix_utils::future::{err, Either};
 use actix_utils::future::{ready, Ready};
 use actix_web::http::header;
+use actix_web::HttpMessage;
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     error::ErrorUnauthorized,
@@ -13,7 +14,9 @@ pub trait TokenChecker {
     /// Some with sized data to pass to the router
     /// otherwise retun None to response with status code 401
     /// Unauthorized
-    fn check_token<T>(&self, request_token: &str) -> Option<T>
+    ///
+    /// This function returns the verifyed user ID
+    fn check_token(&self, request_token: &str) -> Option<u32>
     where
         Self: Sized;
 }
@@ -83,7 +86,10 @@ where
             .get(header::AUTHORIZATION)
             .and_then(|token| token.to_str().ok())
         {
-            if let Some(token) = self.token_finder.check_token(token) {
+            let token_data = self.token_finder.check_token(token);
+
+            if let Some(data) = token_data {
+                req.extensions_mut().insert(data);
                 return Either::left(self.service.call(req));
             };
         }
