@@ -36,6 +36,16 @@ pub struct User {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Queryable, Debug, Clone, Serialize)]
+pub struct UserProfile {
+    pub username: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub birthday: Option<NaiveDateTime>,
+    pub profile_image: Option<String>,
+    pub email: String,
+}
+
 #[derive(Insertable)]
 #[diesel(table_name = app_users)]
 pub struct NewUser<'a> {

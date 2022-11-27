@@ -5,7 +5,7 @@ use diesel::prelude::*;
 use crate::DbPool;
 
 pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl Responder {
-    use crate::models::User;
+    use crate::models::UserProfile;
     use crate::schema::app_users::dsl::*;
 
     // Get userId from token Checker
@@ -18,7 +18,15 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
 
         let user = app_users
             .filter(id.eq(user_id as i32))
-            .load::<User>(&mut conn)
+            .select((
+                username,
+                first_name,
+                last_name,
+                birthday,
+                profile_image,
+                email,
+            ))
+            .load::<UserProfile>(&mut conn)
             .unwrap();
 
         let last_user = user.get(0).unwrap();
