@@ -14,6 +14,10 @@ diesel::table! {
     app_users (id) {
         id -> Int4,
         username -> Varchar,
+        first_name -> Nullable<Varchar>,
+        last_name -> Nullable<Varchar>,
+        birthday -> Nullable<Timestamptz>,
+        profile_image -> Nullable<Text>,
         email -> Text,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
