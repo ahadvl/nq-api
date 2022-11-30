@@ -2,7 +2,7 @@ pub mod send_code;
 mod test;
 pub mod verify;
 
-use chrono::{offset::Utc, DateTime, Duration, NaiveDateTime, NaiveTime};
+use chrono::{offset::Utc, DateTime, Duration, NaiveDateTime};
 
 // This constants will make code length
 // equal to 6
