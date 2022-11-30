@@ -74,7 +74,7 @@ pub async fn verify(
             return ("Code is already used".to_string(), StatusCode::OK);
         }
 
-        let diff = time_deference(last_sended_code[0].created_at.time());
+        let diff = time_deference(last_sended_code[0].created_at);
 
         if diff.num_seconds() >= 70 {
             // status code 410 => Gone

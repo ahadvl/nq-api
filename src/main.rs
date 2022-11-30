@@ -62,7 +62,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         // Set All to the cors
-        let cors = Cors::default().supports_credentials();
+        let cors = Cors::permissive();
 
         App::new()
             .wrap(cors)

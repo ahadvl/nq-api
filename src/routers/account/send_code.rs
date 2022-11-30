@@ -69,7 +69,7 @@ pub async fn send_code(
 
         // Is there any code we sent ?
         if !last_sended_code.is_empty() {
-            let diff = time_deference(last_sended_code[0].created_at.time());
+            let diff = time_deference(last_sended_code[0].created_at);
 
             // Check if code not expired
             if diff.num_seconds() < 10 {
