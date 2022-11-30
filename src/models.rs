@@ -70,7 +70,7 @@ pub struct NewToken<'a> {
     pub token_hash: &'a String,
 }
 
-#[derive(Queryable, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Queryable, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct QuranText {
     id: i32,
     surah: i32,
