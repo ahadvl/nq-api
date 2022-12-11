@@ -25,10 +25,6 @@ pub async fn logout(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl Respond
             .load::<Token>(&mut conn)
             .unwrap();
 
-        if tokens.is_empty() {
-            return Err(("Token Not found", StatusCode::NOT_FOUND));
-        }
-
         // Get THE token
         let token = tokens.get(0).unwrap();
 
