@@ -3,7 +3,7 @@ use chrono::NaiveDateTime;
 use diesel::{Identifiable, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 
-#[derive(Identifiable, Queryable, Debug)]
+#[derive(Identifiable, Queryable, Debug, Clone)]
 #[diesel(table_name = app_verify_codes)]
 pub struct VerifyCode {
     pub id: i32,
@@ -53,12 +53,14 @@ pub struct NewUser<'a> {
     pub email: &'a String,
 }
 
-#[derive(Queryable, Debug, Clone)]
+#[derive(Identifiable, Queryable, Debug, Clone)]
 #[diesel(table_name = app_tokens)]
 pub struct Token {
     pub id: i32,
     pub user_id: i32,
     pub token_hash: String,
+    pub terminated: bool,
+    pub teminated_by_id: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }

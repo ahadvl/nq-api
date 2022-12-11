@@ -14,7 +14,7 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(pool.clone()))
-                .service(quran),
+                .service(web::resource("/quran").route(web::get().to(quran))),
         )
         .await;
 

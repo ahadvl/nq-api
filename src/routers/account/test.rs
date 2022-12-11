@@ -26,7 +26,7 @@ mod tests {
             App::new()
                 .app_data(web::Data::new(pool.clone()))
                 .app_data(web::Data::new(mailer.clone()))
-                .service(send_code),
+                .service(web::resource("/account/sendCode").route(web::post().to(send_code))),
         )
         .await;
 

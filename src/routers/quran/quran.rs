@@ -1,5 +1,5 @@
 use crate::{models, validate::validate, DbPool};
-use actix_web::{get, web, Error, HttpResponse};
+use actix_web::{web, Error, HttpResponse};
 use diesel::prelude::*;
 use serde::Deserialize;
 use validator::Validate;
@@ -16,7 +16,6 @@ pub struct QuranQuery {
 /// Example
 ///
 /// `/quran?from=1&to=10`
-#[get("/quran")]
 pub async fn quran(
     query: web::Query<QuranQuery>,
     pool: web::Data<DbPool>,
