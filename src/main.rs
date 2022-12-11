@@ -18,6 +18,7 @@ mod test;
 mod token_checker;
 mod validate;
 
+use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
 use routers::profile::profile;
@@ -68,9 +69,17 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(mailer.clone()))
-            .service(send_code::send_code)
-            .service(verify::verify)
-            .service(quran::quran)
+            .service(
+                web::scope("/account")
+                    .route("/sendCode", web::post().to(send_code::send_code))
+                    .route("/verify", web::post().to(verify::verify))
+                    .service(
+                        web::resource("/logout")
+                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .route(web::get().to(logout::logout)),
+                    ),
+            )
+            .service(web::resource("/quran").route(web::get().to(quran::quran)))
             .service(
                 web::resource("/profile")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))

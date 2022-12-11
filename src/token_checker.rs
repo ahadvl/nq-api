@@ -19,6 +19,7 @@ impl TokenChecker for UserIdFromToken {
     fn get_user_id(&self, request_token: &str) -> Option<u32> {
         use crate::schema::app_tokens::dsl::*;
 
+        // Token as bytes
         let token_bytes: Vec<u8> = request_token.bytes().collect();
 
         // Hash the request token
@@ -35,11 +36,17 @@ impl TokenChecker for UserIdFromToken {
             .load::<Token>(&mut conn)
             .unwrap();
 
+        // Is there any token we found ?
         if token.is_empty() {
             return None;
         }
 
         let last_token = token.get(0).unwrap();
+
+        // Return None for teminated token
+        if last_token.terminated {
+            return None;
+        }
 
         Some(last_token.user_id as u32)
     }

@@ -2,7 +2,7 @@ use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
 use crate::models::{NewToken, NewUser, User, VerifyCode};
 use crate::{validate::validate, DbPool};
 use actix_web::http::StatusCode;
-use actix_web::{post, web, Error, HttpResponse};
+use actix_web::{web, Error, HttpResponse};
 use auth::token::TokenGenerator;
 use diesel::prelude::*;
 use rand::Rng;
@@ -38,7 +38,6 @@ impl UserStatus {
 
 /// Verify verification code that sended to email
 /// from /account/sendCode router
-#[post("/account/verify")]
 pub async fn verify(
     pool: web::Data<DbPool>,
     info: web::Json<VerifyCodeInfo>,

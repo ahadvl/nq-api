@@ -4,7 +4,7 @@ use crate::models::{NewVerifyCode, VerifyCode};
 use crate::test::Test;
 use crate::validate::validate;
 use crate::DbPool;
-use actix_web::{error, post, web, Error, HttpResponse};
+use actix_web::{error, web, Error, HttpResponse};
 use diesel::prelude::*;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -43,7 +43,6 @@ impl Test for SendCodeInfo {
 
 /// <data> -> Email,
 /// Send Random generated code to user email
-#[post("/account/sendCode")]
 pub async fn send_code(
     pool: web::Data<DbPool>,
     emailer: web::Data<EmailManager>,
