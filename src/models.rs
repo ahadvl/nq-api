@@ -3,7 +3,7 @@ use chrono::NaiveDateTime;
 use diesel::{Identifiable, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 
-#[derive(Identifiable, Queryable, Debug, Clone)]
+#[derive(Identifiable, Queryable, Debug)]
 #[diesel(table_name = app_verify_codes)]
 pub struct VerifyCode {
     pub id: i32,
