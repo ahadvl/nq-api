@@ -1,6 +1,17 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    app_emails (id) {
+        id -> Int4,
+        user_id -> Int4,
+        email -> Text,
+        status -> Text,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     app_tokens (id) {
         id -> Int4,
         user_id -> Int4,
@@ -47,6 +58,7 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
+    app_emails,
     app_tokens,
     app_users,
     app_verify_codes,
