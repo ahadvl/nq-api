@@ -1,6 +1,6 @@
-use crate::schema::{app_tokens, app_users, app_verify_codes};
+use crate::schema::{app_emails, app_tokens, app_users, app_verify_codes};
 use chrono::NaiveDateTime;
-use diesel::{Identifiable, Insertable, Queryable};
+use diesel::{Associations, Identifiable, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 
 #[derive(Identifiable, Queryable, Debug)]
@@ -31,7 +31,6 @@ pub struct User {
     pub last_name: Option<String>,
     pub birthday: Option<NaiveDateTime>,
     pub profile_image: Option<String>,
-    pub email: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -43,16 +42,15 @@ pub struct UserProfile {
     pub last_name: Option<String>,
     pub birthday: Option<NaiveDateTime>,
     pub profile_image: Option<String>,
-    pub email: String,
 }
 
 #[derive(Insertable)]
 #[diesel(table_name = app_users)]
 pub struct NewUser<'a> {
     pub username: &'a String,
-    pub email: &'a String,
 }
 
+// TODO: use belongs to
 #[derive(Identifiable, Queryable, Debug, Clone)]
 #[diesel(table_name = app_tokens)]
 pub struct Token {
@@ -78,4 +76,28 @@ pub struct QuranText {
     surah: i32,
     verse: i32,
     text: String,
+}
+
+#[derive(Identifiable, Queryable, Associations, PartialEq, Debug)]
+#[diesel(belongs_to(User))]
+#[diesel(table_name = app_emails)]
+pub struct Email {
+    pub id: i32,
+    pub user_id: i32,
+    pub email: String,
+    pub verified: bool,
+    pub primary: bool,
+    pub deleted: bool,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = app_emails)]
+pub struct NewEmail<'a> {
+    pub user_id: &'a i32,
+    pub email: &'a String,
+    pub verified: bool,
+    pub primary: bool,
+    pub deleted: bool,
 }

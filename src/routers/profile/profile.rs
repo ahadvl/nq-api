@@ -18,14 +18,7 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
 
         let user = app_users
             .filter(id.eq(user_id as i32))
-            .select((
-                username,
-                first_name,
-                last_name,
-                birthday,
-                profile_image,
-                email,
-            ))
+            .select((username, first_name, last_name, birthday, profile_image))
             .load::<UserProfile>(&mut conn)
             .unwrap();
 

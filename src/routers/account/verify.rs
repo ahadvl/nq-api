@@ -1,5 +1,6 @@
 use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
-use crate::models::{NewToken, NewUser, User, VerifyCode};
+use crate::models::{Email, NewEmail, NewToken, NewUser, User, VerifyCode};
+use crate::schema::app_emails;
 use crate::{validate::validate, DbPool};
 use actix_web::http::StatusCode;
 use actix_web::{web, Error, HttpResponse};
@@ -90,22 +91,34 @@ pub async fn verify(
             .unwrap();
 
         // Check if user exists
-        let user_from_db = app_users::dsl::app_users
-            .filter(app_users::dsl::email.eq(&info.email))
-            .load::<User>(&mut conn)
+        let user_email = app_emails::dsl::app_emails
+            .filter(app_emails::dsl::email.eq(&info.email))
+            .load::<Email>(&mut conn)
             .unwrap();
 
         // If we dont have user with request (email) then create it
         // else return it
-        let (user, user_status): (User, UserStatus) = if user_from_db.is_empty() {
+        let (user, user_status): (User, UserStatus) = if user_email.is_empty() {
             let user = NewUser {
-                email: &info.email,
                 username: &"".to_string(),
             };
 
             let new_user: User = diesel::insert_into(app_users::dsl::app_users)
                 .values(&user)
                 .get_result(&mut conn)
+                .unwrap();
+
+            let n_email = NewEmail {
+                email: &info.email,
+                user_id: &new_user.id,
+                verified: true,
+                primary: false,
+                deleted: false,
+            };
+
+            let _new_email = diesel::insert_into(app_emails::dsl::app_emails)
+                .values(&n_email)
+                .execute(&mut conn)
                 .unwrap();
 
             diesel::update(&new_user)
@@ -115,9 +128,12 @@ pub async fn verify(
 
             (new_user, UserStatus::Created)
         } else {
-            let u = user_from_db.get(0).unwrap();
+            let user = app_users::dsl::app_users
+                .filter(app_users::dsl::id.eq(user_email.get(0).unwrap().user_id))
+                .load::<User>(&mut conn)
+                .unwrap();
 
-            (u.clone(), UserStatus::Exists)
+            (user.get(0).unwrap().to_owned(), UserStatus::Exists)
         };
 
         // Some salts

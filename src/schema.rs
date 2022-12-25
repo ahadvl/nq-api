@@ -5,7 +5,9 @@ diesel::table! {
         id -> Int4,
         user_id -> Int4,
         email -> Text,
-        status -> Text,
+        verified -> Bool,
+        primary -> Bool,
+        deleted -> Bool,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -31,7 +33,6 @@ diesel::table! {
         last_name -> Nullable<Varchar>,
         birthday -> Nullable<Timestamptz>,
         profile_image -> Nullable<Text>,
-        email -> Text,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
