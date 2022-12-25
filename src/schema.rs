@@ -1,6 +1,19 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    app_emails (id) {
+        id -> Int4,
+        user_id -> Int4,
+        email -> Text,
+        verified -> Bool,
+        primary -> Bool,
+        deleted -> Bool,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     app_tokens (id) {
         id -> Int4,
         user_id -> Int4,
@@ -20,7 +33,6 @@ diesel::table! {
         last_name -> Nullable<Varchar>,
         birthday -> Nullable<Timestamptz>,
         profile_image -> Nullable<Text>,
-        email -> Text,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -47,6 +59,7 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
+    app_emails,
     app_tokens,
     app_users,
     app_verify_codes,
