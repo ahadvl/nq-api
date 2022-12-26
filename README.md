@@ -1,4 +1,4 @@
-# nq-backend
+# nq-api
 
 Natiq Quran open API
 
