@@ -13,7 +13,7 @@ docker-compose up
 Restore backup to the database with this command
 
 ```bash
-cat init.sql | sudo docker exec -i {container_id} psql -U {usename} -W -d {database}
+cat init.sql | sudo docker exec -i {container_id} psql -U {username} -W -d {database}
 ```
 
 `init.sql` is a backup file of database
