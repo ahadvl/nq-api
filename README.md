@@ -4,19 +4,18 @@ Natiq Quran open API
 
 # Docker
 
-Start nq-api with docker-compose
+First get sql backup with dumper.py
 
 ```bash
-docker-compose up
+mkdir dump
+python3 dumper.py migrations/ dump/dump.sql
 ```
 
-Restore backup to the database with this command
+Then start nq-api with docker-compose
 
 ```bash
-cat init.sql | sudo docker exec -i {container_id} psql -U {username} -W -d {database}
+sudo docker compose up
 ```
-
-`init.sql` is a backup file of database
 
 # Build
 
