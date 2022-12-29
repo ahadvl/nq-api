@@ -1,5 +1,6 @@
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
 use auth::token::TokenAuth;
 use diesel::pg::PgConnection;
@@ -8,6 +9,7 @@ use dotenvy::dotenv;
 use email::EmailManager;
 use lettre::transport::smtp::authentication::Credentials;
 use std::env;
+use std::error::Error;
 use token_checker::UserIdFromToken;
 
 mod email;
@@ -25,6 +27,20 @@ use routers::profile::profile;
 use routers::quran::quran;
 
 type DbPool = Pool<ConnectionManager<PgConnection>>;
+
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
+
+fn run_migrations(
+    connection: &mut PgConnection,
+) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+    // This will run the necessary migrations.
+    //
+    // See the documentation for `MigrationHarness` for
+    // all available methods.
+    connection.run_pending_migrations(MIGRATIONS)?;
+
+    Ok(())
+}
 
 pub fn create_emailer() -> EmailManager {
     dotenv().ok();
@@ -56,6 +72,8 @@ async fn main() -> std::io::Result<()> {
     let pool = Pool::builder()
         .build(pg_manager)
         .expect("Failed to create pool.");
+
+    run_migrations(&mut pool.get().unwrap()).unwrap();
 
     let mailer = create_emailer();
 

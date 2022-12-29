@@ -15,3 +15,4 @@ rand = "0.8.5"
 chrono = {version = "0.4", features = ["serde"]}
 lettre = { version = "0.10.1", default-features = false, features = ["smtp-transport", "tokio1-rustls-tls", "hostname", "builder"] }
 validator = { version = "0.16.0", features = ["derive"] }
+diesel_migrations = "2.0.0"
