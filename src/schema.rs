@@ -14,6 +14,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    app_organizations_table (id) {
+        id -> Int4,
+        name -> Text,
+        profile_image -> Nullable<Text>,
+        established_date -> Timestamptz,
+        national_id -> Int4,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     app_tokens (id) {
         id -> Int4,
         user_id -> Int4,
@@ -60,6 +72,7 @@ diesel::table! {
 
 diesel::allow_tables_to_appear_in_same_query!(
     app_emails,
+    app_organizations_table,
     app_tokens,
     app_users,
     app_verify_codes,

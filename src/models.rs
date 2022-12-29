@@ -101,3 +101,15 @@ pub struct NewEmail<'a> {
     pub primary: bool,
     pub deleted: bool,
 }
+
+#[derive(Queryable, PartialEq, Debug, Serialize)]
+#[diesel(table_name = app_organizations_table)]
+pub struct Organization {
+    pub id: i32,
+    pub name: String,
+    pub profile_image: Option<String>,
+    pub established_date: NaiveDateTime,
+    pub national_id: i32,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
