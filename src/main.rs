@@ -23,6 +23,7 @@ mod validate;
 use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
+use routers::organization::list;
 use routers::profile::profile;
 use routers::quran::quran;
 
@@ -102,6 +103,11 @@ async fn main() -> std::io::Result<()> {
                 web::resource("/profile")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route(web::get().to(profile::view_profile)),
+            )
+            .service(
+                web::resource("/organizations")
+                    .wrap(TokenAuth::new(user_id_from_token.clone()))
+                    .route(web::get().to(list::get_list_of_organizations)),
             )
     })
     .bind(("0.0.0.0", 8080))?

@@ -4,14 +4,7 @@ Natiq Quran open API
 
 # Docker
 
-First get sql backup with dumper.py
-
-```bash
-mkdir dump
-python3 dumper.py migrations/ dump/dump.sql
-```
-
-Then start nq-api with docker-compose
+Start nq-api with docker-compose
 
 ```bash
 sudo docker compose up
