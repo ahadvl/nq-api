@@ -1,7 +1,9 @@
-use crate::schema::{app_emails, app_tokens, app_users, app_verify_codes};
-use chrono::NaiveDateTime;
+use crate::datetime::parse_date_time_with_format;
+use crate::schema::{app_emails, app_organizations_table, app_tokens, app_users, app_verify_codes};
+use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{Associations, Identifiable, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 #[derive(Identifiable, Queryable, Debug)]
 #[diesel(table_name = app_verify_codes)]
@@ -102,14 +104,29 @@ pub struct NewEmail<'a> {
     pub deleted: bool,
 }
 
-#[derive(Queryable, PartialEq, Debug, Serialize)]
+#[derive(Queryable, PartialEq, Debug, Serialize, Clone)]
 #[diesel(table_name = app_organizations_table)]
 pub struct Organization {
     pub id: i32,
+    pub username: String,
     pub name: String,
     pub profile_image: Option<String>,
-    pub established_date: NaiveDateTime,
-    pub national_id: i32,
+    pub established_date: NaiveDate,
+    pub national_id: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable, Deserialize, Validate)]
+#[diesel(table_name = app_organizations_table)]
+pub struct NewOrganization {
+    pub username: String,
+    pub name: String,
+    pub profile_image: Option<String>,
+
+    #[serde(deserialize_with = "parse_date_time_with_format")]
+    pub established_date: NaiveDate,
+
+    #[validate(length(equal = 11))]
+    pub national_id: String,
 }

@@ -9,5 +9,6 @@ CREATE TABLE app_users (
     profile_image TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT app_users_id PRIMARY KEY (id)
+    CONSTRAINT app_users_id PRIMARY KEY (id),
+    UNIQUE(username)
 );

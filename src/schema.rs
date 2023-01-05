@@ -16,10 +16,11 @@ diesel::table! {
 diesel::table! {
     app_organizations_table (id) {
         id -> Int4,
-        name -> Text,
+        username -> Varchar,
+        name -> Varchar,
         profile_image -> Nullable<Text>,
-        established_date -> Timestamptz,
-        national_id -> Int4,
+        established_date -> Date,
+        national_id -> Varchar,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
