@@ -13,10 +13,27 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: username
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: base
+        ports:
+        - 5436:5432
+        
     steps:
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+      env:
+          DATABASE_URL: postgresql://username:password@database:5432/base
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: 465
+          SMTP_USERNAME: ${{ secrets.NQ_API_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.NQ_API_EMAIL_PASS }}
+          SMTP_FROM: ${{ secrets.NQ_API_EMAIL_FROM }}
