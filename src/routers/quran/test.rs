@@ -2,7 +2,6 @@
 mod tests {
     use crate::establish_database_connection;
     use crate::quran::*;
-    use crate::run_migrations;
     use actix_web::{http::StatusCode, test, web, App};
     use diesel::r2d2::Pool;
 
@@ -11,8 +10,6 @@ mod tests {
         let pool = Pool::builder()
             .build(establish_database_connection())
             .expect("Cant connect to db");
-
-        run_migrations(&mut pool.get().unwrap()).unwrap();
 
         let app = test::init_service(
             App::new()
