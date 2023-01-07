@@ -12,6 +12,7 @@ use std::env;
 use std::error::Error;
 use token_checker::UserIdFromToken;
 
+mod datetime;
 mod email;
 mod models;
 mod routers;
@@ -23,7 +24,9 @@ mod validate;
 use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
+use routers::organization::add;
 use routers::organization::list;
+use routers::organization::view;
 use routers::profile::profile;
 use routers::quran::quran;
 
@@ -105,9 +108,11 @@ async fn main() -> std::io::Result<()> {
                     .route(web::get().to(profile::view_profile)),
             )
             .service(
-                web::resource("/organizations")
+                web::scope("/organizations")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
-                    .route(web::get().to(list::get_list_of_organizations)),
+                    .route("", web::get().to(list::get_list_of_organizations))
+                    .route("", web::post().to(add::add))
+                    .route("/{org_id}", web::get().to(view::view)),
             )
     })
     .bind(("0.0.0.0", 8080))?

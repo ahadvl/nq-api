@@ -1,3 +1,3 @@
 -- This file should undo anything in `up.sql`
 
-DROP TABLE app_organizations;
+DROP TABLE app_organizations_table;
