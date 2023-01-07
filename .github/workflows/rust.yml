@@ -38,7 +38,7 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
       env:
-          DATABASE_URL: postgresql://username:password@localhost:5432/base
+          DATABASE_URL: database
           SMTP_HOST: smtp.gmail.com
           SMTP_PORT: 465
           SMTP_USERNAME: ${{ secrets.NQ_API_EMAIL }}
