@@ -48,6 +48,6 @@ pub async fn add(
 
     match add_status {
         OrganizationCreationStatus::Created => Ok("created"),
-        OrganizationCreationStatus::Exists => Ok("organization with this username exists"),
+        OrganizationCreationStatus::Exists => Ok("username is not available"),
     }
 }

@@ -13,10 +13,34 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    
+    services:
+      database:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: username
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: base
+        ports:
+        - 5432:5432
+        
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        
     steps:
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+      env:
+          DATABASE_URL: "postgresql://username:password@localhost:5432/base"
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: 465
+          SMTP_USERNAME: ${{ secrets.NQ_API_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.NQ_API_EMAIL_PASS }}
+          SMTP_FROM: ${{ secrets.NQ_API_EMAIL_FROM }}

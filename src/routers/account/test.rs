@@ -3,6 +3,7 @@ mod tests {
     use crate::{
         create_emailer, establish_database_connection,
         routers::account::send_code::{send_code, SendCodeInfo},
+        run_migrations,
         test::Test,
     };
     use actix_web::{
@@ -19,6 +20,8 @@ mod tests {
         let pool = Pool::builder()
             .build(pg_manager)
             .expect("Failed to create pool.");
+
+        run_migrations(&mut pool.get().unwrap()).unwrap();
 
         let mailer = create_emailer();
 
