@@ -2,7 +2,7 @@
 
 CREATE TABLE app_emails (
     id serial NOT NULL,
-    user_id serial NOT NULL,
+    account_id serial NOT NULL,
     email TEXT NOT NULL,
     verified BOOLEAN NOT NULL,
     "primary" BOOLEAN NOT NULL,

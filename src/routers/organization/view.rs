@@ -6,7 +6,7 @@ use crate::{models::Organization, DbPool};
 /// View Org data
 /// path -> org id
 pub async fn view(path: web::Path<u32>, conn: web::Data<DbPool>) -> Result<impl Responder> {
-    use crate::schema::app_organizations_table::dsl::*;
+    use crate::schema::app_organizations::dsl::*;
 
     // get id that user sendt
     let org_id = path.into_inner();
@@ -15,7 +15,7 @@ pub async fn view(path: web::Path<u32>, conn: web::Data<DbPool>) -> Result<impl 
         let mut conn = conn.get().unwrap();
 
         // filter the org by id
-        let org_from_id = app_organizations_table
+        let org_from_id = app_organizations
             .filter(id.eq(org_id as i32))
             .load::<Organization>(&mut conn);
 
