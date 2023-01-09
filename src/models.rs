@@ -11,12 +11,14 @@ use validator::Validate;
 pub struct Account {
     pub id: i32,
     pub username: String,
+    pub account_type: String,
 }
 
 #[derive(Insertable)]
 #[diesel(table_name = app_accounts)]
 pub struct NewAccount<'a> {
     pub username: &'a String,
+    pub account_type: &'a String,
 }
 
 #[derive(Identifiable, Queryable, Debug)]

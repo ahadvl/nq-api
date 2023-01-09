@@ -46,6 +46,7 @@ pub async fn add(
         // Create new account for org
         let new_account: Account = NewAccount {
             username: &new_org_info.username,
+            account_type: &String::from("organization"),
         }
         .insert_into(app_accounts)
         .get_result(&mut conn)

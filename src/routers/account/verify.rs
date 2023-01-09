@@ -102,6 +102,7 @@ pub async fn verify(
         let (user, user_status): (User, UserStatus) = if user_email.is_empty() {
             let new_account: Account = NewAccount {
                 username: &String::from(""),
+                account_type: &String::from("user"),
             }
             .insert_into(app_accounts::dsl::app_accounts)
             .get_result(&mut conn)

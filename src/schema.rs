@@ -4,6 +4,7 @@ diesel::table! {
     app_accounts (id) {
         id -> Int4,
         username -> Varchar,
+        account_type -> Text,
     }
 }
 
