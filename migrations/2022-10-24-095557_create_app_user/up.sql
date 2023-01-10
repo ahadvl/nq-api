@@ -2,7 +2,7 @@
 
 CREATE TABLE app_users (
     id serial NOT NULL,
-    username VARCHAR(30) NOT NULL,
+    account_id serial NOT NULL,
     first_name VARCHAR(30),
     last_name VARCHAR(30),
     birthday TIMESTAMPTZ,
@@ -10,5 +10,5 @@ CREATE TABLE app_users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT app_users_id PRIMARY KEY (id),
-    UNIQUE(username)
+    UNIQUE(account_id)
 );

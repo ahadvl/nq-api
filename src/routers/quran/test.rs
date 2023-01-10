@@ -1,9 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::establish_database_connection;
-    use crate::quran::*;
-    use actix_web::{http::StatusCode, test, web, App};
-    use diesel::r2d2::Pool;
+    use actix_web::{test, App};
 
     // #[test]
     // async fn get_surah() {

@@ -3,14 +3,12 @@ use actix_web::{web, Responder};
 use diesel::prelude::*;
 
 pub async fn get_list_of_organizations(pool: web::Data<DbPool>) -> impl Responder {
-    use crate::schema::app_organizations_table::dsl::*;
+    use crate::schema::app_organizations::dsl::*;
 
     let organizations = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let select_all = app_organizations_table
-            .load::<Organization>(&mut conn)
-            .unwrap();
+        let select_all = app_organizations.load::<Organization>(&mut conn).unwrap();
 
         return select_all;
     })
