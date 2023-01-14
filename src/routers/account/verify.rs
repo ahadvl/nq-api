@@ -133,7 +133,7 @@ pub async fn verify(
             (new_user, UserStatus::Created)
         } else {
             let user = app_users::dsl::app_users
-                .filter(app_users::dsl::id.eq(user_email.get(0).unwrap().account_id))
+                .filter(app_users::dsl::account_id.eq(user_email.get(0).unwrap().account_id))
                 .load::<User>(&mut conn)
                 .unwrap();
 

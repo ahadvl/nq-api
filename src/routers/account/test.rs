@@ -21,7 +21,9 @@ mod tests {
             .build(pg_manager)
             .expect("Failed to create pool.");
 
-        run_migrations(&mut pool.get().unwrap()).unwrap();
+        let mut conn = pool.get().unwrap();
+
+        run_migrations(&mut conn).unwrap();
 
         let mailer = create_emailer();
 
@@ -43,6 +45,7 @@ mod tests {
         assert_eq!(res.status(), StatusCode::OK);
 
         assert_eq!(res.response().body().size(), BodySize::Sized(11));
+
     }
 
     /// TODO:

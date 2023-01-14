@@ -2,7 +2,7 @@
 mod tests {
     use crate::routers::organization;
     use crate::routers::organization::new_organization_info::NewOrgInfo;
-    use crate::test::{rollback_db, Test};
+    use crate::test::Test;
     use crate::{establish_database_connection, run_migrations};
     use actix_web::body::{BodySize, MessageBody};
     use actix_web::test;
@@ -25,7 +25,7 @@ mod tests {
 
         let mut conn = pool.get().unwrap();
 
-        run_migrations(&mut pool.get().unwrap()).unwrap();
+        run_migrations(&mut conn).unwrap();
 
         let app =
             test::init_service(App::new().app_data(web::Data::new(pool.clone())).service(
@@ -36,8 +36,6 @@ mod tests {
         let res = test::call_service(&app, add_org_request().to_request()).await;
 
         assert_eq!(res.status(), 200);
-
-        rollback_db(&mut conn).unwrap();
     }
 
     #[test]
@@ -76,7 +74,5 @@ mod tests {
         let organization = new_org_res.response().body();
 
         assert_eq!(organization.size(), BodySize::Sized(209));
-
-        rollback_db(&mut conn).unwrap();
     }
 }
