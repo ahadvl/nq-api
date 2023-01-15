@@ -2,7 +2,6 @@
 mod tests {
     use crate::models::{Account, NewUser};
     use crate::schema::{app_accounts::dsl::*, app_users};
-    use crate::test::rollback_db;
     use crate::{
         establish_database_connection, models::NewAccount, routers::profile::profile,
         run_migrations,
@@ -11,6 +10,8 @@ mod tests {
     use actix_web::{web, App};
     use diesel::prelude::*;
     use diesel::r2d2::Pool;
+    use rand::distributions::Alphanumeric;
+    use rand::Rng;
 
     // TODO: FIX issue
     #[test]
@@ -23,12 +24,19 @@ mod tests {
 
         let mut conn = pool.get().unwrap();
 
-        run_migrations(&mut pool.get().unwrap()).unwrap();
+        run_migrations(&mut conn).unwrap();
+
+        // create a random username
+        let random_username: String = rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(5)
+            .map(char::from)
+            .collect();
 
         // First create a account
         let acc: Account = NewAccount {
             account_type: &String::from("user"),
-            username: &String::from("test_user1"),
+            username: &random_username,
         }
         .insert_into(app_accounts)
         .get_result(&mut conn)
@@ -52,7 +60,5 @@ mod tests {
 
         //Checks
         assert_eq!(res.status(), 200);
-
-        rollback_db(&mut conn).unwrap();
     }
 }

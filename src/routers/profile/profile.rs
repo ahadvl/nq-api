@@ -1,9 +1,21 @@
 use actix_web::web::{self, ReqData};
 use actix_web::Responder;
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use serde::Serialize;
 
-use crate::models::{Account, User, UserProfile};
+use crate::models::{Account, Email, User};
 use crate::DbPool;
+
+#[derive(Serialize)]
+struct FullUserProfile {
+    pub email: String,
+    pub username: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub birthday: Option<NaiveDateTime>,
+    pub profile_image: Option<String>,
+}
 
 pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl Responder {
     use crate::schema::app_accounts::dsl::{app_accounts, id as id_from_accounts};
@@ -13,7 +25,7 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
 
     // select user form db
     // with user_id
-    let user_profile: UserProfile = web::block(move || {
+    let user_profile: FullUserProfile = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         let account = app_accounts
@@ -21,13 +33,21 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
             .load::<Account>(&mut conn)
             .unwrap();
 
-        let users = User::belonging_to(account.get(0).unwrap())
-            .load::<User>(&mut conn)
-            .unwrap();
-        let user = users.get(0).unwrap();
+        let account = account.get(0).unwrap();
 
-        let profile = UserProfile {
-            username: account.get(0).unwrap().username.to_owned(),
+        let user = User::belonging_to(account).load::<User>(&mut conn).unwrap();
+
+        let user = user.get(0).unwrap();
+
+        let email = Email::belonging_to(account)
+            .load::<Email>(&mut conn)
+            .unwrap();
+
+        let email: &Email = email.get(0).unwrap();
+
+        let profile = FullUserProfile {
+            email: email.clone().email,
+            username: account.username.to_owned(),
             first_name: user.clone().first_name,
             last_name: user.clone().last_name,
             birthday: user.clone().birthday,

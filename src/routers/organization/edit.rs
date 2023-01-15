@@ -21,7 +21,7 @@ pub async fn edit_organization(
     info: web::Json<OrgInfoUpdatebleFileds>,
     pool: web::Data<DbPool>,
 ) -> impl Responder {
-    use crate::schema::app_accounts::dsl::{app_accounts, id as account_id, username};
+    use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id, username};
     use crate::schema::app_organizations::dsl::*;
 
     let org_id = path.into_inner();
@@ -32,7 +32,7 @@ pub async fn edit_organization(
 
         // First find the org from id
         let account = app_accounts
-            .filter(account_id.eq(org_id as i32))
+            .filter(acc_id.eq(org_id as i32))
             .load::<Account>(&mut conn)?;
 
         let org =

@@ -97,7 +97,7 @@ pub struct QuranText {
     text: String,
 }
 
-#[derive(Identifiable, Queryable, Associations, PartialEq, Debug)]
+#[derive(Identifiable, Queryable, Associations, PartialEq, Debug, Clone)]
 #[diesel(belongs_to(Account))]
 #[diesel(table_name = app_emails)]
 pub struct Email {
