@@ -1,0 +1,275 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "NatiqQuran Api",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://api.natiq.net"
+    }
+  ],
+  "paths": {
+    "/account/sendCode": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "items": {
+                  "type": "string",
+                  "description": "the email address"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Code sended."
+          }
+        }
+      }
+    },
+    "/account/verify": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "the email address",
+                    "example": "info@natiq.com"
+                  },
+                  "code": {
+                    "type": "string",
+                    "description": "the code",
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "example": 123456
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns the new user token"
+          }
+        }
+      }
+    },
+    "/account/logout": {
+      "get": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "expires the token of user"
+          }
+        }
+      }
+    },
+    "/quran": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "integer"
+                },
+                "to": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the surahs of a quran"
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the user profile"
+          }
+        }
+      }
+    },
+    "/organizations": {
+      "get": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the list of all orgs"
+          }
+        }
+      },
+      "post": {
+        "description": "Adds the new org",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "The unique username for new org",
+                    "example": "github"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "The full name of org",
+                    "example": "github org"
+                  },
+                  "profile_image": {
+                    "type": "string",
+                    "description": "The url of a profile image",
+                    "example": "https://assets.natiq.com/nema-profile-image.jpg"
+                  },
+                  "established_date": {
+                    "type": "string",
+                    "description": "The established date of org(company)",
+                    "example": "1988-03-12"
+                  },
+                  "national_id": {
+                    "type": "string",
+                    "description": "The national id of a company",
+                    "minLength": 11,
+                    "maxLength": 11,
+                    "example": "12345678911"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "This means new org was created"
+          }
+        }
+      }
+    },
+    "/organization/{org_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the org with id you specified"
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "The unique username for new org",
+                    "example": "github"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "The full name of org",
+                    "example": "github org"
+                  },
+                  "profile_image": {
+                    "type": "string",
+                    "description": "The url of a profile image",
+                    "example": "https://assets.natiq.com/nema-profile-image.jpg"
+                  },
+                  "established_date": {
+                    "type": "string",
+                    "description": "The established date of org(company)",
+                    "example": "1988-03-12"
+                  },
+                  "national_id": {
+                    "type": "string",
+                    "description": "The national id of a company",
+                    "minLength": 11,
+                    "maxLength": 11,
+                    "example": "12345678911"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "This means organization with id you specified"
+          }
+        }
+      }
+    }
+  }
+}
