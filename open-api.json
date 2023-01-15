@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "https://api.natiq.net/v1"
+      "url": "https://api.natiq.net"
     }
   ],
   "paths": {
