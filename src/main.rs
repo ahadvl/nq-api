@@ -28,6 +28,7 @@ use routers::organization::add;
 use routers::organization::edit;
 use routers::organization::list;
 use routers::organization::view;
+use routers::profile::edit_profile;
 use routers::profile::profile;
 use routers::quran::quran;
 
@@ -106,7 +107,8 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::resource("/profile")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
-                    .route(web::get().to(profile::view_profile)),
+                    .route(web::get().to(profile::view_profile))
+                    .route(web::post().to(edit_profile::edit_profile)),
             )
             .service(
                 web::scope("/organizations")
