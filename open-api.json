@@ -124,6 +124,61 @@
             "description": "Returns the user profile"
           }
         }
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "The unique username for new profile",
+                    "example": "Mahdi1279"
+                  },
+                  "first_name": {
+                    "type": "string",
+                    "description": "the first name of user",
+                    "example": "Mahdi"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "description": "the last name of user",
+                    "example": "Mohammadi"
+                  },
+                  "birthday": {
+                    "type": "string",
+                    "description": "The date of the birth",
+                    "example": "1989-12-2"
+                  },
+                  "profile_image": {
+                    "type": "string",
+                    "description": "The url of a profile image",
+                    "example": "https://assets.natiq.com/mahdi-profile-image.jpg"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "edited"
+          },
+          "500": {
+            "description": "{some error}"
+          }
+        }
       }
     },
     "/organizations": {
