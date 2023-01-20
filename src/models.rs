@@ -54,7 +54,7 @@ pub struct User {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Queryable, Debug, Clone, Serialize)]
+#[derive(Queryable, Debug, Clone, Serialize, Deserialize)]
 pub struct UserProfile {
     pub username: String,
     pub first_name: Option<String>,
