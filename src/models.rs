@@ -48,7 +48,7 @@ pub struct User {
     pub account_id: i32,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
-    pub birthday: Option<NaiveDateTime>,
+    pub birthday: Option<NaiveDate>,
     pub profile_image: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -59,7 +59,7 @@ pub struct UserProfile {
     pub username: String,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
-    pub birthday: Option<NaiveDateTime>,
+    pub birthday: Option<NaiveDate>,
     pub profile_image: Option<String>,
 }
 
