@@ -1,9 +1,9 @@
 use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
+use crate::error::RouterError;
 use crate::models::{Account, Email, NewAccount, NewEmail, NewToken, NewUser, User, VerifyCode};
 use crate::schema::app_emails;
 use crate::{validate::validate, DbPool};
-use actix_web::http::StatusCode;
-use actix_web::{web, Error, HttpResponse};
+use actix_web::{web};
 use auth::token::TokenGenerator;
 use diesel::prelude::*;
 use rand::Rng;
@@ -19,30 +19,12 @@ pub struct VerifyCodeInfo {
     code: i32,
 }
 
-enum UserStatus {
-    /// This means user created at verifying email
-    Created,
-
-    /// This means user exists and just wants to get token (login)
-    Exists,
-}
-
-impl UserStatus {
-    /// Returns the status code of UserStatus
-    pub fn as_status_code(&self) -> StatusCode {
-        match *self {
-            UserStatus::Created => StatusCode::CREATED,
-            UserStatus::Exists => StatusCode::OK,
-        }
-    }
-}
-
 /// Verify verification code that sended to email
 /// from /account/sendCode router
 pub async fn verify(
     pool: web::Data<DbPool>,
     info: web::Json<VerifyCodeInfo>,
-) -> Result<HttpResponse, Error> {
+) -> Result<String, RouterError> {
     use crate::schema::app_accounts;
     use crate::schema::app_tokens;
     use crate::schema::app_users;
@@ -50,7 +32,7 @@ pub async fn verify(
 
     validate(&info.0)?;
 
-    let result: (String, StatusCode) = web::block(move || {
+    let result: Result<String, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         let last_sended_code = app_verify_codes
@@ -61,18 +43,17 @@ pub async fn verify(
             .unwrap();
 
         if last_sended_code.is_empty() {
-            return (
+            return Err(RouterError::Gone(
                 "No coded sended to this email".to_string(),
-                StatusCode::GONE,
-            );
+            ));
         }
 
         if last_sended_code[0].code != info.code {
-            return ("Code is not correct".to_string(), StatusCode::OK);
+            return Ok("Code is not correct".to_string());
         }
 
         if last_sended_code[0].status == *"used".to_string() {
-            return ("Code is already used".to_string(), StatusCode::OK);
+            return Ok("Code is already used".to_string());
         }
 
         let diff = time_deference(last_sended_code[0].created_at);
@@ -82,7 +63,7 @@ pub async fn verify(
             // The requested resource is no longer available at the server and no forwarding
             // address is known. This condition is expected to be considered permanent.
 
-            return ("Code expired".to_string(), StatusCode::GONE);
+            return Err(RouterError::Gone("Code expired".to_string()));
         }
 
         // Everything is ok now change code status to used
@@ -99,7 +80,7 @@ pub async fn verify(
 
         // If we dont have user with request (email) then create it
         // else return it
-        let (user, user_status): (User, UserStatus) = if user_email.is_empty() {
+        let user: User = if user_email.is_empty() {
             let new_account: Account = NewAccount {
                 username: &String::from(""),
                 account_type: &String::from("user"),
@@ -130,14 +111,14 @@ pub async fn verify(
                 .execute(&mut conn)
                 .unwrap();
 
-            (new_user, UserStatus::Created)
+            new_user
         } else {
             let user = app_users::dsl::app_users
                 .filter(app_users::dsl::account_id.eq(user_email.get(0).unwrap().account_id))
                 .load::<User>(&mut conn)
                 .unwrap();
 
-            (user.get(0).unwrap().to_owned(), UserStatus::Exists)
+            user.get(0).unwrap().to_owned()
         };
 
         // Some salts
@@ -180,10 +161,10 @@ pub async fn verify(
             .execute(&mut conn)
             .unwrap();
 
-        (result, user_status.as_status_code())
+        Ok(result)
     })
     .await
     .unwrap();
 
-    Ok(HttpResponse::build(result.1).body(result.0))
+    result
 }
