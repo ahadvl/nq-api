@@ -1,16 +1,20 @@
-use actix_web::{error, Error};
 use validator::Validate;
 
+use crate::error::RouterError;
+
 /// Validate the value and return actix error
-pub fn validate<T>(data: &T) -> Result<(), Error>
+pub fn validate<T>(data: &T) -> Result<(), RouterError>
 where
     T: Validate,
 {
     let validation = data.validate();
 
-    if validation.is_err() {
-        return Err(error::ErrorBadRequest(validation.err().unwrap()));
-    }
+    match validation {
+        Err(error_detail) => {
+            // TODO: This error in response is so ugly.
+            return Err(RouterError::ValidationError(error_detail.to_string()));
+        }
 
-    Ok(())
+        Ok(()) => Ok(()),
+    }
 }
