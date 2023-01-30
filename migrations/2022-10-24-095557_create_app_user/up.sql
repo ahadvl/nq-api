@@ -5,7 +5,7 @@ CREATE TABLE app_users (
     account_id serial NOT NULL,
     first_name VARCHAR(30),
     last_name VARCHAR(30),
-    birthday TIMESTAMPTZ,
+    birthday DATE,
     profile_image TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

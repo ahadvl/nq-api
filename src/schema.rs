@@ -52,7 +52,7 @@ diesel::table! {
         account_id -> Int4,
         first_name -> Nullable<Varchar>,
         last_name -> Nullable<Varchar>,
-        birthday -> Nullable<Timestamptz>,
+        birthday -> Nullable<Date>,
         profile_image -> Nullable<Text>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,

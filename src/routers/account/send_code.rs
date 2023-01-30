@@ -1,10 +1,11 @@
 use super::{time_deference, MAX_RANDOM_CODE, MIN_RANDOM_CODE};
 use crate::email::EmailManager;
+use crate::error::RouterError;
 use crate::models::{NewVerifyCode, VerifyCode};
 use crate::test::Test;
 use crate::validate::validate;
 use crate::DbPool;
-use actix_web::{error, web, Error, HttpResponse};
+use actix_web::web;
 use diesel::prelude::*;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -47,14 +48,14 @@ pub async fn send_code(
     pool: web::Data<DbPool>,
     emailer: web::Data<EmailManager>,
     info: web::Json<SendCodeInfo>,
-) -> Result<HttpResponse, Error> {
+) -> Result<String, RouterError> {
     use crate::schema::app_verify_codes::dsl::*;
 
     validate(&info.0)?;
 
     let info_copy = info.clone();
 
-    let send_status: SendCodeStatus = web::block(move || {
+    let send_status: Result<SendCodeStatus, RouterError> = web::block(move || {
         let random_code = generate_random_code(MIN_RANDOM_CODE, MAX_RANDOM_CODE);
         let mut conn = pool.get().unwrap();
 
@@ -72,7 +73,7 @@ pub async fn send_code(
 
             // Check if code not expired
             if diff.num_seconds() < 10 {
-                return SendCodeStatus::AlreadySent;
+                return Ok(SendCodeStatus::AlreadySent);
             }
         }
 
@@ -89,27 +90,31 @@ pub async fn send_code(
             .execute(&mut conn)
             .unwrap();
 
-        SendCodeStatus::SendCode(random_code.to_string())
+        Ok(SendCodeStatus::SendCode(random_code.to_string()))
     })
     .await
     .unwrap();
 
-    match send_status {
-        SendCodeStatus::SendCode(new_code) => {
-            let result = emailer
-                .send_email(
-                    &info.email,
-                    "Verification Code",
-                    format!("Code: {}", new_code),
-                )
-                .await;
+    if let Ok(send_status) = send_status {
+        match send_status {
+            SendCodeStatus::SendCode(new_code) => {
+                let result = emailer
+                    .send_email(
+                        &info.email,
+                        "Verification Code",
+                        format!("Code: {}", new_code),
+                    )
+                    .await;
 
-            match result {
-                Ok(()) => Ok(HttpResponse::Ok().body("Code sended")),
-                // TODO: maybe its not good idea to send error here
-                Err(error) => Err(error::ErrorInternalServerError(error)),
+                match result {
+                    Ok(()) => Ok("Code sended".to_string()),
+                    // TODO: We can check the error, Maybe ?
+                    Err(_error) => Err(RouterError::InternalError),
+                }
             }
+            SendCodeStatus::AlreadySent => Ok("Already sent".to_string()),
         }
-        SendCodeStatus::AlreadySent => Ok(HttpResponse::Ok().body("Already sent")),
+    } else {
+        return Err(send_status.err().unwrap());
     }
 }

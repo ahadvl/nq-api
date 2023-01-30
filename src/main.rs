@@ -20,6 +20,7 @@ mod schema;
 mod test;
 mod token_checker;
 mod validate;
+mod error;
 
 use routers::account::logout;
 use routers::account::send_code;

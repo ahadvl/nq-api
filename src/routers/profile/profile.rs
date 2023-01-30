@@ -1,6 +1,6 @@
 use actix_web::web::{self, ReqData};
 use actix_web::Responder;
-use chrono::NaiveDateTime;
+use chrono::NaiveDate;
 use diesel::prelude::*;
 use serde::Serialize;
 
@@ -13,7 +13,7 @@ struct FullUserProfile {
     pub username: String,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
-    pub birthday: Option<NaiveDateTime>,
+    pub birthday: Option<NaiveDate>,
     pub profile_image: Option<String>,
 }
 
