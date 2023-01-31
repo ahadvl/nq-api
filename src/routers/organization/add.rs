@@ -1,7 +1,8 @@
-use actix_web::{web, Responder, Result};
+use actix_web::web;
 use diesel::{dsl::exists, prelude::*, select};
 
 use crate::{
+    error::RouterError,
     models::{Account, NewAccount, NewOrganization},
     validate::validate,
     DbPool,
@@ -9,19 +10,11 @@ use crate::{
 
 use super::new_organization_info::NewOrgInfo;
 
-enum OrganizationCreationStatus {
-    /// New org created
-    Created,
-
-    /// Org with that username exists
-    Exists,
-}
-
 /// Add a new Org
 pub async fn add(
     conn: web::Data<DbPool>,
     new_org: web::Json<NewOrgInfo>,
-) -> Result<impl Responder> {
+) -> Result<String, RouterError> {
     use crate::schema::app_accounts::dsl::*;
     use crate::schema::app_organizations::dsl::*;
 
@@ -29,7 +22,7 @@ pub async fn add(
 
     validate(&new_org_info)?;
 
-    let add_status: OrganizationCreationStatus = web::block(move || {
+    let add_status: Result<String, RouterError> = web::block(move || {
         let mut conn = conn.get().unwrap();
 
         // Check if org already exists
@@ -40,7 +33,7 @@ pub async fn add(
         .unwrap();
 
         if org_exists {
-            return OrganizationCreationStatus::Exists;
+            return Err(RouterError::NotAvailable("username".to_string()));
         }
 
         // Create new account for org
@@ -63,13 +56,10 @@ pub async fn add(
         .execute(&mut conn)
         .unwrap();
 
-        OrganizationCreationStatus::Created
+        Ok("Created".to_string())
     })
     .await
     .unwrap();
 
-    match add_status {
-        OrganizationCreationStatus::Created => Ok("created"),
-        OrganizationCreationStatus::Exists => Ok("username is not available"),
-    }
+    add_status
 }

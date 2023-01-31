@@ -1,14 +1,14 @@
 use actix_web::web::{self, ReqData};
-use actix_web::Responder;
 use chrono::NaiveDate;
 use diesel::prelude::*;
 use serde::Serialize;
 
+use crate::error::RouterError;
 use crate::models::{Account, Email, User};
 use crate::DbPool;
 
 #[derive(Serialize)]
-struct FullUserProfile {
+pub struct FullUserProfile {
     pub email: String,
     pub username: String,
     pub first_name: Option<String>,
@@ -17,7 +17,10 @@ struct FullUserProfile {
     pub profile_image: Option<String>,
 }
 
-pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl Responder {
+pub async fn view_profile(
+    pool: web::Data<DbPool>,
+    data: ReqData<u32>,
+) -> Result<web::Json<FullUserProfile>, RouterError> {
     use crate::schema::app_accounts::dsl::{app_accounts, id as id_from_accounts};
 
     // Get userId from token Checker
@@ -25,7 +28,7 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
 
     // select user form db
     // with user_id
-    let user_profile: FullUserProfile = web::block(move || {
+    let user_profile: Result<FullUserProfile, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         let account = app_accounts
@@ -33,7 +36,9 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
             .load::<Account>(&mut conn)
             .unwrap();
 
-        let account = account.get(0).unwrap();
+        let Some(account)= account.get(0) else {
+            return Err(RouterError::NotFound);
+        };
 
         let user = User::belonging_to(account).load::<User>(&mut conn).unwrap();
 
@@ -54,11 +59,14 @@ pub async fn view_profile(pool: web::Data<DbPool>, data: ReqData<u32>) -> impl R
             profile_image: user.clone().profile_image,
         };
 
-        profile
+        Ok(profile)
     })
     .await
     .unwrap();
 
-    // Response with user as json
-    web::Json(user_profile)
+    if let Ok(profile) = user_profile {
+        Ok(web::Json(profile))
+    } else {
+        Err(user_profile.err().unwrap())
+    }
 }

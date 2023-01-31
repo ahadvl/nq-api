@@ -1,10 +1,10 @@
 use crate::{
+    error::RouterError,
     models::{Account, Organization},
     DbPool,
 };
-use actix_web::{web, Responder};
+use actix_web::web;
 use diesel::prelude::*;
-use diesel::result::Error;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -20,30 +20,35 @@ pub async fn edit_organization(
     path: web::Path<u32>,
     info: web::Json<OrgInfoUpdatebleFileds>,
     pool: web::Data<DbPool>,
-) -> impl Responder {
+) -> Result<String, RouterError> {
     use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id, username};
     use crate::schema::app_organizations::dsl::*;
 
     let org_id = path.into_inner();
     let new_org = info.into_inner();
 
-    let update_result: Result<(), Error> = web::block(move || {
+    let update_result: Result<String, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         // First find the org from id
         let account = app_accounts
             .filter(acc_id.eq(org_id as i32))
-            .load::<Account>(&mut conn)?;
+            .load::<Account>(&mut conn)
+            .unwrap();
 
-        let org =
-            Organization::belonging_to(account.get(0).unwrap()).load::<Organization>(&mut conn)?;
+        let org = Organization::belonging_to(account.get(0).unwrap())
+            .load::<Organization>(&mut conn)
+            .unwrap();
 
-        let account = account.get(0).unwrap();
+        let Some(account)= account.get(0) else {
+            return Err(RouterError::NotFound);
+        };
         let org = org.get(0).unwrap();
 
         diesel::update(account)
             .set(username.eq(new_org.username))
-            .execute(&mut conn)?;
+            .execute(&mut conn)
+            .unwrap();
 
         diesel::update(&org)
             .set((
@@ -51,17 +56,13 @@ pub async fn edit_organization(
                 profile_image.eq(new_org.profile_image),
                 national_id.eq(new_org.national_id),
             ))
-            .execute(&mut conn)?;
+            .execute(&mut conn)
+            .unwrap();
 
-        Ok(())
+        Ok("Updated".to_string())
     })
     .await
     .unwrap();
 
-    match update_result {
-        Ok(()) => "Updated",
-
-        // TODO: handle database errors
-        Err(_error) => "error",
-    }
+    update_result
 }

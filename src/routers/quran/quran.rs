@@ -1,5 +1,10 @@
-use crate::{models, validate::validate, DbPool};
-use actix_web::{web, Error, HttpResponse};
+use crate::{
+    error::RouterError,
+    models::{self, QuranText},
+    validate::validate,
+    DbPool,
+};
+use actix_web::web;
 use diesel::prelude::*;
 use serde::Deserialize;
 use validator::Validate;
@@ -19,7 +24,7 @@ pub struct QuranQuery {
 pub async fn quran(
     query: web::Query<QuranQuery>,
     pool: web::Data<DbPool>,
-) -> Result<HttpResponse, Error> {
+) -> Result<web::Json<Vec<QuranText>>, RouterError> {
     use crate::schema::quran_text::dsl::*;
 
     validate(&query.0)?;
@@ -34,7 +39,8 @@ pub async fn quran(
             .load::<models::QuranText>(&mut conn)
             .unwrap()
     })
-    .await?;
+    .await
+    .unwrap();
 
-    Ok(HttpResponse::Ok().json(result))
+    Ok(web::Json(result))
 }
