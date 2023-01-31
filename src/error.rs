@@ -8,10 +8,15 @@ use std::{error::Error, fmt::Display};
 #[derive(Debug)]
 pub enum RouterError {
     NotFound,
+
     /// Needs the detail of error
     ValidationError(String),
     InternalError,
     Gone(String),
+
+    /// For example:
+    /// username is not available
+    NotAvailable(String),
 }
 
 impl Display for RouterError {
@@ -21,6 +26,7 @@ impl Display for RouterError {
             Self::ValidationError(detail) => write!(f, "{}", detail),
             Self::InternalError => write!(f, "internal server error"),
             Self::Gone(message) => write!(f, "{}", message),
+            Self::NotAvailable(what) => write!(f, "{} is not available", what),
         }
     }
 }
@@ -48,6 +54,7 @@ impl ResponseError for RouterError {
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::ValidationError(_detail) => StatusCode::BAD_REQUEST,
             Self::Gone(_message) => StatusCode::GONE,
+            Self::NotAvailable(_what) => StatusCode::OK,
         }
     }
 }
