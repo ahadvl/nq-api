@@ -24,27 +24,34 @@ pub async fn edit_profile(
         let mut conn = pool.get().unwrap();
 
         // First find the org from id
-        let account = app_accounts
+        let Ok(account) = app_accounts
             .filter(acc_id.eq(user_id as i32))
             .load::<Account>(&mut conn)
-            .unwrap();
+            else {
+                return Err(RouterError::InternalError);
+            };
 
         let Some(account) = account.get(0) else {
             return Err(RouterError::NotFound);
         };
 
-        let user = User::belonging_to(account).load::<User>(&mut conn).unwrap();
+        let Ok(user) = User::belonging_to(account).load::<User>(&mut conn) else {
+            return Err(RouterError::InternalError);
+        };
 
-        let current_user_profile = user.get(0).unwrap();
+        let Some(current_user_profile) = user.get(0) else {
+            return Err(RouterError::NotFound);
+        };
 
         // Now update the account username
-        diesel::update(account)
+        let Ok(_) = diesel::update(account)
             .set(username.eq(new_profile.username))
-            .execute(&mut conn)
-            .unwrap();
+            .execute(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
         // And update the other data
-        diesel::update(current_user_profile)
+        let Ok(_) = diesel::update(current_user_profile)
             .set((
                 first_name.eq(new_profile.first_name),
                 last_name.eq(new_profile.last_name),
@@ -52,7 +59,9 @@ pub async fn edit_profile(
                 profile_image.eq(new_profile.profile_image),
             ))
             .execute(&mut conn)
-            .unwrap();
+            else {
+                return Err(RouterError::InternalError);
+            };
 
         Ok("Edited".to_string())
     })

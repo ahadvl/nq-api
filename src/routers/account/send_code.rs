@@ -60,12 +60,14 @@ pub async fn send_code(
         let mut conn = pool.get().unwrap();
 
         // Get last sended code, order by created_at
-        let last_sended_code = app_verify_codes
+        let Ok(last_sended_code) = app_verify_codes
             .filter(email.eq(&info_copy.email))
             .order(created_at.desc())
             .limit(1)
             .load::<VerifyCode>(&mut conn)
-            .unwrap();
+            else {
+                return Err(RouterError::InternalError)
+            };
 
         // Is there any code we sent ?
         if !last_sended_code.is_empty() {
@@ -85,10 +87,11 @@ pub async fn send_code(
         };
 
         // Insert code to app_verify_code table
-        diesel::insert_into(app_verify_codes)
+        let Ok(_) = diesel::insert_into(app_verify_codes)
             .values(&new_code)
-            .execute(&mut conn)
-            .unwrap();
+            .execute(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
         Ok(SendCodeStatus::SendCode(random_code.to_string()))
     })

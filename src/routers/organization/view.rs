@@ -34,22 +34,24 @@ pub async fn view(
         let mut conn = conn.get().unwrap();
 
         // Find the account
-        let account = app_accounts
+        let Ok(account)= app_accounts
             .filter(id.eq(org_id as i32))
-            .load::<Account>(&mut conn)
-            .unwrap();
+            .load::<Account>(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
-        if account.is_empty() {
+        let Some(account) = account.get(0) else {
             return Err(RouterError::NotFound);
-        }
+        };
 
-        let account = account.get(0).unwrap();
+        let Ok(org) = Organization::belonging_to(account.clone())
+            .load::<Organization>(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
-        let org = Organization::belonging_to(account.clone())
-            .load::<Organization>(&mut conn)
-            .unwrap();
-
-        let org = org.get(0).unwrap();
+        let Some(org) = org.get(0) else {
+            return Err(RouterError::NotFound);
+        };
 
         let account_copy = account.clone();
 
