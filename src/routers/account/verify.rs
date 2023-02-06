@@ -3,7 +3,7 @@ use crate::error::RouterError;
 use crate::models::{Account, Email, NewAccount, NewEmail, NewToken, NewUser, User, VerifyCode};
 use crate::schema::app_emails;
 use crate::{validate::validate, DbPool};
-use actix_web::{web};
+use actix_web::web;
 use auth::token::TokenGenerator;
 use diesel::prelude::*;
 use rand::Rng;
@@ -35,28 +35,30 @@ pub async fn verify(
     let result: Result<String, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let last_sended_code = app_verify_codes
+        let Ok(last_sended_code) = app_verify_codes
             .filter(email.eq(info.clone().email))
             .order(created_at.desc())
             .limit(1)
             .load::<VerifyCode>(&mut conn)
-            .unwrap();
+            else {
+                return Err(RouterError::InternalError);
+            };
 
-        if last_sended_code.is_empty() {
+        let Some(last_sended_code) = last_sended_code.get(0) else {
             return Err(RouterError::Gone(
                 "No coded sended to this email".to_string(),
             ));
-        }
+        };
 
-        if last_sended_code[0].code != info.code {
+        if last_sended_code.code != info.code {
             return Ok("Code is not correct".to_string());
         }
 
-        if last_sended_code[0].status == *"used".to_string() {
+        if last_sended_code.status == *"used".to_string() {
             return Ok("Code is already used".to_string());
         }
 
-        let diff = time_deference(last_sended_code[0].created_at);
+        let diff = time_deference(last_sended_code.created_at);
 
         if diff.num_seconds() >= 70 {
             // status code 410 => Gone
@@ -67,36 +69,43 @@ pub async fn verify(
         }
 
         // Everything is ok now change code status to used
-        diesel::update(&last_sended_code[0])
+        let Ok(_) = diesel::update(&last_sended_code)
             .set(status.eq("used".to_string()))
-            .execute(&mut conn)
-            .unwrap();
+            .execute(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
         // Check if user exists
-        let user_email = app_emails::dsl::app_emails
+        let Ok(user_email) = app_emails::dsl::app_emails
             .filter(app_emails::dsl::email.eq(&info.email))
             .load::<Email>(&mut conn)
-            .unwrap();
+            else {
+                return Err(RouterError::InternalError);
+            };
 
         // If we dont have user with request (email) then create it
         // else return it
         let user: User = if user_email.is_empty() {
-            let new_account: Account = NewAccount {
+            let Ok(new_account) = NewAccount {
                 username: &String::from(""),
                 account_type: &String::from("user"),
             }
             .insert_into(app_accounts::dsl::app_accounts)
-            .get_result(&mut conn)
-            .unwrap();
+            .get_result::<Account>(&mut conn)
+            else {
+                return Err(RouterError::InternalError)
+            };
 
-            let new_user = NewUser {
+            let Ok(new_user)= NewUser {
                 account_id: new_account.id,
             }
             .insert_into(app_users::dsl::app_users)
-            .get_result(&mut conn)
-            .unwrap();
+            .get_result::<User>(&mut conn)
+            else {
+                return Err(RouterError::InternalError)
+            };
 
-            let _new_email = NewEmail {
+            let Ok(_)= NewEmail {
                 email: &info.email,
                 account_id: new_account.id,
                 verified: true,
@@ -104,21 +113,31 @@ pub async fn verify(
                 deleted: false,
             }
             .insert_into(app_emails::dsl::app_emails)
-            .execute(&mut conn);
+            .execute(&mut conn) else {
+                return Err(RouterError::InternalError)
+            };
 
-            diesel::update(&new_account)
+            let Ok(_) = diesel::update(&new_account)
                 .set(app_accounts::dsl::username.eq(format!("u{}", &new_account.id)))
                 .execute(&mut conn)
-                .unwrap();
+                else {
+                    return Err(RouterError::InternalError);
+                };
 
             new_user
         } else {
-            let user = app_users::dsl::app_users
+            let Ok(user) = app_users::dsl::app_users
                 .filter(app_users::dsl::account_id.eq(user_email.get(0).unwrap().account_id))
                 .load::<User>(&mut conn)
-                .unwrap();
+                else {
+                    return Err(RouterError::InternalError);
+                };
 
-            user.get(0).unwrap().to_owned()
+            let Some(user) = user.get(0) else {
+                return Err(RouterError::InternalError);
+            };
+
+            user.to_owned()
         };
 
         // Some salts
@@ -138,7 +157,9 @@ pub async fn verify(
 
         token.generate();
 
-        let result = token.get_result().unwrap();
+        let Some(result) = token.get_result() else {
+            return Err(RouterError::InternalError);
+        };
 
         // Hash the token itself
         let token_hash = {
@@ -156,10 +177,11 @@ pub async fn verify(
         };
 
         // Save token to the Db
-        diesel::insert_into(app_tokens::dsl::app_tokens)
+        let Ok(_) = diesel::insert_into(app_tokens::dsl::app_tokens)
             .values(&new_token)
-            .execute(&mut conn)
-            .unwrap();
+            .execute(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
         Ok(result)
     })

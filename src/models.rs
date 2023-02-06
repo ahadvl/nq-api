@@ -1,5 +1,6 @@
 use crate::schema::{
-    app_accounts, app_emails, app_organizations, app_tokens, app_users, app_verify_codes,
+    app_accounts, app_emails, app_employees, app_organizations, app_tokens, app_users,
+    app_verify_codes,
 };
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{Associations, Identifiable, Insertable, Queryable};
@@ -143,4 +144,21 @@ pub struct NewOrganization {
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
     pub national_id: String,
+}
+
+#[derive(Queryable, Deserialize, Validate)]
+#[diesel(table_name = app_employees)]
+pub struct Employee {
+    pub id: i32,
+    pub org_account_id: i32,
+    pub employee_account_id: i32,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable, Deserialize, Validate)]
+#[diesel(table_name = app_employees)]
+pub struct NewEmployee {
+    pub org_account_id: i32,
+    pub employee_account_id: i32,
 }

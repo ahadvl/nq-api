@@ -34,13 +34,16 @@ pub async fn quran(
 
         // Get quran surahs
         // example BETWEEN 1 to 100
-        quran_text
+        let Ok(quran) = quran_text
             .filter(surah_id.between(query.from as i32, query.to as i32))
-            .load::<models::QuranText>(&mut conn)
-            .unwrap()
+            .load::<models::QuranText>(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
+
+        Ok(web::Json(quran))
     })
     .await
     .unwrap();
 
-    Ok(web::Json(result))
+    result
 }

@@ -31,24 +31,32 @@ pub async fn view_profile(
     let user_profile: Result<FullUserProfile, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let account = app_accounts
+        let Ok(account)= app_accounts
             .filter(id_from_accounts.eq(acc_id as i32))
-            .load::<Account>(&mut conn)
-            .unwrap();
+            .load::<Account>(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
         let Some(account)= account.get(0) else {
             return Err(RouterError::NotFound);
         };
 
-        let user = User::belonging_to(account).load::<User>(&mut conn).unwrap();
+        let Ok(user) = User::belonging_to(account).load::<User>(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
-        let user = user.get(0).unwrap();
+        let Some(user) = user.get(0) else {
+            return Err(RouterError::NotFound);
+        };
 
-        let email = Email::belonging_to(account)
-            .load::<Email>(&mut conn)
-            .unwrap();
+        let Ok(email) = Email::belonging_to(account)
+            .load::<Email>(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
-        let email: &Email = email.get(0).unwrap();
+        let Some(email) = email.get(0) else {
+            return Err(RouterError::InternalError);
+        };
 
         let profile = FullUserProfile {
             email: email.clone().email,

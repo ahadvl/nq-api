@@ -31,33 +31,42 @@ pub async fn edit_organization(
         let mut conn = pool.get().unwrap();
 
         // First find the org from id
-        let account = app_accounts
+        let Ok(account) = app_accounts
             .filter(acc_id.eq(org_id as i32))
-            .load::<Account>(&mut conn)
-            .unwrap();
+            .load::<Account>(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
-        let org = Organization::belonging_to(account.get(0).unwrap())
+        let Ok(org) = Organization::belonging_to(account.get(0).unwrap())
             .load::<Organization>(&mut conn)
-            .unwrap();
+            else {
+                return Err(RouterError::InternalError)
+            };
 
         let Some(account)= account.get(0) else {
             return Err(RouterError::NotFound);
         };
-        let org = org.get(0).unwrap();
 
-        diesel::update(account)
+        let Some(org) = org.get(0)else {
+            return Err(RouterError::NotFound);
+        };
+
+        let Ok(_) = diesel::update(account)
             .set(username.eq(new_org.username))
-            .execute(&mut conn)
-            .unwrap();
+            .execute(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
 
-        diesel::update(&org)
+        let Ok(_) = diesel::update(&org)
             .set((
                 name.eq(new_org.name),
                 profile_image.eq(new_org.profile_image),
                 national_id.eq(new_org.national_id),
             ))
             .execute(&mut conn)
-            .unwrap();
+            else {
+                return Err(RouterError::InternalError);
+            };
 
         Ok("Updated".to_string())
     })

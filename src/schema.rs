@@ -22,6 +22,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    app_employees (id) {
+        id -> Int4,
+        org_account_id -> Int4,
+        employee_account_id -> Int4,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     app_organizations (id) {
         id -> Int4,
         account_id -> Int4,
@@ -82,6 +92,7 @@ diesel::table! {
 diesel::allow_tables_to_appear_in_same_query!(
     app_accounts,
     app_emails,
+    app_employees,
     app_organizations,
     app_tokens,
     app_users,
