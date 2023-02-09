@@ -2,11 +2,29 @@
   "openapi": "3.0.2",
   "info": {
     "title": "NatiqQuran Api",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "servers": [
     {
       "url": "https://api.natiq.net"
+    }
+  ],
+  "tags": [
+    {
+      "name": "account",
+      "description": "for auth, and users"
+    },
+    {
+      "name": "organization",
+      "description": "manage organizations"
+    },
+    {
+      "name": "profile",
+      "description": "view or edit the org/user profile"
+    },
+    {
+      "name": "quran",
+      "description": "All the quran related routers"
     }
   ],
   "paths": {
@@ -17,14 +35,20 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "items": {
-                  "type": "string",
-                  "description": "the email address"
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "the email address",
+                    "example": "info@natiq.com"
+                  }
                 }
               }
             }
           }
         },
+        "tags": [
+          "account"
+        ],
         "responses": {
           "200": {
             "description": "Code sended."
@@ -57,6 +81,9 @@
             }
           }
         },
+        "tags": [
+          "account"
+        ],
         "responses": {
           "200": {
             "description": "Returns the new user token"
@@ -69,11 +96,15 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
             }
           }
+        ],
+        "tags": [
+          "account"
         ],
         "responses": {
           "200": {
@@ -101,6 +132,9 @@
             }
           }
         ],
+        "tags": [
+          "quran"
+        ],
         "responses": {
           "200": {
             "description": "Returns the surahs of a quran"
@@ -113,11 +147,15 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
             }
           }
+        ],
+        "tags": [
+          "profile"
         ],
         "responses": {
           "200": {
@@ -129,6 +167,7 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
@@ -171,6 +210,9 @@
             }
           }
         },
+        "tags": [
+          "profile"
+        ],
         "responses": {
           "200": {
             "description": "edited"
@@ -186,11 +228,15 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
             }
           }
+        ],
+        "tags": [
+          "organization"
         ],
         "responses": {
           "200": {
@@ -203,6 +249,7 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
@@ -247,6 +294,9 @@
             }
           }
         },
+        "tags": [
+          "organization"
+        ],
         "responses": {
           "200": {
             "description": "This means new org was created"
@@ -259,11 +309,23 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "path",
+            "required": true,
+            "name": "org_id",
+            "schema": {
+              "type": "number"
+            }
           }
+        ],
+        "tags": [
+          "organization"
         ],
         "responses": {
           "200": {
@@ -274,10 +336,19 @@
       "post": {
         "parameters": [
           {
+            "required": true,
             "in": "header",
             "name": "Authorization",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "required": true,
+            "name": "org_id",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -319,6 +390,9 @@
             }
           }
         },
+        "tags": [
+          "organization"
+        ],
         "responses": {
           "200": {
             "description": "This means organization with id you specified"
