@@ -2,7 +2,7 @@
   "openapi": "3.0.2",
   "info": {
     "title": "NatiqQuran Api",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "servers": [
     {
@@ -17,9 +17,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "items": {
-                  "type": "string",
-                  "description": "the email address"
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "the email address",
+                    "example": "info@natiq.com"
+                  }
                 }
               }
             }
@@ -69,6 +72,7 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
@@ -113,6 +117,7 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
@@ -129,6 +134,7 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
@@ -186,6 +192,7 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
@@ -203,6 +210,7 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
@@ -259,9 +267,18 @@
         "parameters": [
           {
             "in": "header",
+            "required": true,
             "name": "Authorization",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "required": true,
+            "name": "org_id",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -274,10 +291,19 @@
       "post": {
         "parameters": [
           {
+            "required": true,
             "in": "header",
             "name": "Authorization",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "required": true,
+            "name": "org_id",
+            "schema": {
+              "type": "number"
             }
           }
         ],
