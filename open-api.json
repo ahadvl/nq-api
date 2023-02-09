@@ -9,6 +9,24 @@
       "url": "https://api.natiq.net"
     }
   ],
+  "tags": [
+    {
+      "name": "account",
+      "description": "for auth, and users"
+    },
+    {
+      "name": "organization",
+      "description": "manage organizations"
+    },
+    {
+      "name": "profile",
+      "description": "view or edit the org/user profile"
+    },
+    {
+      "name": "quran",
+      "description": "All the quran related routers"
+    }
+  ],
   "paths": {
     "/account/sendCode": {
       "post": {
@@ -28,6 +46,9 @@
             }
           }
         },
+        "tags": [
+          "account"
+        ],
         "responses": {
           "200": {
             "description": "Code sended."
@@ -60,6 +81,9 @@
             }
           }
         },
+        "tags": [
+          "account"
+        ],
         "responses": {
           "200": {
             "description": "Returns the new user token"
@@ -78,6 +102,9 @@
               "type": "string"
             }
           }
+        ],
+        "tags": [
+          "account"
         ],
         "responses": {
           "200": {
@@ -105,6 +132,9 @@
             }
           }
         ],
+        "tags": [
+          "quran"
+        ],
         "responses": {
           "200": {
             "description": "Returns the surahs of a quran"
@@ -123,6 +153,9 @@
               "type": "string"
             }
           }
+        ],
+        "tags": [
+          "profile"
         ],
         "responses": {
           "200": {
@@ -177,6 +210,9 @@
             }
           }
         },
+        "tags": [
+          "profile"
+        ],
         "responses": {
           "200": {
             "description": "edited"
@@ -198,6 +234,9 @@
               "type": "string"
             }
           }
+        ],
+        "tags": [
+          "organization"
         ],
         "responses": {
           "200": {
@@ -255,6 +294,9 @@
             }
           }
         },
+        "tags": [
+          "organization"
+        ],
         "responses": {
           "200": {
             "description": "This means new org was created"
@@ -281,6 +323,9 @@
               "type": "number"
             }
           }
+        ],
+        "tags": [
+          "organization"
         ],
         "responses": {
           "200": {
@@ -345,6 +390,9 @@
             }
           }
         },
+        "tags": [
+          "organization"
+        ],
         "responses": {
           "200": {
             "description": "This means organization with id you specified"
