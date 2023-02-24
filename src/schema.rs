@@ -81,11 +81,42 @@ diesel::table! {
 }
 
 diesel::table! {
+    quran_ayahs (id) {
+        id -> Int4,
+        surah_id -> Int4,
+        ayah_number -> Int4,
+        sajdeh -> Varchar,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    quran_surahs (id) {
+        id -> Int4,
+        name -> Varchar,
+        period -> Varchar,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     quran_text (id) {
         id -> Int4,
         surah_id -> Int4,
         verse_number -> Int4,
         text -> Text,
+    }
+}
+
+diesel::table! {
+    quran_words (id) {
+        id -> Int4,
+        ayah_id -> Int4,
+        word -> Text,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
     }
 }
 
@@ -97,5 +128,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     app_tokens,
     app_users,
     app_verify_codes,
+    quran_ayahs,
+    quran_surahs,
     quran_text,
+    quran_words,
 );
