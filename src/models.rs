@@ -1,7 +1,4 @@
-use crate::schema::{
-    app_accounts, app_emails, app_employees, app_organizations, app_tokens, app_users,
-    app_verify_codes,
-};
+use crate::schema::*;
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{Associations, Identifiable, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
@@ -161,4 +158,35 @@ pub struct Employee {
 pub struct NewEmployee {
     pub org_account_id: i32,
     pub employee_account_id: i32,
+}
+
+#[derive(Insertable, Deserialize, Validate)]
+#[diesel(table_name = quran_ayahs)]
+pub struct QuranAyah {
+    pub id: i32,
+    pub surah_id: i32,
+    pub ayah_number: i32,
+    pub sajdeh: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable, Deserialize, Validate)]
+#[diesel(table_name = quran_words)]
+pub struct QuranWord {
+    pub id: i32,
+    pub ayah_id: i32,
+    pub word: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable, Deserialize, Validate)]
+#[diesel(table_name = quran_surahs)]
+pub struct QuranSurah {
+    pub id: i32,
+    pub name: String,
+    pub period: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
