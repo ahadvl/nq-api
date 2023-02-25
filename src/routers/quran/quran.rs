@@ -1,13 +1,31 @@
 use crate::{
     error::RouterError,
     models::{self, QuranText},
-    validate::validate,
+    validate::{validate},
     DbPool,
 };
 use actix_web::web;
 use diesel::prelude::*;
-use serde::Deserialize;
-use validator::Validate;
+use serde::{Deserialize, Serialize};
+use validator::{Validate, ValidationError};
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Mushaf {
+    Hafs,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Mode {
+    Surah,
+    Ayah,
+    Page,
+    Juz,
+    Hizb,
+    Manzil,
+    Ruku,
+}
 
 #[derive(Deserialize, Validate)]
 pub struct QuranQuery {
@@ -16,11 +34,12 @@ pub struct QuranQuery {
 
     #[validate(range(min = 1, max = 114))]
     to: u8,
+    
+    mushaf: Mushaf,
+
+    mode: Mode,
 }
 
-/// Example
-///
-/// `/quran?from=1&to=10`
 pub async fn quran(
     query: web::Query<QuranQuery>,
     pool: web::Data<DbPool>,
