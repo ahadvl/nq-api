@@ -18,7 +18,12 @@ TANZIL_QURAN_SOURCE_HASH = "e7ab47ae9267ce6a3979bf60031b7c40c9701cb2c1d899bbc6e5
 # TODO This table also has period column that we need
 #      to insert
 INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name)"
+
 INSERTABLE_QURAN_WORDS_TABLE = "quran_words(ayah_id, word)"
+
+# TODO This table also has a sajdeh cloumn that we need
+#      to insert in next update
+INSERTABLE_QURAN_AYAHS_TABLE = "quran_ayahs(surah_id, ayah_number)"
 
 def exit_err(msg):
     exit("Error: " + msg)
@@ -35,7 +40,6 @@ def insert_to_table(i_table, values):
 def parse_quran_suarhs_table(root):
     result = []
 
-    # We just need surah_id and ayah number and sajdeh enum
     for child in root:
         surah_name = child.attrib['name']
         result.append(f'("{surah_name}")')
@@ -47,15 +51,34 @@ def parse_quran_words_table(root):
     ayah_number = 1
 
     for aya in root.iter('aya'):
+        # Get the array of aya words
         words = aya.attrib['text'].split(" ")
+
+        # Map and change every word to a specific format
         values = list(map(lambda word: f'({ayah_number}, "{word}")', words))
+
+        # Join the values with ,\n
         result.append(",\n".join(values))
+
+        # Next
         ayah_number += 1
 
     return insert_to_table(INSERTABLE_QURAN_WORDS_TABLE , ",\n".join(result))
 
-def parse_quran_ayahs():
-    print("TODO")
+def parse_quran_ayahs_table(root):
+    result = []
+    sura_number = 0
+
+    # We just need surah_id and ayah number and sajdeh enum
+    for aya in root.iter('aya'):
+        aya_index = aya.attrib['index']
+
+        if aya_index == "1":
+            sura_number += 1
+
+        result.append(f'({sura_number}, {aya_index})')
+
+    return insert_to_table(INSERTABLE_QURAN_AYAHS_TABLE, ",\n".join(result))
 
 def main(args):
     # Get the quran path
@@ -85,14 +108,17 @@ def main(args):
     # To a XML object so we can use it in generating sql
     root = ET.fromstring(quran_source_as_string)
 
-    # parse the first table : quran_ayahs
+    # parse the first table  : quran_ayahs
     quran_surahs_table = parse_quran_suarhs_table(root)
 
     # parse the second table : quran_words
-    quran_words_table =  parse_quran_words_table(root)
+    quran_words_table  = parse_quran_words_table(root)
+
+    # parse the third table  : quran_surahs
+    quran_ayahs_table  = parse_quran_ayahs_table(root)
 
     # Collect all the data to one string
-    final_sql_code = f'{quran_surahs_table}\n{quran_words_table}'
+    final_sql_code = f'{quran_surahs_table}\n{quran_words_table}\n{quran_ayahs_table}'
 
     # Not create the final sql file
     sql_file = open("result.sql", "w")
