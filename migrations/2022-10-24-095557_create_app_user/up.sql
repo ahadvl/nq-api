@@ -1,5 +1,3 @@
--- Your SQL goes here
-
 CREATE TABLE app_users (
     id serial NOT NULL,
     account_id serial NOT NULL,
@@ -10,5 +8,6 @@ CREATE TABLE app_users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT app_users_id PRIMARY KEY (id),
-    UNIQUE(account_id)
+    UNIQUE(account_id),
+    CONSTRAINT fk_account FOREIGN KEY(account_id) REFERENCES app_accounts(id)
 );

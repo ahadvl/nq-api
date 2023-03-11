@@ -6,5 +6,6 @@ CREATE TABLE quran_words(
     word TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT quran_words_id PRIMARY KEY (id)
+    CONSTRAINT quran_words_id PRIMARY KEY (id),
+    CONSTRAINT fk_ayah FOREIGN KEY(ayah_id) REFERENCES quran_ayahs(id)
 );
