@@ -14,16 +14,9 @@ import xml.etree.ElementTree as ET
 
 TANZIL_QURAN_SOURCE_HASH = "e7ab47ae9267ce6a3979bf60031b7c40c9701cb2c1d899bbc6e56c67058b17e2"
 
-
-# TODO This table also has period column that we need
-#      to insert
-INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name)"
-
+INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period)"
 INSERTABLE_QURAN_WORDS_TABLE = "quran_words(ayah_id, word)"
-
-# TODO This table also has a sajdeh cloumn that we need
-#      to insert in next update
-INSERTABLE_QURAN_AYAHS_TABLE = "quran_ayahs(surah_id, ayah_number)"
+INSERTABLE_QURAN_AYAHS_TABLE = "quran_ayahs(surah_id, ayah_number, sajdeh)"
 
 def exit_err(msg):
     exit("Error: " + msg)
@@ -42,7 +35,7 @@ def parse_quran_suarhs_table(root):
 
     for child in root:
         surah_name = child.attrib['name']
-        result.append(f'("{surah_name}")')
+        result.append(f"('{surah_name}', 'none')")
 
     return insert_to_table(INSERTABLE_QURAN_SURAH_TABLE, ",\n".join(result))
 
@@ -55,7 +48,7 @@ def parse_quran_words_table(root):
         words = aya.attrib['text'].split(" ")
 
         # Map and change every word to a specific format
-        values = list(map(lambda word: f'({ayah_number}, "{word}")', words))
+        values = list(map(lambda word: f"({ayah_number}, '{word}')", words))
 
         # Join the values with ,\n
         result.append(",\n".join(values))
@@ -76,7 +69,7 @@ def parse_quran_ayahs_table(root):
         if aya_index == "1":
             sura_number += 1
 
-        result.append(f'({sura_number}, {aya_index})')
+        result.append(f"({sura_number}, {aya_index}, 'none')")
 
     return insert_to_table(INSERTABLE_QURAN_AYAHS_TABLE, ",\n".join(result))
 
