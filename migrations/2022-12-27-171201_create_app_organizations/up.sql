@@ -10,5 +10,6 @@ CREATE TABLE app_organizations(
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT app_organizations_id PRIMARY KEY (id),
-    UNIQUE(account_id)
+    UNIQUE(account_id),
+    CONSTRAINT fk_account FOREIGN KEY(account_id) REFERENCES app_accounts(id)
 );
