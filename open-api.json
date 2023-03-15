@@ -2,7 +2,7 @@
   "openapi": "3.0.2",
   "info": {
     "title": "NatiqQuran Api",
-    "version": "0.0.2"
+    "version": "0.0.3"
   },
   "servers": [
     {
@@ -116,19 +116,36 @@
     "/quran": {
       "get": {
         "parameters": [
+           {
+            "in": "header",
+            "required": true,
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "in": "query",
-            "name": "filter",
+            "name": "mode",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "from": {
-                  "type": "integer"
-                },
-                "to": {
-                  "type": "integer"
-                }
-              }
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": true,
+            "schema": {
+              "type": "integer"
             }
           }
         ],
@@ -320,7 +337,7 @@
             "required": true,
             "name": "org_id",
             "schema": {
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -348,7 +365,7 @@
             "required": true,
             "name": "org_id",
             "schema": {
-              "type": "number"
+              "type": "integer"
             }
           }
         ],
@@ -396,6 +413,235 @@
         "responses": {
           "200": {
             "description": "This means organization with id you specified"
+          }
+        }
+      }
+    },
+    "/byword": {
+      "description": "Under development",
+      "get": {
+        "summary": "WARNING: Under development",
+        "parameters": [
+          {
+            "in": "header",
+            "required": true,
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "mode",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "from",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "translator_id",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "language",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "quran"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the quran word by word"
+          }
+        }
+      }
+    },
+    "/translation": {
+      "description": "Under development",
+      "get": {
+        "summary": "WARNING: Under development",
+        "parameters": [
+          {
+            "in": "header",
+            "required": true,
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "mode",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "from",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "translator_id",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "language",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "quran"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the translation"
+          }
+        }
+      }
+    },
+    "/tafsir": {
+      "description": "Under development",
+      "get": {
+        "summary": "WARNING: Under development",
+        "parameters": [
+          {
+            "in": "header",
+            "required": true,
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "mode",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "from",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "translator_id",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "language",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "quran"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the tafsir of quran"
+          }
+        }
+      }
+    },
+    "/masters": {
+      "description": "Under development",
+      "get": {
+        "summary": "WARNING: Under development",
+        "parameters": [
+          {
+            "in": "header",
+            "required": true,
+            "name": "Authorization",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "mode",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "required": true,
+            "name": "language",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the masters list"
           }
         }
       }
