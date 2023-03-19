@@ -4,7 +4,7 @@ use diesel::{Associations, Identifiable, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Identifiable, Queryable, Debug)]
+#[derive(Identifiable, Queryable, Debug, Serialize)]
 #[diesel(table_name = app_accounts)]
 pub struct Account {
     pub id: i32,
@@ -80,10 +80,10 @@ pub struct Token {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Insertable)]
+#[derive(Queryable, Insertable)]
 #[diesel(table_name = app_tokens)]
 pub struct NewToken<'a> {
-    pub user_id: &'a i32,
+    pub account_id: &'a i32,
     pub token_hash: &'a String,
 }
 

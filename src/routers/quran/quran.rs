@@ -1,13 +1,13 @@
 use crate::{
     error::RouterError,
     models::{self, QuranText},
-    validate::{validate},
+    validate::validate,
     DbPool,
 };
 use actix_web::web;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationError};
+use validator::Validate;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -34,10 +34,9 @@ pub struct QuranQuery {
 
     #[validate(range(min = 1, max = 114))]
     to: u8,
-    
-    mushaf: Mushaf,
+    //mushaf: Mushaf,
 
-    mode: Mode,
+    //mode: Mode,
 }
 
 pub async fn quran(

@@ -8,7 +8,7 @@ pub async fn logout(pool: web::Data<DbPool>, data: ReqData<u32>) -> Result<Strin
     use crate::models::Token;
     use crate::schema::app_tokens::dsl::*;
 
-    let req_user_id = data.into_inner();
+    let req_account_id = data.into_inner();
 
     // String -> Message
     let result = web::block(move || {
@@ -16,7 +16,7 @@ pub async fn logout(pool: web::Data<DbPool>, data: ReqData<u32>) -> Result<Strin
 
         // Get the latest token
         let Ok(tokens) = app_tokens
-            .filter(user_id.eq(req_user_id as i32))
+            .filter(account_id.eq(req_account_id  as i32))
             .order(created_at.desc())
             .limit(1)
             .load::<Token>(&mut conn) else {
@@ -33,7 +33,7 @@ pub async fn logout(pool: web::Data<DbPool>, data: ReqData<u32>) -> Result<Strin
         // And set request id to the terminated_by_id
         // This may change.
         let Ok(_) =  diesel::update(token)
-            .set((terminated.eq(true), terminated_by_id.eq(req_user_id as i32)))
+            .set((terminated.eq(true), terminated_by_id.eq(req_account_id as i32)))
             .execute(&mut conn) else {
                 return Err(RouterError::InternalError)
             };
