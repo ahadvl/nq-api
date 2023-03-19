@@ -86,6 +86,7 @@ pub async fn verify(
         // If we dont have user with request (email) then create it
         // else return it
         let user: User = if user_email.is_empty() {
+            // Create a new account
             let Ok(new_account) = NewAccount {
                 username: &String::from(""),
                 account_type: &String::from("user"),
@@ -105,7 +106,7 @@ pub async fn verify(
                 return Err(RouterError::InternalError)
             };
 
-            let Ok(_)= NewEmail {
+            let Ok(_) = NewEmail {
                 email: &info.email,
                 account_id: new_account.id,
                 verified: true,
@@ -141,7 +142,7 @@ pub async fn verify(
         };
 
         // Some salts
-        let user_id_as_string = user.id.to_string();
+        let user_account_id_as_string = user.account_id.to_string();
         let time_as_string = chrono::offset::Utc::now().timestamp().to_string();
         let mut random_bytes = rand::thread_rng().gen::<[u8; 32]>().to_vec();
 
@@ -149,7 +150,7 @@ pub async fn verify(
         let mut source = vec![];
 
         // append salts to the source
-        source.append(&mut user_id_as_string.as_bytes().to_vec());
+        source.append(&mut user_account_id_as_string.as_bytes().to_vec());
         source.append(&mut random_bytes);
         source.append(&mut time_as_string.as_bytes().to_vec());
 
@@ -172,7 +173,7 @@ pub async fn verify(
         };
 
         let new_token = NewToken {
-            user_id: &user.id,
+            account_id: &user.account_id,
             token_hash: &token_hash,
         };
 

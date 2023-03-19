@@ -47,7 +47,7 @@ diesel::table! {
 diesel::table! {
     app_tokens (id) {
         id -> Int4,
-        user_id -> Int4,
+        account_id -> Int4,
         token_hash -> Varchar,
         terminated -> Bool,
         terminated_by_id -> Int4,
@@ -120,6 +120,35 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    translations (id) {
+        id -> Int4,
+        translator_id -> Int4,
+        language -> Int4,
+        release_year -> Date,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    translations_text (id) {
+        id -> Int4,
+        translation_id -> Int4,
+        ayah_id -> Int4,
+        text -> Text,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::joinable!(app_employees -> app_accounts (employee_account_id));
+diesel::joinable!(app_organizations -> app_accounts (account_id));
+diesel::joinable!(app_tokens -> app_accounts (terminated_by_id));
+diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
+diesel::joinable!(quran_text -> quran_surahs (surah_id));
+diesel::joinable!(translations_text -> translations (translation_id));
+
 diesel::allow_tables_to_appear_in_same_query!(
     app_accounts,
     app_emails,
@@ -132,4 +161,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     quran_surahs,
     quran_text,
     quran_words,
+    translations,
+    translations_text,
 );
