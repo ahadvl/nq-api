@@ -124,8 +124,8 @@ diesel::table! {
     translations (id) {
         id -> Int4,
         translator_id -> Int4,
-        language -> Int4,
-        release_year -> Date,
+        language -> Varchar,
+        release_year -> Nullable<Date>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
