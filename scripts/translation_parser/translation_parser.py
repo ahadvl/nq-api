@@ -13,7 +13,6 @@ import psycopg2
 
 INSERTABLE_TRANSLATIONS_TEXT = "translations_text(text, translation_id)"
 
-
 def exit_err(msg):
     exit("Error: " + msg)
 
@@ -30,7 +29,7 @@ def create_translation_table(root, translation_id):
     result = []
 
     for child in root.iter('aya'):
-        surah_text = child.attrib["text"].replace("'", "&quot")
+        surah_text = child.attrib["text"].replace("'", "&quot;")
         result.append(f"('{surah_text}', {translation_id})")
 
     return insert_to_table(INSERTABLE_TRANSLATIONS_TEXT, ",".join(result))
