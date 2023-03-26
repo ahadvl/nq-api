@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
+<!--
+
+# --------------------------------------------------------------------
+#
+#  Quran Translation
+#  Name: Ahmed Ali
+#  Translator: Ahmed Ali
+#  Language: English
+#  ID: en.ahmedali
+#  Last Update: August 28, 2010
+#  Source: Tanzil.net
+#
+# --------------------------------------------------------------------
+	
+-->
 <quran>
 	<sura index="1" name="الفاتحة">
 		<aya index="1" text="In the name of Allah, most benevolent, ever-merciful."/>

@@ -10,8 +10,9 @@ import sys
 import os
 import xml.etree.ElementTree as ET
 import psycopg2
+import re
 
-INSERTABLE_TRANSLATIONS_TEXT = "translations_text(text, translation_id)"
+INSERTABLE_TRANSLATIONS_TEXT = "translations_text(text, translation_id, ayah_id)"
 
 
 def exit_err(msg):
@@ -26,12 +27,19 @@ def translations(translations_folder_path):
     return list(os.scandir(translations_folder_path))
 
 
+def remove_comments_from_xml(source):
+    return re.sub("(<!--.*?-->)", "", source.decode('utf-8'), flags=re.DOTALL)
+
+
 def create_translation_table(root, translation_id):
     result = []
+    ayah_num = 1
 
     for child in root.iter('aya'):
-        surah_text = child.attrib["text"].replace("'", "&quot")
-        result.append(f"('{surah_text}', {translation_id})")
+        surah_text = child.attrib["text"].replace("'", "&quot;")
+        result.append(
+            f"('{surah_text}', {translation_id}, {ayah_num})")
+        ayah_num += 1
 
     return insert_to_table(INSERTABLE_TRANSLATIONS_TEXT, ",".join(result))
 
@@ -67,7 +75,6 @@ def main(args):
     # Connect to the database
     conn = psycopg2.connect(database=database, host=host,
                             user=user, password=password, port=port)
-    cur = conn.cursor()
 
     # Get the quran path
     translations_folder_path = args[1]
@@ -75,9 +82,12 @@ def main(args):
     translations_list = translations(translations_folder_path)
 
     for translation in translations_list:
+        cur = conn.cursor()
         path = translation.path
 
         metadata = translation_metadata(path)
+
+        print(f'Parsing {path}')
 
         if metadata["type"] != "xml":
             exit_err("This program can just parse the xml type of translations")
@@ -95,7 +105,7 @@ def main(args):
         if account_id != None:
             # Also we must create a User for this account
             cur.execute(
-                "INSERT INTO app_users(account_id) VALUES (%s) ON CONFLICT (account_id) DO NOTHING", (account_id,))
+                "INSERT INTO app_users(account_id, last_name) VALUES (%s, %s) ON CONFLICT (account_id) DO NOTHING", (account_id, metadata['author']))
         else:
             print("The translator account exists, skiping user creation")
             cur.execute(
@@ -108,13 +118,20 @@ def main(args):
         cur.execute("INSERT INTO translations(translator_id, language) VALUES (%s, %s) RETURNING id",
                     (account_id[0], metadata["language"]))
 
-        root = ET.fromstring(tranlation_text)
+        translation_text_clean = remove_comments_from_xml(tranlation_text)
+
+        print("parsing xml")
+
+        root = ET.fromstring(translation_text_clean)
         translations_text_data = create_translation_table(
             root, cur.fetchone()[0])
 
+        print("executing")
         cur.execute(translations_text_data)
 
         conn.commit()
+
+        cur.close()
 
     conn.close()
 
