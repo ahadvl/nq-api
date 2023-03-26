@@ -81,6 +81,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    mushafs (id) {
+        id -> Int4,
+        name -> Nullable<Varchar>,
+        source -> Nullable<Varchar>,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     quran_ayahs (id) {
         id -> Int4,
         surah_id -> Int4,
@@ -126,6 +136,7 @@ diesel::table! {
         translator_id -> Int4,
         language -> Varchar,
         release_year -> Nullable<Date>,
+        source -> Nullable<Varchar>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -157,6 +168,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     app_tokens,
     app_users,
     app_verify_codes,
+    mushafs,
     quran_ayahs,
     quran_surahs,
     quran_text,
