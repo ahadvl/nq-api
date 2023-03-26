@@ -11,6 +11,7 @@ import hashlib
 import sys
 import os
 import xml.etree.ElementTree as ET
+import psycopg2
 
 TANZIL_QURAN_SOURCE_HASH = "e7ab47ae9267ce6a3979bf60031b7c40c9701cb2c1d899bbc6e56c67058b17e2"
 
@@ -23,6 +24,9 @@ def exit_err(msg):
     exit("Error: " + msg)
 
 
+# This will hash the source
+# and check it to be equal to
+# tanzil source hash
 def validate_tanzil_quran(source):
     m = hashlib.sha256()
     m.update(source)
@@ -34,6 +38,8 @@ def insert_to_table(i_table, values):
     return f'INSERT INTO {i_table} VALUES {values};'
 
 
+# the will parse the quran-source and
+# creates a sql for quran surahs table
 def parse_quran_suarhs_table(root):
     result = []
 
@@ -44,6 +50,9 @@ def parse_quran_suarhs_table(root):
     return insert_to_table(INSERTABLE_QURAN_SURAH_TABLE, ",\n".join(result))
 
 
+# this will parse the ayahs
+# and split the words and save it
+# to the quran-words table
 def parse_quran_words_table(root):
     result = []
     ayah_number = 1
@@ -64,6 +73,7 @@ def parse_quran_words_table(root):
     return insert_to_table(INSERTABLE_QURAN_WORDS_TABLE, ",\n".join(result))
 
 
+# This will parse the quran-ayahs table
 def parse_quran_ayahs_table(root):
     result = []
     sura_number = 0
@@ -87,6 +97,13 @@ def parse_quran_ayahs_table(root):
 def main(args):
     # Get the quran path
     quran_xml_path = args[1]
+
+    # Get the database information
+    database = args[2]
+    host = args[3]
+    user = args[4]
+    password = args[5]
+    port = args[6]
 
     # Split into the name and extention
     splited_path = os.path.splitext(quran_xml_path)
@@ -126,12 +143,22 @@ def main(args):
     # when executing sql to psql
     final_sql_code = f'{quran_surahs_table}\n{quran_ayahs_table}\n{quran_words_table}'
 
-    # Not create the final sql file
-    sql_file = open("result.sql", "w")
+    # Connect to the database
+    conn = psycopg2.connect(database=database, host=host,
+                            user=user, password=password, port=port)
 
-    sql_file.write(final_sql_code)
+    # We create the cursor
+    cur = conn.cursor()
 
-    sql_file.close()
+    # Execute the final sql code
+    cur.execute(final_sql_code)
+
+    # Commit the changes
+    conn.commit()
+
+    # The end of the program
+    cur.close()
+    conn.close()
 
 
 if __name__ == "__main__":
