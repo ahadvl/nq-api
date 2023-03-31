@@ -38,7 +38,7 @@ pub async fn view_profile(
             };
 
         let Some(account)= account.get(0) else {
-            return Err(RouterError::NotFound);
+            return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
         let Ok(user) = User::belonging_to(account).load::<User>(&mut conn) else {
@@ -46,7 +46,7 @@ pub async fn view_profile(
             };
 
         let Some(user) = user.get(0) else {
-            return Err(RouterError::NotFound);
+            return Err(RouterError::NotFound("User not found".to_string()));
         };
 
         let Ok(email) = Email::belonging_to(account)

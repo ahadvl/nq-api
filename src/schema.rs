@@ -95,7 +95,7 @@ diesel::table! {
         id -> Int4,
         surah_id -> Int4,
         ayah_number -> Int4,
-        sajdeh -> Varchar,
+        sajdeh -> Nullable<Varchar>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -108,15 +108,6 @@ diesel::table! {
         period -> Varchar,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
-    }
-}
-
-diesel::table! {
-    quran_text (id) {
-        id -> Int4,
-        surah_id -> Int4,
-        verse_number -> Int4,
-        text -> Text,
     }
 }
 
@@ -157,7 +148,6 @@ diesel::joinable!(app_employees -> app_accounts (employee_account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
 diesel::joinable!(app_tokens -> app_accounts (terminated_by_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
-diesel::joinable!(quran_text -> quran_surahs (surah_id));
 diesel::joinable!(translations_text -> translations (translation_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
@@ -171,7 +161,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     mushafs,
     quran_ayahs,
     quran_surahs,
-    quran_text,
     quran_words,
     translations,
     translations_text,
