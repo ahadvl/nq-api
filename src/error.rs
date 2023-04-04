@@ -7,7 +7,7 @@ use std::{error::Error, fmt::Display};
 
 #[derive(Debug)]
 pub enum RouterError {
-    NotFound,
+    NotFound(String),
 
     /// Needs the detail of error
     ValidationError(String),
@@ -22,7 +22,7 @@ pub enum RouterError {
 impl Display for RouterError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::NotFound => write!(f, "Not found"),
+            Self::NotFound(message) => write!(f, "{}", message),
             Self::ValidationError(detail) => write!(f, "{}", detail),
             Self::InternalError => write!(f, "internal server error"),
             Self::Gone(message) => write!(f, "{}", message),
@@ -51,7 +51,7 @@ impl ResponseError for RouterError {
     fn status_code(&self) -> StatusCode {
         match &*self {
             Self::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::NotFound => StatusCode::NOT_FOUND,
+            Self::NotFound(_message) => StatusCode::NOT_FOUND,
             Self::ValidationError(_detail) => StatusCode::BAD_REQUEST,
             Self::Gone(_message) => StatusCode::GONE,
             Self::NotAvailable(_what) => StatusCode::OK,

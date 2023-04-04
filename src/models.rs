@@ -1,6 +1,6 @@
 use crate::schema::*;
 use chrono::{NaiveDate, NaiveDateTime};
-use diesel::{Associations, Identifiable, Insertable, Queryable};
+use diesel::{Associations, Identifiable, Insertable, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -87,14 +87,6 @@ pub struct NewToken<'a> {
     pub token_hash: &'a String,
 }
 
-#[derive(Queryable, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct QuranText {
-    id: i32,
-    surah: i32,
-    verse: i32,
-    text: String,
-}
-
 #[derive(Identifiable, Queryable, Associations, PartialEq, Debug, Clone)]
 #[diesel(belongs_to(Account))]
 #[diesel(table_name = app_emails)]
@@ -160,33 +152,60 @@ pub struct NewEmployee {
     pub employee_account_id: i32,
 }
 
-#[derive(Insertable, Deserialize, Validate)]
+#[derive(
+    Selectable,
+    Insertable,
+    Deserialize,
+    Validate,
+    Queryable,
+    Identifiable,
+    Serialize,
+    Associations,
+    Clone,
+    Debug,
+)]
+#[diesel(belongs_to(QuranSurah, foreign_key = surah_id))]
 #[diesel(table_name = quran_ayahs)]
 pub struct QuranAyah {
     pub id: i32,
     pub surah_id: i32,
     pub ayah_number: i32,
-    pub sajdeh: String,
+    pub sajdeh: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Insertable, Deserialize, Validate)]
+#[derive(Clone, Selectable, Identifiable, Associations, Queryable, PartialEq, Debug, Serialize)]
+#[diesel(belongs_to(QuranAyah, foreign_key = ayah_id))]
 #[diesel(table_name = quran_words)]
 pub struct QuranWord {
+    #[serde(skip_serializing)]
     pub id: i32,
+
+    #[serde(skip_serializing)]
     pub ayah_id: i32,
+
     pub word: String,
+
+    #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,
+    #[serde(skip_serializing)]
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Insertable, Deserialize, Validate)]
+#[derive(
+    Serialize, Clone, Insertable, Deserialize, Validate, Identifiable, Queryable, Selectable, Debug,
+)]
 #[diesel(table_name = quran_surahs)]
 pub struct QuranSurah {
+    #[serde(skip_serializing)]
     pub id: i32,
+
     pub name: String,
     pub period: String,
+
+    #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,
+    #[serde(skip_serializing)]
     pub updated_at: NaiveDateTime,
 }

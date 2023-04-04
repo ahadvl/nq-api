@@ -32,7 +32,7 @@ pub async fn edit_profile(
             };
 
         let Some(account) = account.get(0) else {
-            return Err(RouterError::NotFound);
+            return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
         let Ok(user) = User::belonging_to(account).load::<User>(&mut conn) else {
@@ -40,7 +40,7 @@ pub async fn edit_profile(
         };
 
         let Some(current_user_profile) = user.get(0) else {
-            return Err(RouterError::NotFound);
+            return Err(RouterError::NotFound("user not found".to_string()));
         };
 
         // Now update the account username

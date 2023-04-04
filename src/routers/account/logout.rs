@@ -25,7 +25,7 @@ pub async fn logout(pool: web::Data<DbPool>, data: ReqData<u32>) -> Result<Strin
 
         // Get THE token
         let Some(token) = tokens.get(0) else {
-            return Err(RouterError::NotFound);
+            return Err(RouterError::NotFound("Token not found".to_string()));
         };
 
         // Now teminate the token

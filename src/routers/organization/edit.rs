@@ -44,11 +44,11 @@ pub async fn edit_organization(
             };
 
         let Some(account)= account.get(0) else {
-            return Err(RouterError::NotFound);
+            return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
         let Some(org) = org.get(0)else {
-            return Err(RouterError::NotFound);
+            return Err(RouterError::NotFound("Organization not found".to_string()));
         };
 
         let Ok(_) = diesel::update(account)
