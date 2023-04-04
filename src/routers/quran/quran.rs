@@ -3,7 +3,7 @@ use crate::{error::RouterError, validate::validate, DbPool};
 use actix_web::web;
 use diesel::prelude::*;
 use diesel::{dsl::exists, select};
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use std::fmt::Display;
 use validator::Validate;
 
@@ -67,11 +67,30 @@ enum AyahTextType {
     Text(String),
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct ViewableAyah {
     number: i32,
     sajdeh: Option<String>,
-    text: AyahTextType,
+    content: AyahTextType,
+}
+
+impl Serialize for ViewableAyah {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("ViewableAyah", 3)?;
+        state.serialize_field("number", &self.number)?;
+
+        let content_name = match &self.content {
+            AyahTextType::Text(_) => "text",
+            AyahTextType::Words(_) => "words",
+        };
+
+        state.serialize_field("sajdeh", &self.sajdeh)?;
+        state.serialize_field(content_name, &self.content)?;
+        state.end()
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -142,7 +161,7 @@ pub async fn quran(
                     .map(|ayah| ViewableAyah {
                         number: ayah.ayah_number,
                         sajdeh: ayah.sajdeh,
-                        text: match query.format {
+                        content: match query.format {
                             Format::Word => AyahTextType::Words(
                                 content
                                     .clone()
