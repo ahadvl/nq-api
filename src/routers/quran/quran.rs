@@ -4,7 +4,9 @@ use actix_web::web;
 use diesel::prelude::*;
 use diesel::{dsl::exists, select};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use std::collections::HashMap;
 use std::fmt::Display;
+use std::hash::Hash;
 use validator::Validate;
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -33,6 +35,12 @@ impl Display for Mode {
     }
 }
 
+impl Default for Mode {
+    fn default() -> Self {
+        Self::Surah
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum Format {
@@ -40,30 +48,40 @@ enum Format {
     Word,
 }
 
+impl Default for Format {
+    fn default() -> Self {
+        Self::Ayah
+    }
+}
+
 #[derive(Clone, Deserialize, Validate)]
 pub struct QuranQuery {
     #[validate(range(min = 1, max = 114))]
-    from: u8,
+    from: u32,
 
-    #[validate(range(min = 1, max = 114))]
-    limit: u8,
+    #[validate(range(min = 0, max = 114))]
+    limit: Option<u32>,
 
+    #[serde(default)]
     mode: Mode,
 
-    mushaf: String,
-
+    #[serde(default)]
     format: Format,
+
+    mushaf: String,
 }
 
-#[derive(Debug, Serialize)]
-pub struct ViewablWord {
+#[derive(Debug, Serialize, Queryable, Clone)]
+pub struct ViewableWord {
+    id: i32,
+    ayah_id: i32,
     word: String,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 enum AyahTextType {
-    Words(Vec<QuranWord>),
+    Words(Vec<ViewableWord>),
     Text(String),
 }
 
@@ -93,20 +111,59 @@ impl Serialize for ViewableAyah {
     }
 }
 
-#[derive(Debug, Serialize)]
-pub struct SurahWithAyahs {
+#[derive(Eq, Hash, PartialEq, Serialize, Clone, Debug)]
+pub struct SimpleAyah {
+    ayah_id: i32,
+    sajdeh: Option<String>,
+}
+
+#[derive(Debug, Serialize, Queryable, Eq, Hash, PartialEq, Clone)]
+pub struct SimpleSurah {
+    surah_id: i32,
+    surah_name: String,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct Res {
     #[serde(flatten)]
-    surah: QuranSurah,
-    ayahs: Vec<ViewableAyah>,
+    ayah: SimpleAyah,
+    words: Vec<QuranWord>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct FinalRes {
+    #[serde(flatten)]
+    surah: SimpleSurah,
+    ayahs: Vec<Res>,
+}
+
+pub fn multip<T, U, F, NT>(vector: Vec<(T, U)>, insert_data_type: F) -> HashMap<NT, Vec<U>>
+where
+    T: Sized + Clone,
+    U: Sized,
+    NT: Sized + Eq + Hash,
+    F: Fn(T) -> NT,
+{
+    let mut map: HashMap<NT, Vec<U>> = HashMap::new();
+    for item in vector {
+        if let Some(w) = map.get_mut(&insert_data_type(item.0.clone())) {
+            w.push(item.1)
+        } else {
+            map.insert(insert_data_type(item.0), vec![item.1]);
+        }
+    }
+
+    map
 }
 
 pub async fn quran(
     query: web::Query<QuranQuery>,
     pool: web::Data<DbPool>,
-) -> Result<web::Json<Vec<SurahWithAyahs>>, RouterError> {
+) -> Result<web::Json<Vec<FinalRes>>, RouterError> {
     use crate::error::RouterError::*;
     use crate::schema::mushafs;
     use crate::schema::quran_surahs::dsl::{id as s_id, quran_surahs};
+    use crate::schema::{quran_ayahs::dsl::quran_ayahs, quran_words::dsl::quran_words};
 
     validate(&query.0)?;
 
@@ -130,62 +187,58 @@ pub async fn quran(
         // Validate the mode
         // for now
         if query.mode != Mode::Surah {
-            return Err(NotFound(format!("mode {} not exists", &query.mode)));
+            return Err(NotFound(format!("mode {} is not supported", &query.mode)));
         }
 
-        let Ok(surahs) = quran_surahs.filter(s_id.between(query.from as i32, query.limit as i32))
-            .get_results::<QuranSurah>(&mut conn) else {
-                return Err(InternalError)
-            };
+        // println!("{:?}", n_ayahs);
 
-        let Ok(ayahs) = QuranAyah::belonging_to(&surahs)
-            .get_results::<QuranAyah>(&mut conn) else {
-                return Err(InternalError)
-            };
+        let filter = quran_surahs
+            .inner_join(quran_ayahs.inner_join(quran_words))
+            .filter(s_id.between(query.from as i32, query.limit.unwrap() as i32));
 
-        let Ok(content) = QuranWord::belonging_to(&ayahs)
-            // .select(QuranWord::as_select())
-            .get_results::<QuranWord>(&mut conn) else {
-                return Err(InternalError);
-            };
+        let result = filter
+            .select((QuranAyah::as_select(), QuranWord::as_select()))
+            .load::<(QuranAyah, QuranWord)>(&mut conn)
+            .unwrap();
 
-        let result = ayahs
-            .clone()
-            .grouped_by(&surahs)
+        let res: HashMap<SimpleAyah, Vec<QuranWord>> = multip(result, |ayah| SimpleAyah {
+            ayah_id: ayah.id,
+            sajdeh: ayah.sajdeh.clone(),
+        });
+
+        let mut res = res
             .into_iter()
-            .zip(surahs.clone())
-            .map(|(ayahs, surah)| SurahWithAyahs {
+            .map(|(ayah, words)| Res { ayah, words })
+            .collect::<Vec<Res>>();
+
+        res.sort_by(|a, b| a.ayah.ayah_id.cmp(&b.ayah.ayah_id));
+
+        let surahs = filter
+            .select(QuranSurah::as_select())
+            .load::<QuranSurah>(&mut conn)
+            .unwrap();
+
+        let surahs = surahs
+            .into_iter()
+            .zip(res.clone())
+            .collect::<Vec<(QuranSurah, Res)>>();
+
+        let another = multip(surahs, |surah| SimpleSurah {
+            surah_id: surah.id,
+            surah_name: surah.name,
+        });
+
+        let mut res = another
+            .into_iter()
+            .map(|(surah, ayah_with_words)| FinalRes {
                 surah,
-                ayahs: ayahs
-                    .into_iter()
-                    .map(|ayah| ViewableAyah {
-                        number: ayah.ayah_number,
-                        sajdeh: ayah.sajdeh,
-                        content: match query.format {
-                            Format::Word => AyahTextType::Words(
-                                content
-                                    .clone()
-                                    .into_iter()
-                                    .filter(|w| w.ayah_id == ayah.id)
-                                    .collect::<Vec<QuranWord>>(),
-                            ),
-
-                            Format::Ayah => AyahTextType::Text(
-                                content
-                                    .clone()
-                                    .into_iter()
-                                    .filter(|w| w.ayah_id == ayah.id)
-                                    .map(|w| w.word)
-                                    .collect::<Vec<String>>()
-                                    .join(" "),
-                            ),
-                        },
-                    })
-                    .collect::<Vec<ViewableAyah>>(),
+                ayahs: ayah_with_words,
             })
-            .collect::<Vec<SurahWithAyahs>>();
+            .collect::<Vec<FinalRes>>();
 
-        Ok(web::Json(result))
+        res.sort_by(|a, b| a.surah.surah_id.cmp(&b.surah.surah_id));
+
+        Ok(web::Json(res))
     })
     .await
     .unwrap();
