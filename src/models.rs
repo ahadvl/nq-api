@@ -167,11 +167,17 @@ pub struct NewEmployee {
 #[diesel(belongs_to(QuranSurah, foreign_key = surah_id))]
 #[diesel(table_name = quran_ayahs)]
 pub struct QuranAyah {
+    #[serde(skip_serializing)]
     pub id: i32,
+    #[serde(skip_serializing)]
     pub surah_id: i32,
+
     pub ayah_number: i32,
     pub sajdeh: Option<String>,
+
+    #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,
+    #[serde(skip_serializing)]
     pub updated_at: NaiveDateTime,
 }
 

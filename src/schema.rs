@@ -148,6 +148,8 @@ diesel::joinable!(app_employees -> app_accounts (employee_account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
 diesel::joinable!(app_tokens -> app_accounts (terminated_by_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
+diesel::joinable!(quran_words -> quran_ayahs (ayah_id));
+diesel::joinable!(translations_text -> quran_ayahs (ayah_id));
 diesel::joinable!(translations_text -> translations (translation_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
