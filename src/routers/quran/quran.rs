@@ -106,6 +106,8 @@ pub struct QuranResponseData {
     ayahs: Vec<Ayah>,
 }
 
+// TODO: maybe change the localtion of this function ?
+// TODO: write documentation to this function
 pub fn multip<T, U, F, NT>(vector: Vec<(T, U)>, insert_data_type: F) -> HashMap<NT, Vec<U>>
 where
     T: Sized + Clone,
@@ -168,12 +170,12 @@ pub async fn quran(
             .load::<(QuranAyah, QuranWord)>(&mut conn)
             .unwrap();
 
-        let res: HashMap<SimpleAyah, Vec<QuranWord>> = multip(result, |ayah| SimpleAyah {
+        let ayahs_as_map: HashMap<SimpleAyah, Vec<QuranWord>> = multip(result, |ayah| SimpleAyah {
             number: ayah.ayah_number,
             sajdeh: ayah.sajdeh.clone(),
         });
 
-        let mut res = res
+        let mut final_ayahs = ayahs_as_map
             .into_iter()
             .map(|(ayah, words)| Ayah {
                 ayah,
@@ -190,7 +192,7 @@ pub async fn quran(
             })
             .collect::<Vec<Ayah>>();
 
-        res.sort_by(|a, b| a.ayah.number.cmp(&b.ayah.number));
+        final_ayahs.sort_by(|a, b| a.ayah.number.cmp(&b.ayah.number));
 
         let surahs = filter
             .select(QuranSurah::as_select())
@@ -199,16 +201,16 @@ pub async fn quran(
 
         let surahs = surahs
             .into_iter()
-            .zip(res.clone())
+            .zip(final_ayahs.clone())
             .collect::<Vec<(QuranSurah, Ayah)>>();
 
-        let another = multip(surahs, |surah| SimpleSurah {
+        let surahs_as_map = multip(surahs, |surah| SimpleSurah {
             id: surah.id,
             name: surah.name,
             period: surah.period,
         });
 
-        let mut res = another
+        let mut final_response = surahs_as_map
             .into_iter()
             .map(|(surah, ayah_with_words)| QuranResponseData {
                 surah,
@@ -216,9 +218,9 @@ pub async fn quran(
             })
             .collect::<Vec<QuranResponseData>>();
 
-        res.sort_by(|a, b| a.surah.id.cmp(&b.surah.id));
+        final_response.sort_by(|a, b| a.surah.id.cmp(&b.surah.id));
 
-        Ok(web::Json(res))
+        Ok(web::Json(final_response))
     })
     .await
     .unwrap();
