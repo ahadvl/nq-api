@@ -3,7 +3,7 @@ use crate::{error::RouterError, validate::validate, DbPool};
 use actix_web::web;
 use diesel::prelude::*;
 use diesel::{dsl::exists, select};
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
@@ -71,70 +71,39 @@ pub struct QuranQuery {
     mushaf: String,
 }
 
-#[derive(Debug, Serialize, Queryable, Clone)]
-pub struct ViewableWord {
-    id: i32,
-    ayah_id: i32,
-    word: String,
-}
-
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "lowercase")]
 enum AyahTextType {
-    Words(Vec<ViewableWord>),
+    Words(Vec<QuranWord>),
     Text(String),
-}
-
-#[derive(Debug)]
-pub struct ViewableAyah {
-    number: i32,
-    sajdeh: Option<String>,
-    content: AyahTextType,
-}
-
-impl Serialize for ViewableAyah {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("ViewableAyah", 3)?;
-        state.serialize_field("number", &self.number)?;
-
-        let content_name = match &self.content {
-            AyahTextType::Text(_) => "text",
-            AyahTextType::Words(_) => "words",
-        };
-
-        state.serialize_field("sajdeh", &self.sajdeh)?;
-        state.serialize_field(content_name, &self.content)?;
-        state.end()
-    }
 }
 
 #[derive(Eq, Hash, PartialEq, Serialize, Clone, Debug)]
 pub struct SimpleAyah {
-    ayah_id: i32,
+    number: i32,
     sajdeh: Option<String>,
 }
 
 #[derive(Debug, Serialize, Queryable, Eq, Hash, PartialEq, Clone)]
 pub struct SimpleSurah {
-    surah_id: i32,
-    surah_name: String,
+    #[serde(skip_serializing)]
+    id: i32,
+    name: String,
+    period: String,
 }
 
 #[derive(Serialize, Clone, Debug)]
-pub struct Res {
+pub struct Ayah {
     #[serde(flatten)]
     ayah: SimpleAyah,
-    words: Vec<QuranWord>,
+    content: AyahTextType,
 }
 
 #[derive(Serialize, Clone, Debug)]
-pub struct FinalRes {
+pub struct QuranResponseData {
     #[serde(flatten)]
     surah: SimpleSurah,
-    ayahs: Vec<Res>,
+    ayahs: Vec<Ayah>,
 }
 
 pub fn multip<T, U, F, NT>(vector: Vec<(T, U)>, insert_data_type: F) -> HashMap<NT, Vec<U>>
@@ -159,7 +128,7 @@ where
 pub async fn quran(
     query: web::Query<QuranQuery>,
     pool: web::Data<DbPool>,
-) -> Result<web::Json<Vec<FinalRes>>, RouterError> {
+) -> Result<web::Json<Vec<QuranResponseData>>, RouterError> {
     use crate::error::RouterError::*;
     use crate::schema::mushafs;
     use crate::schema::quran_surahs::dsl::{id as s_id, quran_surahs};
@@ -190,8 +159,6 @@ pub async fn quran(
             return Err(NotFound(format!("mode {} is not supported", &query.mode)));
         }
 
-        // println!("{:?}", n_ayahs);
-
         let filter = quran_surahs
             .inner_join(quran_ayahs.inner_join(quran_words))
             .filter(s_id.between(query.from as i32, query.limit.unwrap() as i32));
@@ -202,16 +169,28 @@ pub async fn quran(
             .unwrap();
 
         let res: HashMap<SimpleAyah, Vec<QuranWord>> = multip(result, |ayah| SimpleAyah {
-            ayah_id: ayah.id,
+            number: ayah.ayah_number,
             sajdeh: ayah.sajdeh.clone(),
         });
 
         let mut res = res
             .into_iter()
-            .map(|(ayah, words)| Res { ayah, words })
-            .collect::<Vec<Res>>();
+            .map(|(ayah, words)| Ayah {
+                ayah,
+                content: match query.format {
+                    Format::Ayah => AyahTextType::Text(
+                        words
+                            .into_iter()
+                            .map(|qword| qword.word)
+                            .collect::<Vec<String>>()
+                            .join(" "),
+                    ),
+                    Format::Word => AyahTextType::Words(words),
+                },
+            })
+            .collect::<Vec<Ayah>>();
 
-        res.sort_by(|a, b| a.ayah.ayah_id.cmp(&b.ayah.ayah_id));
+        res.sort_by(|a, b| a.ayah.number.cmp(&b.ayah.number));
 
         let surahs = filter
             .select(QuranSurah::as_select())
@@ -221,22 +200,23 @@ pub async fn quran(
         let surahs = surahs
             .into_iter()
             .zip(res.clone())
-            .collect::<Vec<(QuranSurah, Res)>>();
+            .collect::<Vec<(QuranSurah, Ayah)>>();
 
         let another = multip(surahs, |surah| SimpleSurah {
-            surah_id: surah.id,
-            surah_name: surah.name,
+            id: surah.id,
+            name: surah.name,
+            period: surah.period,
         });
 
         let mut res = another
             .into_iter()
-            .map(|(surah, ayah_with_words)| FinalRes {
+            .map(|(surah, ayah_with_words)| QuranResponseData {
                 surah,
                 ayahs: ayah_with_words,
             })
-            .collect::<Vec<FinalRes>>();
+            .collect::<Vec<QuranResponseData>>();
 
-        res.sort_by(|a, b| a.surah.surah_id.cmp(&b.surah.surah_id));
+        res.sort_by(|a, b| a.surah.id.cmp(&b.surah.id));
 
         Ok(web::Json(res))
     })
