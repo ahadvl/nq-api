@@ -107,7 +107,8 @@ pub struct QuranResponseData {
 }
 
 // TODO: maybe change the localtion of this function ?
-// TODO: write documentation to this function
+// TODO: write documentation for this function
+// TODO: find the better name
 pub fn multip<T, U, F, NT>(vector: Vec<(T, U)>, insert_data_type: F) -> HashMap<NT, Vec<U>>
 where
     T: Sized + Clone,
