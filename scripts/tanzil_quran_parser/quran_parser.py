@@ -45,7 +45,7 @@ def parse_quran_suarhs_table(root):
 
     for child in root:
         surah_name = child.attrib['name']
-        result.append(f"('{surah_name}', 'none')")
+        result.append(f"('{surah_name}', NULL)")
 
     return insert_to_table(INSERTABLE_QURAN_SURAH_TABLE, ",\n".join(result))
 
