@@ -215,3 +215,20 @@ pub struct QuranSurah {
     #[serde(skip_serializing)]
     pub updated_at: NaiveDateTime,
 }
+
+#[derive(
+    Serialize, Clone, Insertable, Deserialize, Validate, Identifiable, Queryable, Selectable, Debug,
+)]
+#[diesel(table_name = mushafs)]
+pub struct QuranMushaf {
+    #[serde(skip_serializing)]
+    pub id: i32,
+
+    pub name: Option<String>,
+    pub source: Option<String>,
+
+    #[serde(skip_serializing)]
+    pub created_at: NaiveDateTime,
+    #[serde(skip_serializing)]
+    pub updated_at: NaiveDateTime,
+}
