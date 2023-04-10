@@ -91,7 +91,7 @@ pub struct SimpleSurah {
     #[serde(skip_serializing)]
     id: i32,
     name: String,
-    period: String,
+    period: Option<String>,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -155,7 +155,10 @@ pub async fn quran(
         };
 
         if exists == false {
-            return Err(NotFound(format!("Mushaf {} not exists", &query.mushaf)));
+            return Err(NotFound(format!(
+                "Mushaf {} is not supported for now",
+                &query.mushaf
+            )));
         }
 
         // Validate the mode

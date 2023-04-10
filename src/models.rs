@@ -208,7 +208,7 @@ pub struct QuranSurah {
     pub id: i32,
 
     pub name: String,
-    pub period: String,
+    pub period: Option<String>,
 
     #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,

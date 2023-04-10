@@ -105,7 +105,7 @@ diesel::table! {
     quran_surahs (id) {
         id -> Int4,
         name -> Varchar,
-        period -> Varchar,
+        period -> Nullable<Varchar>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
