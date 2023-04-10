@@ -80,7 +80,6 @@ enum AyahTextType {
 
 #[derive(PartialOrd, Ord, Eq, Hash, PartialEq, Serialize, Clone, Debug)]
 pub struct SimpleAyah {
-    #[serde(skip_serializing)]
     id: i32,
     number: i32,
     sajdeh: Option<String>,

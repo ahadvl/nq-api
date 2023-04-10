@@ -9,6 +9,7 @@ use crate::DbPool;
 
 #[derive(Serialize)]
 pub struct FullUserProfile {
+    pub id: i32,
     pub email: String,
     pub username: String,
     pub first_name: Option<String>,
@@ -59,6 +60,7 @@ pub async fn view_profile(
         };
 
         let profile = FullUserProfile {
+            id: account.id,
             email: email.clone().email,
             username: account.username.to_owned(),
             first_name: user.clone().first_name,

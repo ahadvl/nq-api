@@ -167,7 +167,6 @@ pub struct NewEmployee {
 #[diesel(belongs_to(QuranSurah, foreign_key = surah_id))]
 #[diesel(table_name = quran_ayahs)]
 pub struct QuranAyah {
-    #[serde(skip_serializing)]
     pub id: i32,
     #[serde(skip_serializing)]
     pub surah_id: i32,
@@ -185,7 +184,6 @@ pub struct QuranAyah {
 #[diesel(belongs_to(QuranAyah, foreign_key = ayah_id))]
 #[diesel(table_name = quran_words)]
 pub struct QuranWord {
-    #[serde(skip_serializing)]
     pub id: i32,
 
     #[serde(skip_serializing)]
@@ -204,7 +202,6 @@ pub struct QuranWord {
 )]
 #[diesel(table_name = quran_surahs)]
 pub struct QuranSurah {
-    #[serde(skip_serializing)]
     pub id: i32,
 
     pub name: String,
@@ -221,7 +218,6 @@ pub struct QuranSurah {
 )]
 #[diesel(table_name = mushafs)]
 pub struct QuranMushaf {
-    #[serde(skip_serializing)]
     pub id: i32,
 
     pub name: Option<String>,

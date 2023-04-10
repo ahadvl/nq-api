@@ -9,6 +9,7 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct OrganizationWithUsername {
+    id: i32,
     username: String,
     org: Organization,
 }
@@ -32,6 +33,7 @@ pub async fn get_list_of_organizations(
         let result = select_all
             .into_iter()
             .map(|(org, account)| OrganizationWithUsername {
+                id: org.id,
                 username: account.username,
                 org,
             })
