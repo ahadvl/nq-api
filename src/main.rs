@@ -14,13 +14,13 @@ use token_checker::UserIdFromToken;
 
 mod datetime;
 mod email;
+mod error;
 mod models;
 mod routers;
 mod schema;
 mod test;
 mod token_checker;
 mod validate;
-mod error;
 
 use routers::account::logout;
 use routers::account::send_code;
@@ -31,7 +31,7 @@ use routers::organization::list;
 use routers::organization::view;
 use routers::profile::edit_profile;
 use routers::profile::profile;
-use routers::quran::quran;
+use routers::quran::{mushaf, quran, surah};
 
 type DbPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -105,6 +105,8 @@ async fn main() -> std::io::Result<()> {
                     ),
             )
             .service(web::resource("/quran").route(web::get().to(quran::quran)))
+            .service(web::resource("/surah").route(web::get().to(surah::surah)))
+            .service(web::resource("/mushaf").route(web::get().to(mushaf::mushaf)))
             .service(
                 web::resource("/profile")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))

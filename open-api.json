@@ -645,6 +645,36 @@
           }
         }
       }
+    },
+    "/surah": {
+      "description": "Returns the list of all surahs (for now)",
+      "get" : {
+        "parameters": [
+          {
+            "in": "query",
+            "required": true,
+            "name": "mushaf",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the surahs list (for now)"
+          }
+        }
+      }
+    },
+    "/mushaf": {
+      "description": "Returns the list of all mushafs (for now)",
+      "get" : {
+        "responses": {
+          "200": {
+            "description": "Returns the mushafs list (for now)"
+          }
+        }
+      }     
     }
   }
 }
