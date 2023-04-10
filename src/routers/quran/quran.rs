@@ -4,7 +4,7 @@ use actix_web::web;
 use diesel::prelude::*;
 use diesel::{dsl::exists, select};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::hash::Hash;
 use validator::Validate;
@@ -78,13 +78,15 @@ enum AyahTextType {
     Text(String),
 }
 
-#[derive(Eq, Hash, PartialEq, Serialize, Clone, Debug)]
+#[derive(PartialOrd, Ord, Eq, Hash, PartialEq, Serialize, Clone, Debug)]
 pub struct SimpleAyah {
+    #[serde(skip_serializing)]
+    id: i32,
     number: i32,
     sajdeh: Option<String>,
 }
 
-#[derive(Debug, Serialize, Queryable, Eq, Hash, PartialEq, Clone)]
+#[derive(Debug, Serialize, Queryable, Eq, Hash, PartialEq, Clone, PartialOrd, Ord)]
 pub struct SimpleSurah {
     #[serde(skip_serializing)]
     id: i32,
@@ -109,14 +111,14 @@ pub struct QuranResponseData {
 // TODO: maybe change the localtion of this function ?
 // TODO: write documentation for this function
 // TODO: find the better name
-pub fn multip<T, U, F, NT>(vector: Vec<(T, U)>, insert_data_type: F) -> HashMap<NT, Vec<U>>
+pub fn multip<T, U, F, NT>(vector: Vec<(T, U)>, insert_data_type: F) -> BTreeMap<NT, Vec<U>>
 where
     T: Sized + Clone,
     U: Sized,
-    NT: Sized + Eq + Hash,
+    NT: Sized + Eq + Hash + Ord,
     F: Fn(T) -> NT,
 {
-    let mut map: HashMap<NT, Vec<U>> = HashMap::new();
+    let mut map: BTreeMap<NT, Vec<U>> = BTreeMap::new();
     for item in vector {
         if let Some(w) = map.get_mut(&insert_data_type(item.0.clone())) {
             w.push(item.1)
@@ -162,21 +164,22 @@ pub async fn quran(
             return Err(NotFound(format!("mode {} is not supported", &query.mode)));
         }
 
-        let filter = quran_surahs
+        let Ok(result) = quran_surahs
+            .filter(s_id.between(query.from as i32, query.limit.unwrap() as i32))
             .inner_join(quran_ayahs.inner_join(quran_words))
-            .filter(s_id.between(query.from as i32, query.limit.unwrap() as i32));
-
-        let result = filter
             .select((QuranAyah::as_select(), QuranWord::as_select()))
-            .load::<(QuranAyah, QuranWord)>(&mut conn)
-            .unwrap();
+            .load::<(QuranAyah, QuranWord)>(&mut conn) else {
+                return Err(InternalError);
+            };
 
-        let ayahs_as_map: HashMap<SimpleAyah, Vec<QuranWord>> = multip(result, |ayah| SimpleAyah {
-            number: ayah.ayah_number,
-            sajdeh: ayah.sajdeh.clone(),
-        });
+        let ayahs_as_map: BTreeMap<SimpleAyah, Vec<QuranWord>> =
+            multip(result, |ayah| SimpleAyah {
+                id: ayah.id,
+                number: ayah.ayah_number,
+                sajdeh: ayah.sajdeh.clone(),
+            });
 
-        let mut final_ayahs = ayahs_as_map
+        let final_ayahs = ayahs_as_map
             .into_iter()
             .map(|(ayah, words)| Ayah {
                 ayah,
@@ -193,16 +196,19 @@ pub async fn quran(
             })
             .collect::<Vec<Ayah>>();
 
-        final_ayahs.sort_by(|a, b| a.ayah.number.cmp(&b.ayah.number));
-
-        let surahs = filter
-            .select(QuranSurah::as_select())
-            .load::<QuranSurah>(&mut conn)
-            .unwrap();
+        let Ok(surahs) = quran_surahs
+            .filter(s_id.between(query.from as i32, query.limit.unwrap() as i32))
+            .inner_join(quran_ayahs)
+            .select((QuranSurah::as_select(), QuranAyah::as_select()))
+            .load::<(QuranSurah, QuranAyah)>(&mut conn) else {
+                return Err(InternalError);
+            };
 
         let surahs = surahs
             .into_iter()
             .zip(final_ayahs.clone())
+            // FIX: Maybe better way?
+            .map(|((surah, _), ayah)| (surah, ayah))
             .collect::<Vec<(QuranSurah, Ayah)>>();
 
         let surahs_as_map = multip(surahs, |surah| SimpleSurah {
@@ -211,15 +217,13 @@ pub async fn quran(
             period: surah.period,
         });
 
-        let mut final_response = surahs_as_map
+        let final_response = surahs_as_map
             .into_iter()
             .map(|(surah, ayah_with_words)| QuranResponseData {
                 surah,
                 ayahs: ayah_with_words,
             })
             .collect::<Vec<QuranResponseData>>();
-
-        final_response.sort_by(|a, b| a.surah.id.cmp(&b.surah.id));
 
         Ok(web::Json(final_response))
     })
