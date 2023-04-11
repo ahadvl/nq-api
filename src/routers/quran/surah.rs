@@ -176,7 +176,7 @@ pub async fn surah(
             .map(|(ayah, words)| Ayah {
                 ayah,
                 content: match query.format {
-                    Format::Ayah => AyahTextType::Text(
+                    Format::Text => AyahTextType::Text(
                         words
                             .into_iter()
                             .map(|qword| qword.word)
