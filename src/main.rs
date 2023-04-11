@@ -31,7 +31,7 @@ use routers::organization::list;
 use routers::organization::view;
 use routers::profile::edit_profile;
 use routers::profile::profile;
-use routers::quran::{mushaf, quran, surah};
+use routers::quran::{mushaf, surah};
 
 type DbPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -104,8 +104,11 @@ async fn main() -> std::io::Result<()> {
                             .route(web::get().to(logout::logout)),
                     ),
             )
-            .service(web::resource("/quran").route(web::get().to(quran::quran)))
-            .service(web::resource("/surah").route(web::get().to(surah::surah)))
+            .service(
+                web::scope("/surah")
+                    .route("", web::get().to(surah::surahs_list))
+                    .route("/{surah_num}", web::get().to(surah::surah)),
+            )
             .service(web::resource("/mushaf").route(web::get().to(mushaf::mushaf)))
             .service(
                 web::resource("/profile")

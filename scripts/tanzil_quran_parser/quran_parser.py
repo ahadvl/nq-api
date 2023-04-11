@@ -15,7 +15,7 @@ import psycopg2
 
 TANZIL_QURAN_SOURCE_HASH = "e7ab47ae9267ce6a3979bf60031b7c40c9701cb2c1d899bbc6e56c67058b17e2"
 
-INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period)"
+INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period, number)"
 INSERTABLE_QURAN_WORDS_TABLE = "quran_words(ayah_id, word)"
 INSERTABLE_QURAN_AYAHS_TABLE = "quran_ayahs(surah_id, ayah_number, sajdeh)"
 
@@ -42,10 +42,12 @@ def insert_to_table(i_table, values):
 # creates a sql for quran surahs table
 def parse_quran_suarhs_table(root):
     result = []
+    surah_num = 1
 
     for child in root:
         surah_name = child.attrib['name']
-        result.append(f"('{surah_name}', NULL)")
+        result.append(f"('{surah_name}', NULL, {surah_num})")
+        surah_num += 1
 
     return insert_to_table(INSERTABLE_QURAN_SURAH_TABLE, ",\n".join(result))
 

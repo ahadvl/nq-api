@@ -106,6 +106,7 @@ diesel::table! {
         id -> Int4,
         name -> Varchar,
         period -> Nullable<Varchar>,
+        number -> Int4,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
