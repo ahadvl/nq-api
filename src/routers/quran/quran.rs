@@ -87,7 +87,6 @@ pub struct SimpleAyah {
 
 #[derive(Debug, Serialize, Queryable, Eq, Hash, PartialEq, Clone, PartialOrd, Ord)]
 pub struct SimpleSurah {
-    #[serde(skip_serializing)]
     id: i32,
     name: String,
     period: Option<String>,
