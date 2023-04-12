@@ -39,7 +39,7 @@ pub async fn get_list_of_organizations(
             })
             .collect::<Vec<OrganizationWithUsername>>();
 
-        return Ok(result);
+        Ok(result)
     })
     .await
     .unwrap();

@@ -12,7 +12,7 @@ where
     match validation {
         Err(error_detail) => {
             // TODO: This error in response is so ugly.
-            return Err(RouterError::ValidationError(error_detail.to_string()));
+            Err(RouterError::ValidationError(error_detail.to_string()))
         }
 
         Ok(()) => Ok(()),

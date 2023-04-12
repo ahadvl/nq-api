@@ -15,9 +15,11 @@ import psycopg2
 
 TANZIL_QURAN_SOURCE_HASH = "e7ab47ae9267ce6a3979bf60031b7c40c9701cb2c1d899bbc6e56c67058b17e2"
 
-INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period, number)"
+INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period, number, bismillah_status, bismillah_text)"
 INSERTABLE_QURAN_WORDS_TABLE = "quran_words(ayah_id, word)"
 INSERTABLE_QURAN_AYAHS_TABLE = "quran_ayahs(surah_id, ayah_number, sajdeh)"
+
+BISMILLAH = "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ"
 
 
 def exit_err(msg):
@@ -46,7 +48,20 @@ def parse_quran_suarhs_table(root):
 
     for child in root:
         surah_name = child.attrib['name']
-        result.append(f"('{surah_name}', NULL, {surah_num})")
+        first_ayah = root[surah_num - 1][0]
+        if first_ayah.attrib['text'] == BISMILLAH:
+            result.append(
+                f"('{surah_name}', NULL, {surah_num}, 'in_ayah', NULL)")
+
+        else:
+            first_ayah_bismillah_status = first_ayah.get('bismillah', False)
+
+            status = 'true' if first_ayah_bismillah_status != False else 'false'
+            text = f"'{first_ayah_bismillah_status}'" if first_ayah_bismillah_status != False else 'NULL'
+
+            result.append(
+                f"('{surah_name}', NULL, {surah_num}, '{status}', {text})")
+
         surah_num += 1
 
     return insert_to_table(INSERTABLE_QURAN_SURAH_TABLE, ",\n".join(result))
