@@ -44,7 +44,7 @@ pub async fn view(
             return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
-        let Ok(org) = Organization::belonging_to(account.clone())
+        let Ok(org) = Organization::belonging_to(account)
             .load::<Organization>(&mut conn) else {
                 return Err(RouterError::InternalError);
             };
@@ -53,14 +53,12 @@ pub async fn view(
             return Err(RouterError::NotFound("Organization not found".to_string()));
         };
 
-        let account_copy = account.clone();
-
         let org = ViewableOrganizationData {
             id: org.id,
-            username: account_copy.username.clone(),
+            username: account.username.clone(),
             name: org.name.clone(),
             profile_image: org.profile_image.clone(),
-            established_date: org.established_date.clone(),
+            established_date: org.established_date,
             national_id: org.national_id.clone(),
         };
 
@@ -70,7 +68,7 @@ pub async fn view(
     .unwrap();
 
     if let Ok(org) = organization {
-        Ok(web::Json(org.clone()))
+        Ok(web::Json(org))
     } else {
         Err(organization.err().unwrap())
     }

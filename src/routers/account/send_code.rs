@@ -118,6 +118,6 @@ pub async fn send_code(
             SendCodeStatus::AlreadySent => Ok("Already sent".to_string()),
         }
     } else {
-        return Err(send_status.err().unwrap());
+        Err(send_status.err().unwrap())
     }
 }

@@ -34,31 +34,51 @@ pub struct SurahListQuery {
     mushaf: String,
 }
 
+#[derive(Serialize, Queryable)]
+pub struct SimpleSurah {
+    pub id: i32,
+    pub name: String,
+    pub period: Option<String>,
+    pub number: i32,
+}
+
 /// Get the lists of surah
 pub async fn surahs_list(
     query: web::Query<SurahListQuery>,
     pool: web::Data<DbPool>,
-) -> Result<web::Json<Vec<QuranSurah>>, RouterError> {
+) -> Result<web::Json<Vec<SimpleSurah>>, RouterError> {
     use crate::error::RouterError::*;
+    use crate::schema::mushafs::dsl::{mushafs, name as mushaf_name};
     use crate::schema::quran_surahs::dsl::*;
 
     let query = query.into_inner();
-
-    // TODO: fix
-    if query.mushaf != "hafs".to_string() {
-        return Err(NotFound(format!(
-            "Mushaf {} is not supported for now",
-            query.mushaf
-        )));
-    }
 
     let result = web::block(move || {
         let Ok(mut conn )= pool.get() else {
             return Err(InternalError);
         };
 
+        // Select the specific mushaf
+        // and check if it exists
+        let Ok(exists)= select(exists(
+            mushafs.filter(mushaf_name.eq(&query.mushaf)),
+        ))
+        .get_result::<bool>(&mut conn)
+        else {
+            return Err(InternalError)
+        };
+
+        if !exists {
+            return Err(NotFound(format!(
+                "Mushaf {} is not supported for now",
+                &query.mushaf
+            )));
+        }
+
         // Get the list of surahs from the database
-        let Ok(surahs) = quran_surahs.load::<QuranSurah>(&mut conn) else {
+        let Ok(surahs) = quran_surahs
+            .select((id, name, period, number))
+            .load::<SimpleSurah>(&mut conn) else {
             return Err(InternalError);
         };
 
@@ -149,7 +169,7 @@ pub async fn surah(
             return Err(InternalError)
         };
 
-        if exists == false {
+        if !exists {
             return Err(NotFound(format!(
                 "Mushaf {} is not supported for now",
                 &query.mushaf
@@ -168,7 +188,7 @@ pub async fn surah(
             multip(result, |ayah| SimpleAyah {
                 id: ayah.id,
                 number: ayah.ayah_number,
-                sajdeh: ayah.sajdeh.clone(),
+                sajdeh: ayah.sajdeh,
             });
 
         let final_ayahs = ayahs_as_map
