@@ -49,7 +49,7 @@ impl ResponseError for RouterError {
     }
 
     fn status_code(&self) -> StatusCode {
-        match &*self {
+        match self {
             Self::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
             Self::NotFound(_message) => StatusCode::NOT_FOUND,
             Self::ValidationError(_detail) => StatusCode::BAD_REQUEST,
