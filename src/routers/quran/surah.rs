@@ -7,9 +7,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::hash::Hash;
 
-// TODO: maybe change the localtion of this function ?
-// TODO: write documentation for this function
-// TODO: find the better name
+/// finds the relatives in the vector
+/// Vec<(Obj1, Obj2)>
+/// This will collect the Obj2 that related to the Obj1 and returns
+/// a BTreeMap (We want the elements be in order)
 pub fn multip<T, U, F, NT>(vector: Vec<(T, U)>, insert_data_type: F) -> BTreeMap<NT, Vec<U>>
 where
     T: Sized + Clone,
