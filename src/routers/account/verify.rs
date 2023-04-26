@@ -50,14 +50,18 @@ pub async fn verify(
             ));
         };
 
+
+        // The code is not correct
         if last_sended_code.code != info.code {
             return Ok("Code is not correct".to_string());
         }
 
+        // The code is already used
         if last_sended_code.status == *"used".to_string() {
             return Ok("Code is already used".to_string());
         }
 
+        // Get the time difference for expireation check
         let diff = time_deference(last_sended_code.created_at);
 
         if diff.num_seconds() >= 70 {
@@ -118,6 +122,8 @@ pub async fn verify(
                 return Err(RouterError::InternalError)
             };
 
+            // Update the account and set the user name to the
+            // u{the new account id}
             let Ok(_) = diesel::update(&new_account)
                 .set(app_accounts::dsl::username.eq(format!("u{}", &new_account.id)))
                 .execute(&mut conn)
