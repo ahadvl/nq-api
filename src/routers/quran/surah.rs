@@ -1,6 +1,8 @@
 use crate::models::{QuranAyah, QuranSurah, QuranWord};
+use crate::schema::quran_ayahs::surah_id;
 use crate::{error::RouterError, DbPool};
 use actix_web::web;
+use diesel::dsl::count;
 use diesel::prelude::*;
 use diesel::{dsl::exists, select};
 use serde::{Deserialize, Serialize};
@@ -35,12 +37,13 @@ pub struct SurahListQuery {
     mushaf: String,
 }
 
-#[derive(Serialize, Queryable)]
+#[derive(Serialize, Queryable, Clone, Debug)]
 pub struct SimpleSurah {
     pub id: i32,
     pub name: String,
     pub period: Option<String>,
     pub number: i32,
+    pub number_of_ayahs: i64,
 }
 
 /// Get the lists of surah
@@ -55,7 +58,7 @@ pub async fn surahs_list(
     let query = query.into_inner();
 
     let result = web::block(move || {
-        let Ok(mut conn )= pool.get() else {
+        let Ok(mut conn)= pool.get() else {
             return Err(InternalError);
         };
 
@@ -78,10 +81,34 @@ pub async fn surahs_list(
 
         // Get the list of surahs from the database
         let Ok(surahs) = quran_surahs
-            .select((id, name, period, number))
-            .load::<SimpleSurah>(&mut conn) else {
-            return Err(InternalError);
-        };
+            .load::<QuranSurah>(&mut conn) else {
+                return Err(InternalError);
+            };
+
+        let ayahs = surahs
+            .clone()
+            .into_iter()
+            .map(|s| {
+                QuranAyah::belonging_to(&s)
+                    .select(count(surah_id))
+                    .get_result(&mut conn)
+                    .unwrap()
+            })
+            .collect::<Vec<i64>>();
+
+        // now iter over the surahs and bind it with
+        // number_of_ayahs
+        let surahs = surahs
+            .into_iter()
+            .zip(ayahs)
+            .map(|(surah, number_of_ayahs)| SimpleSurah {
+                id: surah.id,
+                name: surah.name,
+                number: surah.number,
+                period: surah.period,
+                number_of_ayahs,
+            })
+            .collect::<Vec<SimpleSurah>>();
 
         Ok(web::Json(surahs))
     })
@@ -136,7 +163,7 @@ pub struct Ayah {
 #[derive(Serialize, Clone, Debug)]
 pub struct QuranResponseData {
     #[serde(flatten)]
-    surah: QuranSurah,
+    surah: SimpleSurah,
     ayahs: Vec<Ayah>,
 }
 
@@ -156,7 +183,7 @@ pub async fn surah(
     let path = path.into_inner();
 
     let result = web::block(move || {
-        let Ok(mut conn )= pool.get() else {
+        let Ok(mut conn)= pool.get() else {
             return Err(InternalError);
         };
 
@@ -217,7 +244,13 @@ pub async fn surah(
             };
 
         Ok(web::Json(QuranResponseData {
-            surah,
+            surah: SimpleSurah {
+                id: surah.id,
+                name: surah.name,
+                period: surah.period,
+                number: surah.number,
+                number_of_ayahs: final_ayahs.len() as i64,
+            },
             ayahs: final_ayahs,
         }))
     })
