@@ -3,14 +3,14 @@ mod tests {
     use crate::token::token_middleware::TokenChecker;
     use crate::token::{TokenAuth, TokenGenerator};
     use actix_web::dev::Service;
-    use actix_web::http::{header};
+    use actix_web::http::header;
     use actix_web::test::{self, TestRequest};
     use actix_web::App;
 
     #[derive(Default, Clone)]
     struct FindToken;
 
-    impl TokenChecker for FindToken {
+    impl TokenChecker<bool> for FindToken {
         fn check_token(&self, _request_token: &str) -> bool {
             true
         }
@@ -39,7 +39,9 @@ mod tests {
 
         assert!(res.is_err());
 
-        let good_req = TestRequest::get().append_header((header::AUTHORIZATION, "secret-token")).to_request();
+        let good_req = TestRequest::get()
+            .append_header((header::AUTHORIZATION, "secret-token"))
+            .to_request();
 
         let res = app.call(good_req).await;
 
