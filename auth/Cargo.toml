@@ -7,3 +7,5 @@ edition = "2021"
 sha2 = "0.10.6"
 actix-web = "4"
 actix-utils = "3.0.1"
+async-trait = "0.1.68"
+futures-util = { version = "0.3.7", default-features = false, features = ["std"] }
