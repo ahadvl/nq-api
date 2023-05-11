@@ -9,7 +9,6 @@
 
 import hashlib
 import sys
-import os
 import xml.etree.ElementTree as ET
 import psycopg2
 
@@ -20,6 +19,28 @@ INSERTABLE_QURAN_WORDS_TABLE = "quran_words(ayah_id, word)"
 INSERTABLE_QURAN_AYAHS_TABLE = "quran_ayahs(surah_id, ayah_number, sajdeh)"
 
 BISMILLAH = "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ"
+
+# The surah, ayah number has the sajdeh
+# The are 3 types we must provid to the user
+# vajib, mustahab and none
+# if the ayah is not available in this list then return its sajdeh
+# none
+sajdahs = {
+    (32, 15): "vajib",
+    (41, 37): "vajib",
+    (53, 62): "vajib",
+    (96, 19): "vajib",
+    (7, 206): "mustahab",
+    (13, 15): "mustahab",
+    (16, 50): "mustahab",
+    (17, 109): "mustahab",
+    (19, 58): "mustahab",
+    (22, 18): "mustahab",
+    (25, 60): "mustahab",
+    (27, 26): "mustahab",
+    (38, 24): "mustahab",
+    (84, 21): "mustahab",
+}
 
 
 def exit_err(msg):
@@ -75,8 +96,12 @@ def parse_quran_words_table(root):
     ayah_number = 1
 
     for aya in root.iter('aya'):
+        # remove the every sajdeh char in the text
+        # by replacing it with empty string
+        ayahtext_without_sajdeh = aya.attrib['text'].replace('۩', '')
+
         # Get the array of aya words
-        words = aya.attrib['text'].split(" ")
+        words = ayahtext_without_sajdeh.split(" ")
 
         # Map and change every word to a specific format
         values = list(map(lambda word: f"({ayah_number}, '{word}')", words))
@@ -99,11 +124,14 @@ def parse_quran_ayahs_table(root):
     i = 1
     for aya in root.iter('aya'):
         aya_index = aya.attrib['index']
+        # Get the sajdeh status of ayah from sajdahs dict
+        # if its not there then return none string
+        sajdah_status = sajdahs.get((sura_number, int(aya_index)), "none")
 
         if aya_index == "1":
             sura_number += 1
 
-        result.append(f"({sura_number}, {aya_index}, 'none')")
+        result.append(f"({sura_number}, {aya_index}, '{sajdah_status}')")
         i += 1
 
     print(i)
@@ -121,13 +149,6 @@ def main(args):
     user = args[4]
     password = args[5]
     port = args[6]
-
-    # Split into the name and extention
-    splited_path = os.path.splitext(quran_xml_path)
-
-    # Check if file format is correct
-    if splited_path[1] != ".xml":
-        exit_err("Quran Source must be an xml file")
 
     # Open file
     quran_source = open(quran_xml_path, "r")
