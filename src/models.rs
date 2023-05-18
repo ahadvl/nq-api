@@ -200,6 +200,7 @@ pub struct QuranWord {
 #[derive(
     Serialize, Clone, Insertable, Deserialize, Validate, Identifiable, Queryable, Selectable, Debug,
 )]
+#[diesel(belongs_to(QuranMushaf, foreign_key = mushaf_id))]
 #[diesel(table_name = quran_surahs)]
 pub struct QuranSurah {
     pub id: i32,
@@ -209,6 +210,7 @@ pub struct QuranSurah {
     pub number: i32,
     pub bismillah_status: String,
     pub bismillah_text: Option<String>,
+    pub mushaf_id: i32,
 
     #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,

@@ -5,7 +5,9 @@ CREATE TABLE quran_surahs (
     number serial NOT NULL,
     bismillah_status VARCHAR(10) NOT NULL,
     bismillah_text TEXT,
+    mushaf_id serial NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT quran_surahs_id PRIMARY KEY (id)
+    CONSTRAINT quran_surahs_id PRIMARY KEY (id),
+    CONSTRAINT fk_mushaf_id FOREIGN KEY(mushaf_id) REFERENCES mushafs(id)
 );

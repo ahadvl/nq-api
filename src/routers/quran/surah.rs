@@ -1,10 +1,10 @@
-use crate::models::{QuranAyah, QuranSurah, QuranWord};
+use crate::models::{QuranAyah, QuranMushaf, QuranSurah, QuranWord};
 use crate::schema::quran_ayahs::surah_id;
+use crate::schema::quran_surahs::mushaf_id;
 use crate::{error::RouterError, DbPool};
 use actix_web::web;
 use diesel::dsl::count;
 use diesel::prelude::*;
-use diesel::{dsl::exists, select};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::hash::Hash;
@@ -64,25 +64,18 @@ pub async fn surahs_list(
 
         // Select the specific mushaf
         // and check if it exists
-        let Ok(exists)= select(exists(
-            mushafs.filter(mushaf_name.eq(&query.mushaf)),
-        ))
-        .get_result::<bool>(&mut conn)
+        let Ok(mushaf)=
+            mushafs.filter(mushaf_name.eq(&query.mushaf))
+            .get_result::<QuranMushaf>(&mut conn)
         else {
-            return Err(InternalError)
+            return Err(NotFound("Mushaf is not supported yet!".to_string()));
         };
-
-        if !exists {
-            return Err(NotFound(format!(
-                "Mushaf {} is not supported for now",
-                &query.mushaf
-            )));
-        }
 
         // Get the list of surahs from the database
         let Ok(surahs) = quran_surahs
+            .filter(mushaf_id.eq(mushaf.id))
             .load::<QuranSurah>(&mut conn) else {
-                return Err(InternalError);
+               return Err(InternalError)
             };
 
         let ayahs = surahs
@@ -189,23 +182,16 @@ pub async fn surah(
 
         // Select the specific mushaf
         // and check if it exists
-        let Ok(exists)= select(exists(
-            mushafs.filter(mushaf_name.eq(&query.mushaf)),
-        ))
-        .get_result::<bool>(&mut conn)
+        let Ok(mushaf)=
+            mushafs.filter(mushaf_name.eq(&query.mushaf))
+            .get_result::<QuranMushaf>(&mut conn)
         else {
-            return Err(InternalError)
+            return Err(NotFound("Mushaf is not supported yet!".to_string()));
         };
-
-        if !exists {
-            return Err(NotFound(format!(
-                "Mushaf {} is not supported for now",
-                &query.mushaf
-            )));
-        }
 
         let Ok(result) = quran_surahs
             .filter(surah_number.eq(path as i32))
+            .filter(mushaf_id.eq(mushaf.id))
             .inner_join(quran_ayahs.inner_join(quran_words))
             .select((QuranAyah::as_select(), QuranWord::as_select()))
             .load::<(QuranAyah, QuranWord)>(&mut conn) else {
