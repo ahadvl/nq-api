@@ -12,19 +12,19 @@ import sys
 import xml.etree.ElementTree as ET
 import psycopg2
 
-TANZIL_QURAN_SOURCE_HASH = "e7ab47ae9267ce6a3979bf60031b7c40c9701cb2c1d899bbc6e56c67058b17e2"
+TANZIL_QURAN_SOURCE_HASH = "a22c0d515c37a5667160765c2d1d171fa4b9d7d8778e47161bb0fe894cf61c1d"
 
-INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period, number, bismillah_status, bismillah_text)"
+INSERTABLE_QURAN_MUSHAF_TABLE = "mushafs(name, source)"
+INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period, number, bismillah_status, bismillah_text, mushaf_id)"
 INSERTABLE_QURAN_WORDS_TABLE = "quran_words(ayah_id, word)"
 INSERTABLE_QURAN_AYAHS_TABLE = "quran_ayahs(surah_id, ayah_number, sajdeh)"
 
 BISMILLAH = "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ"
 
 # The surah, ayah number has the sajdeh
-# The are 3 types we must provid to the user
+# There are 3 types we must provid to the user
 # vajib, mustahab and none
-# if the ayah is not available in this list then return its sajdeh
-# none
+# if the ayah is not available in this list then return its sajdeh as none
 sajdahs = {
     (32, 15): "vajib",
     (41, 37): "vajib",
@@ -63,7 +63,7 @@ def insert_to_table(i_table, values):
 
 # the will parse the quran-source and
 # creates a sql for quran surahs table
-def parse_quran_suarhs_table(root):
+def parse_quran_suarhs_table(root, mushaf_id):
     result = []
     surah_num = 1
 
@@ -71,8 +71,9 @@ def parse_quran_suarhs_table(root):
         surah_name = child.attrib['name']
         first_ayah = root[surah_num - 1][0]
         if first_ayah.attrib['text'] == BISMILLAH:
+            # also set the mushaf_id
             result.append(
-                f"('{surah_name}', NULL, {surah_num}, 'in_ayah', NULL)")
+                f"('{surah_name}', NULL, {surah_num}, 'in_ayah', NULL, {mushaf_id})")
 
         else:
             first_ayah_bismillah_status = first_ayah.get('bismillah', False)
@@ -81,7 +82,7 @@ def parse_quran_suarhs_table(root):
             text = f"'{first_ayah_bismillah_status}'" if first_ayah_bismillah_status != False else 'NULL'
 
             result.append(
-                f"('{surah_name}', NULL, {surah_num}, '{status}', {text})")
+                f"('{surah_name}', NULL, {surah_num}, '{status}', {text}, {mushaf_id})")
 
         surah_num += 1
 
@@ -168,7 +169,8 @@ def main(args):
     root = ET.fromstring(quran_source_as_string)
 
     # parse the first table  : quran_ayahs
-    quran_surahs_table = parse_quran_suarhs_table(root)
+    # TODO find out the latest id and set it to the mushaf_id
+    quran_surahs_table = parse_quran_suarhs_table(root, 2)
 
     # parse the second table : quran_words
     quran_words_table = parse_quran_words_table(root)
@@ -188,7 +190,12 @@ def main(args):
     # We create the cursor
     cur = conn.cursor()
 
-    # Execute the final sql code
+    # Insert hafs mushaf to the mushafs table
+    hafs_sql = insert_to_table(
+        INSERTABLE_QURAN_MUSHAF_TABLE, "('hafs', 'tanzil')")
+
+    # Execute the final sql code and mushaf one
+    cur.execute(hafs_sql)
     cur.execute(final_sql_code)
 
     # Commit the changes
