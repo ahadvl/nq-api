@@ -109,6 +109,7 @@ diesel::table! {
         number -> Int4,
         bismillah_status -> Varchar,
         bismillah_text -> Nullable<Text>,
+        mushaf_id -> Int4,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -151,6 +152,7 @@ diesel::joinable!(app_employees -> app_accounts (employee_account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
 diesel::joinable!(app_tokens -> app_accounts (terminated_by_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
+diesel::joinable!(quran_surahs -> mushafs (mushaf_id));
 diesel::joinable!(quran_words -> quran_ayahs (ayah_id));
 diesel::joinable!(translations_text -> quran_ayahs (ayah_id));
 diesel::joinable!(translations_text -> translations (translation_id));
