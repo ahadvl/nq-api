@@ -8,6 +8,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::hash::Hash;
+use uuid::Uuid;
 
 /// finds the relatives in the vector
 /// Vec<(Obj1, Obj2)>
@@ -39,7 +40,7 @@ pub struct SurahListQuery {
 
 #[derive(Serialize, Queryable, Clone, Debug)]
 pub struct SimpleSurah {
-    pub id: i32,
+    pub uuid: Uuid,
     pub name: String,
     pub period: Option<String>,
     pub number: i32,
@@ -64,7 +65,7 @@ pub async fn surahs_list(
 
         // Select the specific mushaf
         // and check if it exists
-        let Ok(mushaf)=
+        let Ok(mushaf) =
             mushafs.filter(mushaf_name.eq(&query.mushaf))
             .get_result::<QuranMushaf>(&mut conn)
         else {
@@ -95,7 +96,7 @@ pub async fn surahs_list(
             .into_iter()
             .zip(ayahs)
             .map(|(surah, number_of_ayahs)| SimpleSurah {
-                id: surah.id,
+                uuid: surah.uuid,
                 name: surah.name,
                 number: surah.number,
                 period: surah.period,
@@ -141,7 +142,7 @@ enum AyahTextType {
 
 #[derive(PartialOrd, Ord, Eq, Hash, PartialEq, Serialize, Clone, Debug)]
 pub struct SimpleAyah {
-    id: i32,
+    uuid: Uuid,
     number: i32,
     sajdeh: Option<String>,
 }
@@ -200,7 +201,7 @@ pub async fn surah(
 
         let ayahs_as_map: BTreeMap<SimpleAyah, Vec<QuranWord>> =
             multip(result, |ayah| SimpleAyah {
-                id: ayah.id,
+                uuid: ayah.uuid,
                 number: ayah.ayah_number,
                 sajdeh: ayah.sajdeh,
             });
@@ -231,7 +232,7 @@ pub async fn surah(
 
         Ok(web::Json(QuranResponseData {
             surah: SimpleSurah {
-                id: surah.id,
+                uuid: surah.uuid,
                 name: surah.name,
                 period: surah.period,
                 number: surah.number,

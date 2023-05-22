@@ -2,6 +2,7 @@
 
 CREATE TABLE quran_words(
     id serial NOT NULL,
+    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     ayah_id serial NOT NULL,
     word TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

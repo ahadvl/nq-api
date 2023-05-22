@@ -1,5 +1,6 @@
 CREATE TABLE translations_text (
     id serial NOT NULL,
+    uuid uuid DEFAULT uuid_generate_v4 (),
     translation_id serial NOT NULL,
     ayah_id serial NOT NULL,
     text TEXT NOT NULL,

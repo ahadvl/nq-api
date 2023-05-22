@@ -83,6 +83,7 @@ diesel::table! {
 diesel::table! {
     mushafs (id) {
         id -> Int4,
+        uuid -> Uuid,
         name -> Nullable<Varchar>,
         source -> Nullable<Varchar>,
         created_at -> Timestamptz,
@@ -93,6 +94,7 @@ diesel::table! {
 diesel::table! {
     quran_ayahs (id) {
         id -> Int4,
+        uuid -> Uuid,
         surah_id -> Int4,
         ayah_number -> Int4,
         sajdeh -> Nullable<Varchar>,
@@ -104,6 +106,7 @@ diesel::table! {
 diesel::table! {
     quran_surahs (id) {
         id -> Int4,
+        uuid -> Uuid,
         name -> Varchar,
         period -> Nullable<Varchar>,
         number -> Int4,
@@ -118,6 +121,7 @@ diesel::table! {
 diesel::table! {
     quran_words (id) {
         id -> Int4,
+        uuid -> Uuid,
         ayah_id -> Int4,
         word -> Text,
         created_at -> Timestamptz,
@@ -128,6 +132,7 @@ diesel::table! {
 diesel::table! {
     translations (id) {
         id -> Int4,
+        uuid -> Nullable<Uuid>,
         translator_id -> Int4,
         language -> Varchar,
         release_year -> Nullable<Date>,
@@ -140,6 +145,7 @@ diesel::table! {
 diesel::table! {
     translations_text (id) {
         id -> Int4,
+        uuid -> Nullable<Uuid>,
         translation_id -> Int4,
         ayah_id -> Int4,
         text -> Text,

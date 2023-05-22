@@ -1,6 +1,7 @@
 -- Your SQL goes here
 CREATE TABLE quran_ayahs (
     id serial NOT NULL,
+    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     surah_id serial NOT NULL,
     ayah_number serial NOT NULL,
     sajdeh VARCHAR(20),
