@@ -1,7 +1,8 @@
 CREATE TABLE quran_surahs (
     id serial NOT NULL,
-    name VARCHAR(50) NOT NULL, 
-    period VARCHAR(50), 
+    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    period VARCHAR(50),
     number serial NOT NULL,
     bismillah_status VARCHAR(10) NOT NULL,
     bismillah_text TEXT,
