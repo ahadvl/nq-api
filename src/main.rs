@@ -107,7 +107,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/surah")
                     .route("", web::get().to(surah::surahs_list))
-                    .route("/{surah_num}", web::get().to(surah::surah)),
+                    .route("/{surah_uuid}", web::get().to(surah::surah)),
             )
             .service(web::resource("/mushaf").route(web::get().to(mushaf::mushaf)))
             .service(

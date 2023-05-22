@@ -17,6 +17,8 @@ pub enum RouterError {
     /// For example:
     /// username is not available
     NotAvailable(String),
+
+    BadRequest(String),
 }
 
 impl Display for RouterError {
@@ -27,6 +29,7 @@ impl Display for RouterError {
             Self::InternalError => write!(f, "internal server error"),
             Self::Gone(message) => write!(f, "{}", message),
             Self::NotAvailable(what) => write!(f, "{} is not available", what),
+            Self::BadRequest(message) => write!(f, "{}", message),
         }
     }
 }
@@ -51,10 +54,11 @@ impl ResponseError for RouterError {
     fn status_code(&self) -> StatusCode {
         match self {
             Self::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::NotFound(_message) => StatusCode::NOT_FOUND,
-            Self::ValidationError(_detail) => StatusCode::BAD_REQUEST,
-            Self::Gone(_message) => StatusCode::GONE,
-            Self::NotAvailable(_what) => StatusCode::OK,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::ValidationError(_) => StatusCode::BAD_REQUEST,
+            Self::Gone(_) => StatusCode::GONE,
+            Self::NotAvailable(_) => StatusCode::OK,
+            Self::BadRequest(_) => StatusCode::BAD_REQUEST,
         }
     }
 }

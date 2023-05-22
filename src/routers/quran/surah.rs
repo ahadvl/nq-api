@@ -1,6 +1,5 @@
 use crate::models::{QuranAyah, QuranMushaf, QuranSurah, QuranWord};
 use crate::schema::quran_ayahs::surah_id;
-use crate::schema::quran_surahs::mushaf_id;
 use crate::{error::RouterError, DbPool};
 use actix_web::web;
 use diesel::dsl::count;
@@ -33,13 +32,28 @@ where
     map
 }
 
+/// The query needs the mushaf
+/// for example /surah?mushaf=hafs
 #[derive(Deserialize)]
 pub struct SurahListQuery {
     mushaf: String,
 }
 
-#[derive(Serialize, Queryable, Clone, Debug)]
-pub struct SimpleSurah {
+/// The response type for /surah/{id}
+#[derive(Serialize, Clone, Debug)]
+pub struct SingleSurahResponse {
+    pub mushaf_uuid: Uuid,
+    pub mushaf_name: Option<String>,
+    pub surah_uuid: Uuid,
+    pub surah_name: String,
+    pub surah_period: Option<String>,
+    pub surah_number: i32,
+    pub number_of_ayahs: i64,
+}
+
+/// The response type for /surah
+#[derive(Serialize, Clone, Debug)]
+pub struct SurahListResponse {
     pub uuid: Uuid,
     pub name: String,
     pub period: Option<String>,
@@ -51,7 +65,7 @@ pub struct SimpleSurah {
 pub async fn surahs_list(
     query: web::Query<SurahListQuery>,
     pool: web::Data<DbPool>,
-) -> Result<web::Json<Vec<SimpleSurah>>, RouterError> {
+) -> Result<web::Json<Vec<SurahListResponse>>, RouterError> {
     use crate::error::RouterError::*;
     use crate::schema::mushafs::dsl::{mushafs, name as mushaf_name};
     use crate::schema::quran_surahs::dsl::*;
@@ -95,14 +109,14 @@ pub async fn surahs_list(
         let surahs = surahs
             .into_iter()
             .zip(ayahs)
-            .map(|(surah, number_of_ayahs)| SimpleSurah {
+            .map(|(surah, number_of_ayahs)| SurahListResponse {
                 uuid: surah.uuid,
                 name: surah.name,
                 number: surah.number,
                 period: surah.period,
                 number_of_ayahs,
             })
-            .collect::<Vec<SimpleSurah>>();
+            .collect::<Vec<SurahListResponse>>();
 
         Ok(web::Json(surahs))
     })
@@ -112,6 +126,8 @@ pub async fn surahs_list(
     result
 }
 
+/// The quran text format
+/// Each word has its own uuid
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum Format {
@@ -125,14 +141,7 @@ impl Default for Format {
     }
 }
 
-#[derive(Clone, Deserialize)]
-pub struct QuranQuery {
-    #[serde(default)]
-    format: Format,
-
-    mushaf: String,
-}
-
+/// Quran text type
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "lowercase")]
 enum AyahTextType {
@@ -140,6 +149,7 @@ enum AyahTextType {
     Text(String),
 }
 
+/// The Ayah type that will return in the response
 #[derive(PartialOrd, Ord, Eq, Hash, PartialEq, Serialize, Clone, Debug)]
 pub struct SimpleAyah {
     uuid: Uuid,
@@ -147,6 +157,7 @@ pub struct SimpleAyah {
     sajdeh: Option<String>,
 }
 
+/// it contains ayah info and the content
 #[derive(Serialize, Clone, Debug)]
 pub struct Ayah {
     #[serde(flatten)]
@@ -154,23 +165,32 @@ pub struct Ayah {
     content: AyahTextType,
 }
 
+/// The final response body
 #[derive(Serialize, Clone, Debug)]
 pub struct QuranResponseData {
     #[serde(flatten)]
-    surah: SimpleSurah,
+    surah: SingleSurahResponse,
     ayahs: Vec<Ayah>,
 }
 
+/// the query for the /surah/{uuid}
+/// example /surah/{uuid}?format=word
+#[derive(Debug, Clone, Deserialize)]
+pub struct GetSurahQuery {
+    #[serde(default)]
+    format: Format,
+}
+
 pub async fn surah(
-    path: web::Path<u32>,
-    query: web::Query<QuranQuery>,
+    path: web::Path<String>,
+    query: web::Query<GetSurahQuery>,
     pool: web::Data<DbPool>,
 ) -> Result<web::Json<QuranResponseData>, RouterError> {
     use crate::error::RouterError::*;
-    use crate::schema::mushafs::dsl::{mushafs, name as mushaf_name};
+    use crate::schema::mushafs::dsl::{id as mushaf_id, mushafs};
     use crate::schema::quran_ayahs::dsl::quran_ayahs;
-    use crate::schema::quran_surahs::dsl::number as surah_number;
     use crate::schema::quran_surahs::dsl::quran_surahs;
+    use crate::schema::quran_surahs::dsl::uuid as surah_uuid;
     use crate::schema::quran_words::dsl::quran_words;
 
     let query = query.into_inner();
@@ -181,18 +201,12 @@ pub async fn surah(
             return Err(InternalError);
         };
 
-        // Select the specific mushaf
-        // and check if it exists
-        let Ok(mushaf)=
-            mushafs.filter(mushaf_name.eq(&query.mushaf))
-            .get_result::<QuranMushaf>(&mut conn)
-        else {
-            return Err(NotFound("Mushaf is not supported yet!".to_string()));
+        let Ok(uuid)= Uuid::parse_str(&path) else {
+            return Err(BadRequest("Cant parse the UUID, please use the valid UUID format!".to_string()))
         };
 
         let Ok(result) = quran_surahs
-            .filter(surah_number.eq(path as i32))
-            .filter(mushaf_id.eq(mushaf.id))
+            .filter(surah_uuid.eq(uuid))
             .inner_join(quran_ayahs.inner_join(quran_words))
             .select((QuranAyah::as_select(), QuranWord::as_select()))
             .load::<(QuranAyah, QuranWord)>(&mut conn) else {
@@ -224,18 +238,27 @@ pub async fn surah(
             .collect::<Vec<Ayah>>();
 
         // Get the surah
-        let Ok(surah)= quran_surahs
-            .filter(surah_number.eq(path as i32))
+        let Ok(surah) = quran_surahs
+            .filter(surah_uuid.eq(uuid))
             .get_result::<QuranSurah>(&mut conn) else {
                 return Err(InternalError);
             };
 
+        // Get the mushaf
+        let Ok(mushaf)= mushafs
+            .filter(mushaf_id.eq(surah.mushaf_id))
+            .get_result::<QuranMushaf>(&mut conn) else {
+                return Err(InternalError);
+            };
+
         Ok(web::Json(QuranResponseData {
-            surah: SimpleSurah {
-                uuid: surah.uuid,
-                name: surah.name,
-                period: surah.period,
-                number: surah.number,
+            surah: SingleSurahResponse {
+                mushaf_uuid: mushaf.uuid,
+                mushaf_name: mushaf.name,
+                surah_uuid: surah.uuid,
+                surah_name: surah.name,
+                surah_period: surah.period,
+                surah_number: surah.number,
                 number_of_ayahs: final_ayahs.len() as i64,
             },
             ayahs: final_ayahs,
