@@ -2,6 +2,7 @@ use crate::schema::*;
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{Associations, Identifiable, Insertable, Queryable, Selectable};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Identifiable, Queryable, Debug, Serialize)]
@@ -167,7 +168,11 @@ pub struct NewEmployee {
 #[diesel(belongs_to(QuranSurah, foreign_key = surah_id))]
 #[diesel(table_name = quran_ayahs)]
 pub struct QuranAyah {
+    #[serde(skip_serializing)]
     pub id: i32,
+
+    pub uuid: Uuid,
+
     #[serde(skip_serializing)]
     pub surah_id: i32,
 
@@ -184,7 +189,10 @@ pub struct QuranAyah {
 #[diesel(belongs_to(QuranAyah, foreign_key = ayah_id))]
 #[diesel(table_name = quran_words)]
 pub struct QuranWord {
+    #[serde(skip_serializing)]
     pub id: i32,
+
+    pub uuid: Uuid,
 
     #[serde(skip_serializing)]
     pub ayah_id: i32,
@@ -197,13 +205,14 @@ pub struct QuranWord {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(
-    Serialize, Clone, Insertable, Deserialize, Validate, Identifiable, Queryable, Selectable, Debug,
-)]
+#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Selectable, Debug)]
 #[diesel(belongs_to(QuranMushaf, foreign_key = mushaf_id))]
 #[diesel(table_name = quran_surahs)]
 pub struct QuranSurah {
+    #[serde(skip_serializing)]
     pub id: i32,
+
+    pub uuid: Uuid,
 
     pub name: String,
     pub period: Option<String>,
@@ -218,12 +227,13 @@ pub struct QuranSurah {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(
-    Serialize, Clone, Insertable, Deserialize, Validate, Identifiable, Queryable, Selectable, Debug,
-)]
+#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Selectable, Debug)]
 #[diesel(table_name = mushafs)]
 pub struct QuranMushaf {
+    #[serde(skip_serializing)]
     pub id: i32,
+
+    pub uuid: Uuid,
 
     pub name: Option<String>,
     pub source: Option<String>,
