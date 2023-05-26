@@ -57,13 +57,23 @@ diesel::table! {
 }
 
 diesel::table! {
+    app_user_names (id) {
+        id -> Int4,
+        account_id -> Int4,
+        primary_name -> Bool,
+        first_name -> Varchar,
+        last_name -> Varchar,
+        language -> Varchar,
+    }
+}
+
+diesel::table! {
     app_users (id) {
         id -> Int4,
         account_id -> Int4,
-        first_name -> Nullable<Varchar>,
-        last_name -> Nullable<Varchar>,
         birthday -> Nullable<Date>,
         profile_image -> Nullable<Text>,
+        language -> Nullable<Varchar>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -157,6 +167,7 @@ diesel::table! {
 diesel::joinable!(app_employees -> app_accounts (employee_account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
 diesel::joinable!(app_tokens -> app_accounts (terminated_by_id));
+diesel::joinable!(app_user_names -> app_accounts (account_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
 diesel::joinable!(quran_surahs -> mushafs (mushaf_id));
 diesel::joinable!(quran_words -> quran_ayahs (ayah_id));
@@ -169,6 +180,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     app_employees,
     app_organizations,
     app_tokens,
+    app_user_names,
     app_users,
     app_verify_codes,
     mushafs,
