@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 
 use crate::error::RouterError;
-use crate::models::{Account, Email, User};
+use crate::models::{Account, Email, User, UserName};
 use crate::DbPool;
 
 #[derive(Serialize)]
@@ -23,6 +23,7 @@ pub async fn view_profile(
     data: ReqData<u32>,
 ) -> Result<web::Json<FullUserProfile>, RouterError> {
     use crate::schema::app_accounts::dsl::{app_accounts, id as id_from_accounts};
+    use crate::schema::app_user_names::dsl::primary_name;
 
     // Get userId from token Checker
     let acc_id = data.into_inner();
@@ -59,14 +60,41 @@ pub async fn view_profile(
             return Err(RouterError::InternalError);
         };
 
-        let profile = FullUserProfile {
-            id: account.id,
-            email: email.clone().email,
-            username: account.username.to_owned(),
-            first_name: user.clone().first_name,
-            last_name: user.clone().last_name,
-            birthday: user.clone().birthday,
-            profile_image: user.clone().profile_image,
+        // Now get the user names
+        let Ok(names) = UserName::belonging_to(account)
+            .filter(primary_name.eq(true))
+            .load::<UserName>(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
+
+        // Is user have any names ?
+        let names = if names.is_empty() { None } else { Some(names) };
+
+        let profile = match names {
+            Some(names) => {
+                // Its must be always 1 element
+                let name: &UserName = names.get(0).unwrap();
+
+                FullUserProfile {
+                    id: account.id,
+                    email: email.clone().email,
+                    username: account.username.to_owned(),
+                    first_name: Some(name.first_name.to_owned()),
+                    last_name: Some(name.last_name.to_owned()),
+                    birthday: user.clone().birthday,
+                    profile_image: user.clone().profile_image,
+                }
+            }
+
+            None => FullUserProfile {
+                id: account.id,
+                email: email.clone().email,
+                username: account.username.to_owned(),
+                first_name: None,
+                last_name: None,
+                birthday: user.clone().birthday,
+                profile_image: user.clone().profile_image,
+            },
         };
 
         Ok(profile)
