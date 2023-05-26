@@ -45,7 +45,6 @@ mod tests {
         assert_eq!(res.status(), StatusCode::OK);
 
         assert_eq!(res.response().body().size(), BodySize::Sized(11));
-
     }
 
     /// TODO:

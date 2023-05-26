@@ -50,7 +50,6 @@ pub async fn verify(
             ));
         };
 
-
         // The code is not correct
         if last_sended_code.code != info.code {
             return Ok("Code is not correct".to_string());
@@ -103,6 +102,7 @@ pub async fn verify(
 
             let Ok(new_user)= NewUser {
                 account_id: new_account.id,
+                language: None,
             }
             .insert_into(app_users::dsl::app_users)
             .get_result::<User>(&mut conn)
