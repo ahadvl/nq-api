@@ -4,6 +4,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 
 use crate::error::RouterError;
+use crate::models::OrganizationName;
 use crate::{
     models::{Account, Organization},
     DbPool,
@@ -11,7 +12,6 @@ use crate::{
 
 #[derive(Serialize, Clone)]
 pub struct ViewableOrganizationData {
-    pub id: i32,
     pub username: String,
     pub name: String,
     pub profile_image: Option<String>,
@@ -26,6 +26,7 @@ pub async fn view(
     conn: web::Data<DbPool>,
 ) -> Result<web::Json<ViewableOrganizationData>, RouterError> {
     use crate::schema::app_accounts::dsl::*;
+    use crate::schema::app_organization_names::dsl::primary_name;
 
     // get id that user sendt
     let org_id = path.into_inner();
@@ -53,10 +54,19 @@ pub async fn view(
             return Err(RouterError::NotFound("Organization not found".to_string()));
         };
 
+        let Ok(org_name) = OrganizationName::belonging_to(account)
+            .filter(primary_name.eq(true))
+            .load::<OrganizationName>(&mut conn) else {
+                return Err(RouterError::NotFound("Organization not found".to_string()));
+            };
+
+        let Some(org_name) = org_name.get(0) else {
+            return Err(RouterError::InternalError);
+        };
+
         let org = ViewableOrganizationData {
-            id: org.id,
             username: account.username.clone(),
-            name: org.name.clone(),
+            name: org_name.name.clone(),
             profile_image: org.profile_image.clone(),
             established_date: org.established_date,
             national_id: org.national_id.clone(),

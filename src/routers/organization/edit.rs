@@ -1,6 +1,6 @@
 use crate::{
     error::RouterError,
-    models::{Account, Organization},
+    models::{Account, Organization, OrganizationName},
     DbPool,
 };
 use actix_web::web;
@@ -22,6 +22,7 @@ pub async fn edit_organization(
     pool: web::Data<DbPool>,
 ) -> Result<String, RouterError> {
     use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id, username};
+    use crate::schema::app_organization_names::dsl::{name, primary_name};
     use crate::schema::app_organizations::dsl::*;
 
     let org_id = path.into_inner();
@@ -59,9 +60,27 @@ pub async fn edit_organization(
 
         let Ok(_) = diesel::update(&org)
             .set((
-                name.eq(new_org.name),
                 profile_image.eq(new_org.profile_image),
                 national_id.eq(new_org.national_id),
+            ))
+            .execute(&mut conn)
+            else {
+                return Err(RouterError::InternalError);
+            };
+
+        let Ok(org_name) = OrganizationName::belonging_to(account)
+            .filter(primary_name.eq(true))
+            .load::<OrganizationName>(&mut conn) else {
+                return Err(RouterError::NotFound("Organization not found".to_string()));
+            };
+
+        let Some(org_name) = org_name.get(0) else {
+            return Err(RouterError::InternalError);
+        };
+
+        let Ok(_) = diesel::update(&org_name)
+            .set((
+                name.eq(new_org.name),
             ))
             .execute(&mut conn)
             else {
