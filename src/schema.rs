@@ -32,10 +32,19 @@ diesel::table! {
 }
 
 diesel::table! {
+    app_organization_names (id) {
+        id -> Int4,
+        account_id -> Int4,
+        primary_name -> Bool,
+        name -> Varchar,
+        language -> Varchar,
+    }
+}
+
+diesel::table! {
     app_organizations (id) {
         id -> Int4,
         account_id -> Int4,
-        name -> Varchar,
         profile_image -> Nullable<Text>,
         established_date -> Date,
         national_id -> Varchar,
@@ -165,6 +174,7 @@ diesel::table! {
 }
 
 diesel::joinable!(app_employees -> app_accounts (employee_account_id));
+diesel::joinable!(app_organization_names -> app_accounts (account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
 diesel::joinable!(app_tokens -> app_accounts (terminated_by_id));
 diesel::joinable!(app_user_names -> app_accounts (account_id));
@@ -178,6 +188,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     app_accounts,
     app_emails,
     app_employees,
+    app_organization_names,
     app_organizations,
     app_tokens,
     app_user_names,
