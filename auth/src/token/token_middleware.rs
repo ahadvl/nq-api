@@ -14,7 +14,7 @@ use std::rc::Rc;
 #[async_trait]
 pub trait TokenChecker<T>
 where
-    T: Sized
+    T: Sized,
 {
     /// This function will return option
     /// if the request token valid return
@@ -36,19 +36,19 @@ where
 #[derive(Clone, Default)]
 pub struct TokenAuth<F, Type> {
     finder: F,
-    phantom_type: PhantomData<Type>
+    phantom_type: PhantomData<Type>,
 }
 
 impl<F, Type> TokenAuth<F, Type>
 where
     F: TokenChecker<Type>,
-    Type: Sized
+    Type: Sized,
 {
     /// Construct `TokenAuth` middleware.
     pub fn new(finder: F) -> Self {
         Self {
             finder,
-            phantom_type: PhantomData
+            phantom_type: PhantomData,
         }
     }
 }
@@ -62,7 +62,7 @@ where
     S::Future: 'static,
     B: 'static,
     F: TokenChecker<T> + Clone + 'static,
-    T: Sized + 'static
+    T: Sized + 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
@@ -74,7 +74,7 @@ where
         ready(Ok(TokenAuthMiddleware {
             service: Rc::new(service),
             token_finder: self.finder.clone(),
-            phantom_type: PhantomData
+            phantom_type: PhantomData,
         }))
     }
 }
@@ -90,7 +90,7 @@ where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     F: TokenChecker<Type> + Clone + 'static,
-    Type: Sized + 'static
+    Type: Sized + 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;

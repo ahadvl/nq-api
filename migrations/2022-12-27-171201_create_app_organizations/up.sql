@@ -3,7 +3,6 @@
 CREATE TABLE app_organizations(
     id serial NOT NULL,
     account_id serial NOT NULL,
-    "name" VARCHAR(200) NOT NULL,
     profile_image TEXT,
     established_date DATE NOT NULL,
     national_id VARCHAR(11) NOT NULL,

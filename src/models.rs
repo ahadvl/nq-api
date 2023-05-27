@@ -20,6 +20,28 @@ pub struct NewAccount<'a> {
     pub account_type: &'a String,
 }
 
+#[derive(Clone, Identifiable, Queryable, Debug, Serialize, Associations)]
+#[diesel(belongs_to(Account))]
+#[diesel(table_name = app_user_names)]
+pub struct UserName {
+    pub id: i32,
+    pub account_id: i32,
+    pub primary: bool,
+    pub first_name: String,
+    pub last_name: String,
+    pub language: String,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = app_user_names)]
+pub struct NewUserNames {
+    pub account_id: i32,
+    pub primary_name: bool,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub language: Option<String>,
+}
+
 #[derive(Identifiable, Queryable, Debug)]
 #[diesel(table_name = app_verify_codes)]
 pub struct VerifyCode {
@@ -45,10 +67,9 @@ pub struct NewVerifyCode<'a> {
 pub struct User {
     pub id: i32,
     pub account_id: i32,
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
     pub birthday: Option<NaiveDate>,
     pub profile_image: Option<String>,
+    pub language: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -60,12 +81,14 @@ pub struct UserProfile {
     pub last_name: Option<String>,
     pub birthday: Option<NaiveDate>,
     pub profile_image: Option<String>,
+    pub language: String,
 }
 
 #[derive(Insertable)]
 #[diesel(table_name = app_users)]
 pub struct NewUser {
     pub account_id: i32,
+    pub language: Option<String>,
 }
 
 // TODO: use belongs to

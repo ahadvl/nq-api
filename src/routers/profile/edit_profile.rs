@@ -7,6 +7,7 @@ use crate::{
     DbPool,
 };
 
+// TODO: Create a router for handling names
 /// Edit the profile
 /// wants a new profile and token
 pub async fn edit_profile(
@@ -53,8 +54,8 @@ pub async fn edit_profile(
         // And update the other data
         let Ok(_) = diesel::update(current_user_profile)
             .set((
-                first_name.eq(new_profile.first_name),
-                last_name.eq(new_profile.last_name),
+                // first_name.eq(new_profile.first_name),
+                // last_name.eq(new_profile.last_name),
                 birthday.eq(new_profile.birthday),
                 profile_image.eq(new_profile.profile_image),
             ))
