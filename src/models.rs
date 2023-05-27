@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Identifiable, Queryable, Debug, Serialize)]
+#[derive(Selectable, Identifiable, Queryable, Debug, Serialize)]
 #[diesel(table_name = app_accounts)]
 pub struct Account {
     pub id: i32,
@@ -135,13 +135,12 @@ pub struct NewEmail<'a> {
     pub deleted: bool,
 }
 
-#[derive(Identifiable, Associations, Queryable, PartialEq, Debug, Serialize, Clone)]
+#[derive(Selectable, Identifiable, Associations, Queryable, PartialEq, Debug, Serialize, Clone)]
 #[diesel(belongs_to(Account))]
 #[diesel(table_name = app_organizations)]
 pub struct Organization {
     pub id: i32,
     pub account_id: i32,
-    pub name: String,
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
     pub national_id: String,
@@ -149,11 +148,21 @@ pub struct Organization {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Selectable, Clone, Identifiable, Queryable, Debug, Serialize, Associations)]
+#[diesel(belongs_to(Account))]
+#[diesel(table_name = app_organization_names)]
+pub struct OrganizationName {
+    pub id: i32,
+    pub account_id: i32,
+    pub primary_name: bool,
+    pub name: String,
+    pub language: String,
+}
+
 #[derive(Insertable, Deserialize, Validate)]
 #[diesel(table_name = app_organizations)]
 pub struct NewOrganization {
     pub account_id: i32,
-    pub name: String,
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
     pub national_id: String,
