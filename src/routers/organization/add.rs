@@ -52,7 +52,6 @@ pub async fn add(
 
         let Ok(new_organization) = NewOrganization {
             account_id: new_account.id,
-            name: new_org_info.name,
             profile_image: new_org_info.profile_image,
             established_date: new_org_info.established_date,
             national_id: new_org_info.national_id,
@@ -63,7 +62,7 @@ pub async fn add(
         };
 
         // Now add the creator user as employee to the organization
-        let Ok(user_account)= app_accounts
+        let Ok(user_account) = app_accounts
             .filter(id.eq(user_account_id as i32))
             .get_result::<Account>(&mut conn) else {
                 return Err(RouterError::InternalError);
