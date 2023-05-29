@@ -26,7 +26,7 @@ pub async fn view(
     conn: web::Data<DbPool>,
 ) -> Result<web::Json<ViewableOrganizationData>, RouterError> {
     use crate::schema::app_accounts::dsl::*;
-    use crate::schema::app_organization_names::dsl::primary_name;
+    use crate::schema::app_organization_names::dsl::language;
 
     // get id that user sendt
     let org_id = path.into_inner();
@@ -55,7 +55,7 @@ pub async fn view(
         };
 
         let Ok(org_name) = OrganizationName::belonging_to(account)
-            .filter(primary_name.eq(true))
+            .filter(language.eq(org.language.clone()))
             .load::<OrganizationName>(&mut conn) else {
                 return Err(RouterError::NotFound("Organization not found".to_string()));
             };

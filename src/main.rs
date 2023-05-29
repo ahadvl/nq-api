@@ -25,15 +25,12 @@ mod validate;
 use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
-use routers::organization::add;
-use routers::organization::edit;
-use routers::organization::list;
-use routers::organization::view;
+use routers::organization::{add, edit, list, name, view};
 use routers::profile::edit_profile;
 use routers::profile::profile;
 use routers::quran::{mushaf, surah};
 
-type DbPool = Pool<ConnectionManager<PgConnection>>;
+pub type DbPool = Pool<ConnectionManager<PgConnection>>;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
@@ -119,6 +116,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/organizations")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
+                    .route("/name", web::post().to(name::add_name))
                     .route("", web::get().to(list::get_list_of_organizations))
                     .route("", web::post().to(add::add))
                     .route("/{org_id}", web::get().to(view::view))
