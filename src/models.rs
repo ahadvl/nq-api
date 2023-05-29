@@ -144,6 +144,7 @@ pub struct Organization {
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
     pub national_id: String,
+    pub language: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -154,7 +155,14 @@ pub struct Organization {
 pub struct OrganizationName {
     pub id: i32,
     pub account_id: i32,
-    pub primary_name: bool,
+    pub name: String,
+    pub language: String,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = app_organization_names)]
+pub struct NewOrganizationName {
+    pub account_id: i32,
     pub name: String,
     pub language: String,
 }
