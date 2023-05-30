@@ -2,6 +2,7 @@
 
 CREATE TABLE app_organizations(
     id serial NOT NULL,
+    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     account_id serial NOT NULL,
     profile_image TEXT,
     established_date DATE NOT NULL,
