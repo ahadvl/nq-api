@@ -140,6 +140,7 @@ pub struct NewEmail<'a> {
 #[diesel(table_name = app_organizations)]
 pub struct Organization {
     pub id: i32,
+    pub uuid: Uuid,
     pub account_id: i32,
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
