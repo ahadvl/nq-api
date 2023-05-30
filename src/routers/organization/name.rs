@@ -8,6 +8,7 @@ use crate::{
     validate::validate,
     DbPool,
 };
+use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Validate, Deserialize, Serialize)]
@@ -55,6 +56,40 @@ pub async fn add_name(
             };
 
         Ok("Added".to_string())
+    })
+    .await
+    .unwrap();
+
+    result
+}
+
+/// Returns the list of org names
+pub async fn names(
+    pool: web::Data<DbPool>,
+    path: web::Path<String>,
+) -> Result<web::Json<Vec<OrganizationName>>, RouterError> {
+    use crate::schema::app_accounts::dsl::app_accounts;
+    use crate::schema::app_organization_names::dsl::app_organization_names;
+    use crate::schema::app_organizations::dsl::{app_organizations, uuid};
+
+    let path = path.into_inner();
+
+    let result: Result<web::Json<Vec<OrganizationName>>, RouterError> = web::block(move || {
+        let mut conn = pool.get().unwrap();
+
+        let Ok(id) = Uuid::parse_str(&path) else {
+            return Err(RouterError::InternalError)
+        };
+
+        let Ok(names) = app_organizations
+            .inner_join(app_accounts.inner_join(app_organization_names))
+            .filter(uuid.eq(id))
+            .select(OrganizationName::as_select())
+            .load::<OrganizationName>(&mut conn) else {
+                return Err(RouterError::InternalError)
+            };
+
+        Ok(web::Json(names))
     })
     .await
     .unwrap();

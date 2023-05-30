@@ -7,9 +7,11 @@ use actix_web::web;
 use chrono::NaiveDate;
 use diesel::prelude::*;
 use serde::Serialize;
+use uuid::Uuid;
 
 #[derive(Serialize)]
 pub struct OrgWithName {
+    pub uuid: Uuid,
     pub username: String,
     pub primary_name: String,
     pub profile_image: Option<String>,
@@ -38,6 +40,7 @@ pub async fn get_list_of_organizations(
             };
 
         let result = select_all.iter().map(|(org, account, name)| OrgWithName {
+            uuid: org.uuid,
             established_date: org.established_date,
             national_id: org.national_id.clone(),
             primary_name: name.name.clone(),

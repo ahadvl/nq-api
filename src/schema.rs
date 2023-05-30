@@ -43,6 +43,7 @@ diesel::table! {
 diesel::table! {
     app_organizations (id) {
         id -> Int4,
+        uuid -> Uuid,
         account_id -> Int4,
         profile_image -> Nullable<Text>,
         established_date -> Date,
