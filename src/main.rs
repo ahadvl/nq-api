@@ -117,6 +117,7 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/organizations")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route("/name", web::post().to(name::add_name))
+                    .route("/name/{uuid}", web::get().to(name::names))
                     .route("", web::get().to(list::get_list_of_organizations))
                     .route("", web::post().to(add::add))
                     .route("/{org_id}", web::get().to(view::view))
