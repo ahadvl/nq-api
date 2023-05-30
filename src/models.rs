@@ -140,11 +140,11 @@ pub struct NewEmail<'a> {
 #[diesel(table_name = app_organizations)]
 pub struct Organization {
     pub id: i32,
+    pub uuid: Uuid,
     pub account_id: i32,
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
     pub national_id: String,
-    pub language: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -153,7 +153,10 @@ pub struct Organization {
 #[diesel(belongs_to(Account))]
 #[diesel(table_name = app_organization_names)]
 pub struct OrganizationName {
+    #[serde(skip_serializing)]
     pub id: i32,
+
+    #[serde(skip_serializing)]
     pub account_id: i32,
     pub name: String,
     pub language: String,
