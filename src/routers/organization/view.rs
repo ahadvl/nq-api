@@ -55,7 +55,7 @@ pub async fn view(
         };
 
         let Ok(org_name) = OrganizationName::belonging_to(account)
-            .filter(language.eq(org.language.clone()))
+            .filter(language.eq("default"))
             .load::<OrganizationName>(&mut conn) else {
                 return Err(RouterError::NotFound("Organization not found".to_string()));
             };

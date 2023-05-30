@@ -3,7 +3,9 @@ use diesel::{dsl::exists, prelude::*, select};
 
 use crate::{
     error::RouterError,
-    models::{Account, NewAccount, NewEmployee, NewOrganization, Organization},
+    models::{
+        Account, NewAccount, NewEmployee, NewOrganization, NewOrganizationName, Organization,
+    },
     validate::validate,
     DbPool,
 };
@@ -18,6 +20,7 @@ pub async fn add(
 ) -> Result<String, RouterError> {
     use crate::schema::app_accounts::dsl::*;
     use crate::schema::app_employees::dsl::app_employees;
+    use crate::schema::app_organization_names::dsl::app_organization_names;
     use crate::schema::app_organizations::dsl::app_organizations;
 
     let new_org_info = new_org.into_inner();
@@ -71,7 +74,20 @@ pub async fn add(
         let Ok(_new_employee) = NewEmployee {
             employee_account_id: user_account.id,
             org_account_id: new_organization.account_id,
-        }.insert_into(app_employees).execute(&mut conn) else {
+        }
+        .insert_into(app_employees)
+        .execute(&mut conn) else {
+            return Err(RouterError::InternalError);
+        };
+
+        // Add new name to the org
+        let Ok(_new_name) = NewOrganizationName{
+            account_id: new_account.id,
+            language: "default".to_string(),
+            name: new_org_info.name,
+        }
+        .insert_into(app_organization_names)
+        .execute(&mut conn) else {
             return Err(RouterError::InternalError);
         };
 
