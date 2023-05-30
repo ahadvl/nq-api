@@ -35,7 +35,6 @@ diesel::table! {
     app_organization_names (id) {
         id -> Int4,
         account_id -> Int4,
-        primary_name -> Bool,
         name -> Varchar,
         language -> Varchar,
     }
