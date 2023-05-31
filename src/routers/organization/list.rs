@@ -28,33 +28,35 @@ pub async fn get_list_of_organizations(
     };
     use crate::schema::app_organizations::dsl::app_organizations;
 
-    let organizations: Result<Vec<OrgWithName>, RouterError> = web::block(move || {
+    let organizations: Result<web::Json<Vec<OrgWithName>>, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let Ok(select_all) = app_organizations
+        let select_all = app_organizations
             .inner_join(app_accounts.inner_join(app_organization_names))
             .filter(name_lang.eq("default"))
-            .select((Organization::as_select(), Account::as_select(), OrganizationName::as_select()))
-            .load::<(Organization, Account, OrganizationName)>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .select((
+                Organization::as_select(),
+                Account::as_select(),
+                OrganizationName::as_select(),
+            ))
+            .load::<(Organization, Account, OrganizationName)>(&mut conn)?;
 
-        let result = select_all.iter().map(|(org, account, name)| OrgWithName {
-            uuid: org.uuid,
-            established_date: org.established_date,
-            national_id: org.national_id.clone(),
-            primary_name: name.name.clone(),
-            profile_image: org.profile_image.clone(),
-            username: account.username.clone()
-        }).collect::<Vec<OrgWithName>>();
+        let result = select_all
+            .iter()
+            .map(|(org, account, name)| OrgWithName {
+                uuid: org.uuid,
+                established_date: org.established_date,
+                national_id: org.national_id.clone(),
+                primary_name: name.name.clone(),
+                profile_image: org.profile_image.clone(),
+                username: account.username.clone(),
+            })
+            .collect::<Vec<OrgWithName>>();
 
-        Ok(result)
+        Ok(web::Json(result))
     })
     .await
     .unwrap();
 
-    match organizations {
-        Ok(orgs) => Ok(web::Json(orgs)),
-        Err(err) => Err(err),
-    }
+    organizations
 }

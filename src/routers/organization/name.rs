@@ -35,25 +35,21 @@ pub async fn add_name<'a>(
     let result: Result<&'a str, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let Ok(account) = app_accounts
+        let account = app_accounts
             .filter(acc_id.eq(user_account_id as i32))
-            .load::<Account>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .load::<Account>(&mut conn)?;
 
         let Some(account) = account.get(0) else {
             return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
-        let Ok(_new_name) = NewOrganizationName {
-                account_id: account.id,
-                name: new_name.name,
-                language: new_name.language,
-            }
-            .insert_into(app_organization_names)
-            .get_result::<OrganizationName>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+        NewOrganizationName {
+            account_id: account.id,
+            name: new_name.name,
+            language: new_name.language,
+        }
+        .insert_into(app_organization_names)
+        .get_result::<OrganizationName>(&mut conn)?;
 
         Ok("Added")
     })
@@ -77,17 +73,13 @@ pub async fn names(
     let result: Result<web::Json<Vec<OrganizationName>>, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let Ok(id) = Uuid::parse_str(&path) else {
-            return Err(RouterError::InternalError)
-        };
+        let id = Uuid::parse_str(&path)?;
 
-        let Ok(names) = app_organizations
+        let names = app_organizations
             .inner_join(app_accounts.inner_join(app_organization_names))
             .filter(uuid.eq(id))
             .select(OrganizationName::as_select())
-            .load::<OrganizationName>(&mut conn) else {
-                return Err(RouterError::InternalError)
-            };
+            .load::<OrganizationName>(&mut conn)?;
 
         Ok(web::Json(names))
     })
@@ -122,18 +114,11 @@ pub async fn edit_name<'a>(
     let result = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let Ok(id) = Uuid::parse_str(&name_uuid) else {
-            return Err(RouterError::BadRequest("Cant parse the uuid!".to_string()));
-        };
+        let id = Uuid::parse_str(&name_uuid)?;
 
-        let Ok(_) = diesel::update(app_organization_names.filter(uuid.eq(id)))
-            .set((
-                name_name.eq(new_name.name),
-            ))
-            .execute(&mut conn)
-            else {
-                return Err(RouterError::InternalError);
-            };
+        diesel::update(app_organization_names.filter(uuid.eq(id)))
+            .set((name_name.eq(new_name.name),))
+            .execute(&mut conn)?;
 
         Ok("Edited")
     })
@@ -156,14 +141,9 @@ pub async fn delete_name<'a>(
         let mut conn = pool.get().unwrap();
 
         // Parse the uuid if we can
-        let Ok(id) = Uuid::parse_str(&name_uuid) else {
-            return Err(RouterError::BadRequest("Cant parse the uuid!".to_string()));
-        };
+        let id = Uuid::parse_str(&name_uuid)?;
 
-        let Ok(_deleted) =
-            diesel::delete(app_organization_names.filter(uuid.eq(id))).execute(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+        diesel::delete(app_organization_names.filter(uuid.eq(id))).execute(&mut conn)?;
 
         Ok("Deleted")
     })

@@ -32,19 +32,14 @@ pub async fn edit_organization(
         let mut conn = pool.get().unwrap();
 
         // First find the org from id
-        let Ok(account) = app_accounts
+        let account = app_accounts
             .filter(acc_id.eq(org_id as i32))
-            .load::<Account>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .load::<Account>(&mut conn)?;
 
-        let Ok(org) = Organization::belonging_to(account.get(0).unwrap())
-            .load::<Organization>(&mut conn)
-            else {
-                return Err(RouterError::InternalError)
-            };
+        let org =
+            Organization::belonging_to(account.get(0).unwrap()).load::<Organization>(&mut conn)?;
 
-        let Some(account)= account.get(0) else {
+        let Some(account) = account.get(0) else {
             return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
@@ -52,32 +47,20 @@ pub async fn edit_organization(
             return Err(RouterError::NotFound("Organization not found".to_string()));
         };
 
-        let Ok(_) = diesel::update(account)
+        diesel::update(account)
             .set(username.eq(new_org.username))
-            .execute(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .execute(&mut conn)?;
 
-        let Ok(_) = diesel::update(&org)
+        diesel::update(&org)
             .set((
                 profile_image.eq(new_org.profile_image),
                 national_id.eq(new_org.national_id),
             ))
-            .execute(&mut conn)
-            else {
-                return Err(RouterError::InternalError);
-            };
+            .execute(&mut conn)?;
 
-        let Ok(_) = diesel::update(
-            OrganizationName::belonging_to(account)
-            .filter(language.eq("default")))
-            .set((
-                name.eq(new_org.name),
-            ))
-            .execute(&mut conn)
-            else {
-                return Err(RouterError::InternalError);
-            };
+        diesel::update(OrganizationName::belonging_to(account).filter(language.eq("default")))
+            .set((name.eq(new_org.name),))
+            .execute(&mut conn)?;
 
         Ok("Updated".to_string())
     })

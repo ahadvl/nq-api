@@ -13,11 +13,11 @@ use crate::{
 use super::new_organization_info::NewOrgInfo;
 
 /// Add a new Org
-pub async fn add(
+pub async fn add<'a>(
     conn: web::Data<DbPool>,
     new_org: web::Json<NewOrgInfo>,
     data: ReqData<u32>,
-) -> Result<String, RouterError> {
+) -> Result<&'a str, RouterError> {
     use crate::schema::app_accounts::dsl::*;
     use crate::schema::app_employees::dsl::app_employees;
     use crate::schema::app_organization_names::dsl::app_organization_names;
@@ -28,15 +28,14 @@ pub async fn add(
 
     validate(&new_org_info)?;
 
-    let add_status: Result<String, RouterError> = web::block(move || {
+    let add_status: Result<&'a str, RouterError> = web::block(move || {
         let mut conn = conn.get().unwrap();
 
         // Check if org already exists
         let org_exists = select(exists(
             app_accounts.filter(username.eq(&new_org_info.username)),
         ))
-        .get_result::<bool>(&mut conn)
-        .unwrap();
+        .get_result::<bool>(&mut conn)?;
 
         if org_exists {
             return Err(RouterError::NotAvailable(
@@ -45,54 +44,44 @@ pub async fn add(
         }
 
         // Create new account for org
-        let Ok(new_account) = NewAccount {
+        let new_account = NewAccount {
             username: &new_org_info.username,
             account_type: &String::from("organization"),
         }
         .insert_into(app_accounts)
-        .get_result::<Account>(&mut conn) else {
-            return Err(RouterError::InternalError);
-        };
+        .get_result::<Account>(&mut conn)?;
 
-        let Ok(new_organization) = NewOrganization {
+        let new_organization = NewOrganization {
             account_id: new_account.id,
             profile_image: new_org_info.profile_image,
             established_date: new_org_info.established_date,
             national_id: new_org_info.national_id,
         }
         .insert_into(app_organizations)
-        .get_result::<Organization>(&mut conn) else {
-            return Err(RouterError::InternalError);
-        };
+        .get_result::<Organization>(&mut conn)?;
 
         // Now add the creator user as employee to the organization
-        let Ok(user_account) = app_accounts
+        let user_account = app_accounts
             .filter(id.eq(user_account_id as i32))
-            .get_result::<Account>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .get_result::<Account>(&mut conn)?;
 
-        let Ok(_new_employee) = NewEmployee {
+        NewEmployee {
             employee_account_id: user_account.id,
             org_account_id: new_organization.account_id,
         }
         .insert_into(app_employees)
-        .execute(&mut conn) else {
-            return Err(RouterError::InternalError);
-        };
+        .execute(&mut conn)?;
 
         // Add new name to the org
-        let Ok(_new_name) = NewOrganizationName{
+        NewOrganizationName {
             account_id: new_account.id,
             language: "default".to_string(),
             name: new_org_info.name,
         }
         .insert_into(app_organization_names)
-        .execute(&mut conn) else {
-            return Err(RouterError::InternalError);
-        };
+        .execute(&mut conn)?;
 
-        Ok("Created".to_string())
+        Ok("Created")
     })
     .await
     .unwrap();

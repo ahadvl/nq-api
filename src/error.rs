@@ -3,8 +3,9 @@ use actix_web::{
     http::{header::ContentType, StatusCode},
     HttpResponse,
 };
-use diesel::result::Error as DieselError;
+use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use std::{error::Error, fmt::Display};
+use uuid::Error as UuidError;
 
 #[derive(Debug)]
 pub enum RouterError {
@@ -64,13 +65,29 @@ impl ResponseError for RouterError {
     }
 }
 
-// TODO
 impl From<DieselError> for RouterError {
     fn from(value: DieselError) -> Self {
         match value {
             DieselError::NotFound => Self::NotFound("Not found!".to_string()),
+            DieselError::DatabaseError(kind, _) => Self::from(kind),
 
             _ => Self::InternalError,
         }
+    }
+}
+
+impl From<DatabaseErrorKind> for RouterError {
+    fn from(value: DatabaseErrorKind) -> Self {
+        match value {
+            DatabaseErrorKind::CheckViolation => Self::NotAvailable("Not available!".to_string()),
+
+            _ => Self::InternalError,
+        }
+    }
+}
+
+impl From<UuidError> for RouterError {
+    fn from(value: UuidError) -> Self {
+        Self::BadRequest(value.to_string())
     }
 }

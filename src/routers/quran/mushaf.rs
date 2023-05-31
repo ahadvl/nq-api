@@ -6,18 +6,13 @@ use diesel::prelude::*;
 
 /// Get the lists of mushafs
 pub async fn mushaf(pool: web::Data<DbPool>) -> Result<web::Json<Vec<QuranMushaf>>, RouterError> {
-    use crate::error::RouterError::*;
     use crate::schema::mushafs::dsl::*;
 
     let result = web::block(move || {
-        let Ok(mut conn )= pool.get() else {
-            return Err(InternalError);
-        };
+        let mut conn = pool.get().unwrap();
 
         // Get the list of mushafs from the database
-        let Ok(quran_mushafs) = mushafs.load::<QuranMushaf>(&mut conn) else {
-            return Err(InternalError);
-        };
+        let quran_mushafs = mushafs.load::<QuranMushaf>(&mut conn)?;
 
         Ok(web::Json(quran_mushafs))
     })
