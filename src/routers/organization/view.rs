@@ -56,13 +56,9 @@ pub async fn view(
 
         let Ok(org_name) = OrganizationName::belonging_to(account)
             .filter(language.eq("default"))
-            .load::<OrganizationName>(&mut conn) else {
+            .first::<OrganizationName>(&mut conn) else {
                 return Err(RouterError::NotFound("Organization not found".to_string()));
             };
-
-        let Some(org_name) = org_name.get(0) else {
-            return Err(RouterError::InternalError);
-        };
 
         let org = ViewableOrganizationData {
             username: account.username.clone(),

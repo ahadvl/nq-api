@@ -68,18 +68,9 @@ pub async fn edit_organization(
                 return Err(RouterError::InternalError);
             };
 
-        let Ok(org_name) = OrganizationName::belonging_to(account)
-            // Get the primary name
-            .filter(language.eq("default"))
-            .load::<OrganizationName>(&mut conn) else {
-                return Err(RouterError::NotFound("Organization not found".to_string()));
-            };
-
-        let Some(org_name) = org_name.get(0) else {
-            return Err(RouterError::InternalError);
-        };
-
-        let Ok(_) = diesel::update(&org_name)
+        let Ok(_) = diesel::update(
+            OrganizationName::belonging_to(account)
+            .filter(language.eq("default")))
             .set((
                 name.eq(new_org.name),
             ))

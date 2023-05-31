@@ -155,6 +155,7 @@ pub struct Organization {
 pub struct OrganizationName {
     #[serde(skip_serializing)]
     pub id: i32,
+    pub uuid: Uuid,
 
     #[serde(skip_serializing)]
     pub account_id: i32,

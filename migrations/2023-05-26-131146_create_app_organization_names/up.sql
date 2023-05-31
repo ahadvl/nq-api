@@ -1,5 +1,6 @@
 CREATE TABLE app_organization_names (
     id serial NOT NULL,
+    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     account_id serial NOT NULL,
     name VARCHAR(300) NOT NULL,
     language VARCHAR(8) NOT NULL,

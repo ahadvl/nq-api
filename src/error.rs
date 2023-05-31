@@ -3,6 +3,7 @@ use actix_web::{
     http::{header::ContentType, StatusCode},
     HttpResponse,
 };
+use diesel::result::Error as DieselError;
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug)]
@@ -59,6 +60,17 @@ impl ResponseError for RouterError {
             Self::Gone(_) => StatusCode::GONE,
             Self::NotAvailable(_) => StatusCode::OK,
             Self::BadRequest(_) => StatusCode::BAD_REQUEST,
+        }
+    }
+}
+
+// TODO
+impl From<DieselError> for RouterError {
+    fn from(value: DieselError) -> Self {
+        match value {
+            DieselError::NotFound => Self::NotFound("Not found!".to_string()),
+
+            _ => Self::InternalError,
         }
     }
 }

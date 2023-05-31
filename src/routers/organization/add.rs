@@ -45,13 +45,14 @@ pub async fn add(
         }
 
         // Create new account for org
-        let new_account: Account = NewAccount {
+        let Ok(new_account) = NewAccount {
             username: &new_org_info.username,
             account_type: &String::from("organization"),
         }
         .insert_into(app_accounts)
-        .get_result(&mut conn)
-        .unwrap();
+        .get_result::<Account>(&mut conn) else {
+            return Err(RouterError::InternalError);
+        };
 
         let Ok(new_organization) = NewOrganization {
             account_id: new_account.id,

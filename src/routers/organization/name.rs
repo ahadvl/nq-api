@@ -19,11 +19,11 @@ pub struct NewName {
     language: String,
 }
 
-pub async fn add_name(
+pub async fn add_name<'a>(
     pool: web::Data<DbPool>,
     new_name_req: web::Json<NewName>,
     data: ReqData<u32>,
-) -> Result<String, RouterError> {
+) -> Result<&'a str, RouterError> {
     use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id};
     use crate::schema::app_organization_names::dsl::*;
 
@@ -32,7 +32,7 @@ pub async fn add_name(
 
     validate(&new_name)?;
 
-    let result: Result<String, RouterError> = web::block(move || {
+    let result: Result<&'a str, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         let Ok(account) = app_accounts
@@ -55,7 +55,7 @@ pub async fn add_name(
                 return Err(RouterError::InternalError);
             };
 
-        Ok("Added".to_string())
+        Ok("Added")
     })
     .await
     .unwrap();
@@ -90,6 +90,82 @@ pub async fn names(
             };
 
         Ok(web::Json(names))
+    })
+    .await
+    .unwrap();
+
+    result
+}
+
+#[derive(Deserialize)]
+pub struct EditableName {
+    /// New name
+    name: String,
+    // We dont grant user to update the existing
+    // names language. the language property of the name is
+    // immutable
+}
+
+/// Edits the name
+pub async fn edit_name<'a>(
+    pool: web::Data<DbPool>,
+    path: web::Path<String>,
+    edit_name_req: web::Json<EditableName>,
+) -> Result<&'a str, RouterError> {
+    use crate::schema::app_organization_names::dsl::{
+        app_organization_names, name as name_name, uuid,
+    };
+
+    let name_uuid = path.into_inner();
+    let new_name = edit_name_req.into_inner();
+
+    let result = web::block(move || {
+        let mut conn = pool.get().unwrap();
+
+        let Ok(id) = Uuid::parse_str(&name_uuid) else {
+            return Err(RouterError::BadRequest("Cant parse the uuid!".to_string()));
+        };
+
+        let Ok(_) = diesel::update(app_organization_names.filter(uuid.eq(id)))
+            .set((
+                name_name.eq(new_name.name),
+            ))
+            .execute(&mut conn)
+            else {
+                return Err(RouterError::InternalError);
+            };
+
+        Ok("Edited")
+    })
+    .await
+    .unwrap();
+
+    result
+}
+
+/// Deletes the name as given uuid
+pub async fn delete_name<'a>(
+    pool: web::Data<DbPool>,
+    path: web::Path<String>,
+) -> Result<&'a str, RouterError> {
+    use crate::schema::app_organization_names::dsl::{app_organization_names, uuid};
+
+    let name_uuid = path.into_inner();
+
+    let result = web::block(move || {
+        let mut conn = pool.get().unwrap();
+
+        // Parse the uuid if we can
+        let Ok(id) = Uuid::parse_str(&name_uuid) else {
+            return Err(RouterError::BadRequest("Cant parse the uuid!".to_string()));
+        };
+
+        let Ok(_deleted) =
+            diesel::delete(app_organization_names.filter(uuid.eq(id))).execute(&mut conn) else {
+                return Err(RouterError::InternalError);
+            };
+
+        Ok("Deleted")
     })
     .await
     .unwrap();
