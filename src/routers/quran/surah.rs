@@ -44,32 +44,24 @@ pub async fn surahs_list(
     query: web::Query<SurahListQuery>,
     pool: web::Data<DbPool>,
 ) -> Result<web::Json<Vec<SurahListResponse>>, RouterError> {
-    use crate::error::RouterError::*;
     use crate::schema::mushafs::dsl::{mushafs, name as mushaf_name};
     use crate::schema::quran_surahs::dsl::*;
 
     let query = query.into_inner();
 
     let result = web::block(move || {
-        let Ok(mut conn)= pool.get() else {
-            return Err(InternalError);
-        };
+        let mut conn = pool.get().unwrap();
 
         // Select the specific mushaf
         // and check if it exists
-        let Ok(mushaf) =
-            mushafs.filter(mushaf_name.eq(&query.mushaf))
-            .get_result::<QuranMushaf>(&mut conn)
-        else {
-            return Err(NotFound("Mushaf is not supported yet!".to_string()));
-        };
+        let mushaf = mushafs
+            .filter(mushaf_name.eq(&query.mushaf))
+            .get_result::<QuranMushaf>(&mut conn)?;
 
         // Get the list of surahs from the database
-        let Ok(surahs) = quran_surahs
+        let surahs = quran_surahs
             .filter(mushaf_id.eq(mushaf.id))
-            .load::<QuranSurah>(&mut conn) else {
-               return Err(InternalError)
-            };
+            .load::<QuranSurah>(&mut conn)?;
 
         let ayahs = surahs
             .clone()
@@ -164,7 +156,6 @@ pub async fn surah(
     query: web::Query<GetSurahQuery>,
     pool: web::Data<DbPool>,
 ) -> Result<web::Json<QuranResponseData>, RouterError> {
-    use crate::error::RouterError::*;
     use crate::schema::mushafs::dsl::{id as mushaf_id, mushafs};
     use crate::schema::quran_ayahs::dsl::quran_ayahs;
     use crate::schema::quran_surahs::dsl::quran_surahs;
@@ -175,21 +166,15 @@ pub async fn surah(
     let path = path.into_inner();
 
     let result = web::block(move || {
-        let Ok(mut conn)= pool.get() else {
-            return Err(InternalError);
-        };
+        let mut conn = pool.get().unwrap();
 
-        let Ok(uuid)= Uuid::parse_str(&path) else {
-            return Err(BadRequest("Cant parse the UUID, please use the valid UUID format!".to_string()))
-        };
+        let uuid = Uuid::parse_str(&path)?;
 
-        let Ok(result) = quran_surahs
+        let result = quran_surahs
             .filter(surah_uuid.eq(uuid))
             .inner_join(quran_ayahs.inner_join(quran_words))
             .select((QuranAyah::as_select(), QuranWord::as_select()))
-            .load::<(QuranAyah, QuranWord)>(&mut conn) else {
-                return Err(InternalError);
-            };
+            .load::<(QuranAyah, QuranWord)>(&mut conn)?;
 
         let ayahs_as_map: BTreeMap<SimpleAyah, Vec<QuranWord>> =
             multip(result, |ayah| SimpleAyah {
@@ -216,18 +201,14 @@ pub async fn surah(
             .collect::<Vec<Ayah>>();
 
         // Get the surah
-        let Ok(surah) = quran_surahs
+        let surah = quran_surahs
             .filter(surah_uuid.eq(uuid))
-            .get_result::<QuranSurah>(&mut conn) else {
-                return Err(InternalError);
-            };
+            .get_result::<QuranSurah>(&mut conn)?;
 
         // Get the mushaf
-        let Ok(mushaf)= mushafs
+        let mushaf = mushafs
             .filter(mushaf_id.eq(surah.mushaf_id))
-            .get_result::<QuranMushaf>(&mut conn) else {
-                return Err(InternalError);
-            };
+            .get_result::<QuranMushaf>(&mut conn)?;
 
         Ok(web::Json(QuranResponseData {
             surah: SingleSurahResponse {

@@ -30,42 +30,29 @@ pub async fn view_profile(
 
     // select user form db
     // with user_id
-    let user_profile: Result<FullUserProfile, RouterError> = web::block(move || {
+    let user_profile: Result<web::Json<FullUserProfile>, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let Ok(account)= app_accounts
+        let account = app_accounts
             .filter(id_from_accounts.eq(acc_id as i32))
-            .load::<Account>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .load::<Account>(&mut conn)?;
 
         let Some(account)= account.get(0) else {
             return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
-        let Ok(user) = User::belonging_to(account).load::<User>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+        let user = User::belonging_to(account).load::<User>(&mut conn)?;
 
         let Some(user) = user.get(0) else {
             return Err(RouterError::NotFound("User not found".to_string()));
         };
 
-        let Ok(email) = Email::belonging_to(account)
-            .load::<Email>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
-
-        let Some(email) = email.get(0) else {
-            return Err(RouterError::InternalError);
-        };
+        let email = Email::belonging_to(account).first::<Email>(&mut conn)?;
 
         // Now get the user names
-        let Ok(names) = UserName::belonging_to(account)
+        let names = UserName::belonging_to(account)
             .filter(primary_name.eq(true))
-            .load::<UserName>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .load::<UserName>(&mut conn)?;
 
         // Is user have any names ?
         let names = if names.is_empty() { None } else { Some(names) };
@@ -77,7 +64,7 @@ pub async fn view_profile(
 
                 FullUserProfile {
                     id: account.id,
-                    email: email.clone().email,
+                    email: email.email,
                     username: account.username.to_owned(),
                     first_name: Some(name.first_name.to_owned()),
                     last_name: Some(name.last_name.to_owned()),
@@ -88,7 +75,7 @@ pub async fn view_profile(
 
             None => FullUserProfile {
                 id: account.id,
-                email: email.clone().email,
+                email: email.email,
                 username: account.username.to_owned(),
                 first_name: None,
                 last_name: None,
@@ -97,14 +84,10 @@ pub async fn view_profile(
             },
         };
 
-        Ok(profile)
+        Ok(web::Json(profile))
     })
     .await
     .unwrap();
 
-    if let Ok(profile) = user_profile {
-        Ok(web::Json(profile))
-    } else {
-        Err(user_profile.err().unwrap())
-    }
+    user_profile
 }

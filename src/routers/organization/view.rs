@@ -31,51 +31,41 @@ pub async fn view(
     // get id that user sendt
     let org_id = path.into_inner();
 
-    let organization: Result<ViewableOrganizationData, RouterError> = web::block(move || {
-        let mut conn = conn.get().unwrap();
+    let organization: Result<web::Json<ViewableOrganizationData>, RouterError> =
+        web::block(move || {
+            let mut conn = conn.get().unwrap();
 
-        // Find the account
-        let Ok(account)= app_accounts
-            .filter(id.eq(org_id as i32))
-            .load::<Account>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            // Find the account
+            let account = app_accounts
+                .filter(id.eq(org_id as i32))
+                .load::<Account>(&mut conn)?;
 
-        let Some(account) = account.get(0) else {
+            let Some(account) = account.get(0) else {
             return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
-        let Ok(org) = Organization::belonging_to(account)
-            .load::<Organization>(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            let org = Organization::belonging_to(account).load::<Organization>(&mut conn)?;
 
-        let Some(org) = org.get(0) else {
+            let Some(org) = org.get(0) else {
             return Err(RouterError::NotFound("Organization not found".to_string()));
         };
 
-        let Ok(org_name) = OrganizationName::belonging_to(account)
-            .filter(language.eq("default"))
-            .first::<OrganizationName>(&mut conn) else {
-                return Err(RouterError::NotFound("Organization not found".to_string()));
+            let org_name = OrganizationName::belonging_to(account)
+                .filter(language.eq("default"))
+                .first::<OrganizationName>(&mut conn)?;
+
+            let org = ViewableOrganizationData {
+                username: account.username.clone(),
+                name: org_name.name.clone(),
+                profile_image: org.profile_image.clone(),
+                established_date: org.established_date,
+                national_id: org.national_id.clone(),
             };
 
-        let org = ViewableOrganizationData {
-            username: account.username.clone(),
-            name: org_name.name.clone(),
-            profile_image: org.profile_image.clone(),
-            established_date: org.established_date,
-            national_id: org.national_id.clone(),
-        };
+            Ok(web::Json(org))
+        })
+        .await
+        .unwrap();
 
-        Ok(org)
-    })
-    .await
-    .unwrap();
-
-    if let Ok(org) = organization {
-        Ok(web::Json(org))
-    } else {
-        Err(organization.err().unwrap())
-    }
+    organization
 }

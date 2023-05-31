@@ -35,14 +35,11 @@ pub async fn verify(
     let result: Result<String, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let Ok(last_sended_code) = app_verify_codes
+        let last_sended_code = app_verify_codes
             .filter(email.eq(info.clone().email))
             .order(created_at.desc())
             .limit(1)
-            .load::<VerifyCode>(&mut conn)
-            else {
-                return Err(RouterError::InternalError);
-            };
+            .load::<VerifyCode>(&mut conn)?;
 
         let Some(last_sended_code) = last_sended_code.get(0) else {
             return Err(RouterError::Gone(
@@ -72,45 +69,34 @@ pub async fn verify(
         }
 
         // Everything is ok now change code status to used
-        let Ok(_) = diesel::update(&last_sended_code)
+        diesel::update(&last_sended_code)
             .set(status.eq("used".to_string()))
-            .execute(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .execute(&mut conn)?;
 
         // Check if user exists
-        let Ok(user_email) = app_emails::dsl::app_emails
+        let user_email = app_emails::dsl::app_emails
             .filter(app_emails::dsl::email.eq(&info.email))
-            .load::<Email>(&mut conn)
-            else {
-                return Err(RouterError::InternalError);
-            };
+            .load::<Email>(&mut conn)?;
 
         // If we dont have user with request (email) then create it
         // else return it
         let user: User = if user_email.is_empty() {
             // Create a new account
-            let Ok(new_account) = NewAccount {
+            let new_account = NewAccount {
                 username: &String::from(""),
                 account_type: &String::from("user"),
             }
             .insert_into(app_accounts::dsl::app_accounts)
-            .get_result::<Account>(&mut conn)
-            else {
-                return Err(RouterError::InternalError)
-            };
+            .get_result::<Account>(&mut conn)?;
 
-            let Ok(new_user)= NewUser {
+            let new_user = NewUser {
                 account_id: new_account.id,
                 language: None,
             }
             .insert_into(app_users::dsl::app_users)
-            .get_result::<User>(&mut conn)
-            else {
-                return Err(RouterError::InternalError)
-            };
+            .get_result::<User>(&mut conn)?;
 
-            let Ok(_) = NewEmail {
+            NewEmail {
                 email: &info.email,
                 account_id: new_account.id,
                 verified: true,
@@ -118,31 +104,19 @@ pub async fn verify(
                 deleted: false,
             }
             .insert_into(app_emails::dsl::app_emails)
-            .execute(&mut conn) else {
-                return Err(RouterError::InternalError)
-            };
+            .execute(&mut conn)?;
 
             // Update the account and set the user name to the
             // u{the new account id}
-            let Ok(_) = diesel::update(&new_account)
+            diesel::update(&new_account)
                 .set(app_accounts::dsl::username.eq(format!("u{}", &new_account.id)))
-                .execute(&mut conn)
-                else {
-                    return Err(RouterError::InternalError);
-                };
+                .execute(&mut conn)?;
 
             new_user
         } else {
-            let Ok(user) = app_users::dsl::app_users
+            let user = app_users::dsl::app_users
                 .filter(app_users::dsl::account_id.eq(user_email.get(0).unwrap().account_id))
-                .load::<User>(&mut conn)
-                else {
-                    return Err(RouterError::InternalError);
-                };
-
-            let Some(user) = user.get(0) else {
-                return Err(RouterError::InternalError);
-            };
+                .first::<User>(&mut conn)?;
 
             user.to_owned()
         };
@@ -184,11 +158,9 @@ pub async fn verify(
         };
 
         // Save token to the Db
-        let Ok(_) = diesel::insert_into(app_tokens::dsl::app_tokens)
+        diesel::insert_into(app_tokens::dsl::app_tokens)
             .values(&new_token)
-            .execute(&mut conn) else {
-                return Err(RouterError::InternalError);
-            };
+            .execute(&mut conn)?;
 
         Ok(result)
     })
