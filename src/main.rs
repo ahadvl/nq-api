@@ -108,13 +108,13 @@ async fn main() -> std::io::Result<()> {
             )
             .service(web::resource("/mushaf").route(web::get().to(mushaf::mushaf)))
             .service(
-                web::resource("/profile")
+                web::resource("/user")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route(web::get().to(profile::view_profile))
                     .route(web::post().to(edit_profile::edit_profile)),
             )
             .service(
-                web::scope("/organizations")
+                web::scope("/organization")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route("/name", web::post().to(name::add_name))
                     .route("/name/{uuid}", web::get().to(name::names))
