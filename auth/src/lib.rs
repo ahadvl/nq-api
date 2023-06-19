@@ -1,2 +1,2 @@
 pub mod token;
-pub mod permission;
+pub mod access;
