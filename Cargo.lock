@@ -277,6 +277,7 @@ dependencies = [
  "actix-utils",
  "actix-web",
  "async-trait",
+ "casbin",
  "futures-util",
  "sha2",
 ]
