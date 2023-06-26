@@ -1,7 +1,10 @@
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
+use diesel_adapter::casbin::{CoreApi, DefaultModel, Enforcer, Model};
+use diesel_adapter::DieselAdapter;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
+use auth::access::access::Access;
 use auth::token::TokenAuth;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -69,6 +72,16 @@ pub fn establish_database_connection() -> ConnectionManager<PgConnection> {
     ConnectionManager::<PgConnection>::new(database_url)
 }
 
+pub async fn init_casbin() -> Enforcer {
+    let mode = DefaultModel::from_str(include_str!("../model.conf"))
+        .await
+        .unwrap();
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let adapter = DieselAdapter::new(database_url, 10).unwrap();
+
+    Enforcer::new(mode, adapter).await.unwrap()
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let pg_manager = establish_database_connection();
@@ -82,6 +95,10 @@ async fn main() -> std::io::Result<()> {
     let mailer = create_emailer();
 
     let user_id_from_token = UserIdFromToken::new(pool.clone());
+    let casbin = init_casbin().await;
+    let access = Access::new();
+
+    access.add_enforcer("default".to_string(), casbin).unwrap();
 
     HttpServer::new(move || {
         // Set All to the cors
@@ -91,6 +108,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(mailer.clone()))
+            .app_data(web::Data::new(access.clone()))
             .service(
                 web::scope("/account")
                     .route("/sendCode", web::post().to(send_code::send_code))
