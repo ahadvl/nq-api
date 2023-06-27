@@ -52,6 +52,8 @@ impl Access {
         Ok(())
     }
 
+    /// Check the requested Permission, returns bool
+    /// If not error
     pub fn enforce<T>(&self, name: &str, args: T) -> Result<bool, AccessError>
     where
         T: EnforceArgs,
