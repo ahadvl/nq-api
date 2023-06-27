@@ -1,6 +1,5 @@
 use casbin::{CoreApi, EnforceArgs, Enforcer};
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone)]

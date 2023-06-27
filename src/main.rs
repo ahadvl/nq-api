@@ -1,6 +1,6 @@
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
-use diesel_adapter::casbin::{CoreApi, DefaultModel, Enforcer, Model};
+use diesel_adapter::casbin::{CoreApi, DefaultModel, Enforcer};
 use diesel_adapter::DieselAdapter;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
