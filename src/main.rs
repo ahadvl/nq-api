@@ -4,7 +4,7 @@ use diesel_adapter::casbin::{CoreApi, DefaultModel, Enforcer};
 use diesel_adapter::DieselAdapter;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
-use auth::access::access::Access;
+use auth::access::access::{Access, AccessContext};
 use auth::token::TokenAuth;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -13,6 +13,7 @@ use email::EmailManager;
 use lettre::transport::smtp::authentication::Credentials;
 use std::env;
 use std::error::Error;
+use std::sync::Arc;
 use token_checker::UserIdFromToken;
 
 mod datetime;
@@ -85,6 +86,7 @@ pub async fn init_casbin() -> Enforcer {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let pg_manager = establish_database_connection();
+    env_logger::init();
 
     let pool = Pool::builder()
         .build(pg_manager)
@@ -96,9 +98,13 @@ async fn main() -> std::io::Result<()> {
 
     let user_id_from_token = UserIdFromToken::new(pool.clone());
     let casbin = init_casbin().await;
-    let access = Access::new();
+    let mut access_context = AccessContext::new();
 
-    access.add_enforcer("default".to_string(), casbin).unwrap();
+    access_context
+        .add_enforcer("default".to_string(), casbin)
+        .unwrap();
+
+    let access = Arc::new(Access::new(access_context));
 
     HttpServer::new(move || {
         // Set All to the cors
