@@ -2,6 +2,13 @@ use casbin::{CoreApi, EnforceArgs, Enforcer, Error as CasbinError};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
+/// The kind of AccessError
+///
+/// Lock -> Error when locking some data
+///
+/// NotFound -> Something not found
+///
+/// Enforce -> Error when enforcing
 #[derive(Debug, Clone)]
 pub enum AccessErrorKind {
     // When Access Cant Lock
@@ -16,8 +23,15 @@ pub enum AccessErrorKind {
 
 #[derive(Debug, Clone)]
 pub struct AccessError<'a> {
+    /// Kind of error
     pub kind: AccessErrorKind,
+    
+    /// Give more details like message
     pub detail: &'a str,
+
+    //TODO: Change it to the Option<T>
+    // T: Debug
+    /// Pass the object for more detail
     pub debug: Option<String>,
 }
 
