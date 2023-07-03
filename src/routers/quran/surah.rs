@@ -3,11 +3,13 @@ use crate::routers::multip;
 use crate::schema::quran_ayahs::surah_id;
 use crate::{error::RouterError, DbPool};
 use actix_web::web;
+use auth::access::access::Access;
 use diesel::dsl::count;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::hash::Hash;
+use std::sync::Arc;
 use uuid::Uuid;
 
 /// The query needs the mushaf
@@ -40,9 +42,10 @@ pub struct SurahListResponse {
 }
 
 /// Get the lists of surah
-pub async fn surahs_list(
+pub async fn surahs_list<'a>(
     query: web::Query<SurahListQuery>,
     pool: web::Data<DbPool>,
+    access: web::Data<Arc<Access>>,
 ) -> Result<web::Json<Vec<SurahListResponse>>, RouterError> {
     use crate::schema::mushafs::dsl::{mushafs, name as mushaf_name};
     use crate::schema::quran_surahs::dsl::*;
