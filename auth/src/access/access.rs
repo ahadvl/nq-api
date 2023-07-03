@@ -1,4 +1,4 @@
-use casbin::{CoreApi, EnforceArgs, Enforcer};
+use casbin::{CoreApi, EnforceArgs, Enforcer, Error as CasbinError};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -30,11 +30,23 @@ impl<'a> AccessError<'a> {
         }
     }
 
+    /// Used when `something.read()` returns error
     pub fn cant_read(value: String) -> Self {
         Self {
             kind: AccessErrorKind::Lock,
             debug: Some(value),
             detail: "Can't read the value!",
+        }
+    }
+}
+
+impl<'a> From<CasbinError> for AccessError<'a> {
+    fn from(_value: CasbinError) -> Self {
+        // TODO
+        Self {
+            kind: AccessErrorKind::Enforce,
+            detail: "casbin error",
+            debug: None,
         }
     }
 }
@@ -133,17 +145,36 @@ impl Access {
     /// Adds a new policy
     ///
     /// in other word its kind of,
-    /// like giving access to some user
-    /// as permission.
+    /// like giving permission to some user.
     ///
-    /// name is the name of enforcer,
     /// the new policy will added to the enforcer's adapter
     ///
-    /// keep in mind the adapter can be blocking
-    pub fn add_policy(&mut self, name: &str, params: Vec<String>) -> Result<(), AccessError> {
+    /// - keep in mind the adapter can be blocking
+    /// - This will lock (but its not used that much to begin woried about)
+    ///
+    /// example usage
+    ///
+    /// ```rust
+    /// access.add_policy("default", vec!["sub", "obj", "action"]);
+    /// ```
+    pub async fn add_policy(&mut self, enforcer_name: &str, rule: Vec<String>) -> Result<(), AccessError> {
         // get the enforcer
-        //let enforcer = self.context.get_enforcer(name)?;
+        let enforcer = self.context.get_enforcer(enforcer_name)?;
 
-        todo!()
+        let Ok(mut enforcer) = enforcer.write() else {
+            //TODO
+            return Err(AccessError::cant_read("enforcer".to_string()));
+        };
+
+        // get the adapter of the enforcer as mut
+        let adapter = enforcer.get_mut_adapter();
+
+        // now add the policy
+        //
+        // idk what is the meaning of first param
+        // so I left it empty :)
+        adapter.add_policy("", enforcer_name, rule).await?;
+
+        Ok(())
     }
-}
+ }
