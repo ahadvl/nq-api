@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [".", "auth"]
+members = [".", "auth", "auth_macros"]
 
 [dependencies]
+env_logger = "0.10.0"
 auth = { path="auth" }
+auth_macros = { path="auth_macros" }
 actix-web = "4"
 actix-cors = "0.6.4"
 diesel = { version = "2.0.4", features = ["postgres", "r2d2", "chrono", "uuid"] }
