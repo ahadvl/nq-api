@@ -1,4 +1,4 @@
-use casbin::{CoreApi, EnforceArgs, Enforcer, Error as CasbinError};
+use casbin::{CoreApi, EnforceArgs, Enforcer, Error as CasbinError, MgmtApi};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -25,7 +25,7 @@ pub enum AccessErrorKind {
 pub struct AccessError<'a> {
     /// Kind of error
     pub kind: AccessErrorKind,
-    
+
     /// Give more details like message
     pub detail: &'a str,
 
@@ -45,6 +45,7 @@ impl<'a> AccessError<'a> {
     }
 
     /// Used when `something.read()` returns error
+    #[inline]
     pub fn cant_read(value: String) -> Self {
         Self {
             kind: AccessErrorKind::Lock,
@@ -55,6 +56,7 @@ impl<'a> AccessError<'a> {
 }
 
 impl<'a> From<CasbinError> for AccessError<'a> {
+    #[inline]
     fn from(_value: CasbinError) -> Self {
         // TODO
         Self {
@@ -88,6 +90,7 @@ impl AccessContext {
     /// Adds a new enforcer
     ///
     /// - will lock
+    #[inline]
     pub fn add_enforcer(&mut self, name: String, enforcer: Enforcer) -> Result<(), AccessError> {
         self.enforcers.insert(name, Arc::new(RwLock::new(enforcer)));
 
@@ -97,6 +100,7 @@ impl AccessContext {
     /// Remove existing enforcer
     ///
     /// - will lock
+    #[inline]
     pub fn remove_enforcer(&mut self, name: &String) -> Result<(), AccessError> {
         self.enforcers.remove(name);
 
@@ -106,6 +110,7 @@ impl AccessContext {
     /// Get's the enforcer
     ///
     /// - will not lock
+    #[inline]
     pub fn get_enforcer(&self, name: &str) -> Result<Arc<RwLock<Enforcer>>, AccessError> {
         // Get the required Enforcer
         let Some(enforcer) = self.enforcers.get(name) else {
@@ -171,7 +176,12 @@ impl Access {
     /// ```rust
     /// access.add_policy("default", vec!["sub", "obj", "action"]);
     /// ```
-    pub async fn add_policy(&mut self, enforcer_name: &str, rule: Vec<String>) -> Result<(), AccessError> {
+    pub async fn add_policy(
+        &self,
+        enforcer_name: &str,
+        model_name: &str,
+        rule: Vec<String>,
+    ) -> Result<(), AccessError> {
         // get the enforcer
         let enforcer = self.context.get_enforcer(enforcer_name)?;
 
@@ -180,15 +190,30 @@ impl Access {
             return Err(AccessError::cant_read("enforcer".to_string()));
         };
 
-        // get the adapter of the enforcer as mut
-        let adapter = enforcer.get_mut_adapter();
-
-        // now add the policy
-        //
-        // idk what is the meaning of first param
-        // so I left it empty :)
-        adapter.add_policy("", enforcer_name, rule).await?;
+        enforcer.add_named_policy(model_name, rule).await?;
 
         Ok(())
     }
- }
+
+    /// Removes the policy
+    ///
+    /// - keep in mind the adapter can be blocking
+    /// - This will lock (but its not used that much to begin woried about)
+    pub async fn remove_policy(
+        &self,
+        enforcer_name: &str,
+        params: Vec<String>,
+    ) -> Result<(), AccessError> {
+        // get the enforcer
+        let enforcer = self.context.get_enforcer(enforcer_name)?;
+
+        let Ok(mut enforcer) = enforcer.write() else {
+            //TODO
+            return Err(AccessError::cant_read("enforcer".to_string()));
+        };
+
+        enforcer.remove_policy(params).await?;
+
+        Ok(())
+    }
+}
