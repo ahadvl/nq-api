@@ -32,7 +32,34 @@ pub async fn verify(
 
     validate(&info.0)?;
 
-    let result: Result<String, RouterError> = web::block(move || {
+    // If in debug mode then generate a dummy token
+    //
+    // *do not handle the errors
+    if cfg!(debug_assertions) {
+        let mut conn = pool.get().unwrap();
+        let key = "secret".as_bytes().to_vec();
+        let mut token_hash = TokenGenerator::new(&key);
+        token_hash.generate();
+
+        diesel::insert_into(app_tokens::dsl::app_tokens)
+            .values(NewToken {
+                account_id: &1,
+                token_hash: &token_hash.get_result().unwrap(),
+            })
+            .execute(&mut conn)
+            .unwrap();
+
+        // TODO: dont use unwrap impl From iter for errors
+        //        access
+        //            .add_policy("actives", "p", vec![1.to_string()])
+        //            .await
+        //            .unwrap();
+
+        return Ok(String::from("secret"));
+    }
+
+    // The release mode
+    let result: Result<(String, u32), RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         let last_sended_code = app_verify_codes
@@ -49,12 +76,12 @@ pub async fn verify(
 
         // The code is not correct
         if last_sended_code.code != info.code {
-            return Ok("Code is not correct".to_string());
+            return Err(RouterError::BadRequest("Code is not correct".to_string()));
         }
 
         // The code is already used
         if last_sended_code.status == *"used".to_string() {
-            return Ok("Code is already used".to_string());
+            return Err(RouterError::Gone("Code is already used".to_string()));
         }
 
         // Get the time difference for expireation check
@@ -162,10 +189,11 @@ pub async fn verify(
             .values(&new_token)
             .execute(&mut conn)?;
 
-        Ok(result)
+        Ok((result, user.account_id as u32))
     })
     .await
     .unwrap();
 
-    result
+    let result = result?;
+    Ok(result.0)
 }

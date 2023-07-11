@@ -272,7 +272,7 @@ dependencies = [
 
 [[package]]
 name = "auth"
-version = "0.0.1"
+version = "0.0.5"
 dependencies = [
  "actix-utils",
  "actix-web",
@@ -280,14 +280,6 @@ dependencies = [
  "casbin",
  "futures-util",
  "sha2",
-]
-
-[[package]]
-name = "auth_macros"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn 2.0.22",
 ]
 
 [[package]]
@@ -1243,7 +1235,6 @@ dependencies = [
  "actix-web",
  "async-trait",
  "auth",
- "auth_macros",
  "chrono",
  "diesel 2.0.4",
  "diesel-adapter",

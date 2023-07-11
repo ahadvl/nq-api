@@ -21,6 +21,8 @@ pub struct ViewableOrganizationData {
 
 /// View Org data
 /// path -> org id
+///
+/// This needs a active permission (user must be has a token)
 pub async fn view(
     path: web::Path<u32>,
     conn: web::Data<DbPool>,

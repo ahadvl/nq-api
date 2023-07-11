@@ -51,8 +51,6 @@ fn run_migrations(
 }
 
 pub fn create_emailer() -> EmailManager {
-    dotenv().ok();
-
     let host = env::var("SMTP_HOST").expect("SMTP_HOST must be set");
     let port = env::var("SMTP_PORT").expect("SMTP_PORT must be set");
     let from = env::var("SMTP_FROM").expect("SMTP_FROM must be set");
@@ -66,27 +64,28 @@ pub fn create_emailer() -> EmailManager {
 }
 
 pub fn establish_database_connection() -> ConnectionManager<PgConnection> {
-    dotenv().ok();
-
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     ConnectionManager::<PgConnection>::new(database_url)
 }
 
 pub async fn init_casbin() -> Enforcer {
-    let mode = DefaultModel::from_str(include_str!("../model.conf"))
+    let model = DefaultModel::from_str(include_str!("../config/access.conf"))
         .await
         .unwrap();
+
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let adapter = DieselAdapter::new(database_url, 10).unwrap();
 
-    Enforcer::new(mode, adapter).await.unwrap()
+    Enforcer::new(model, adapter).await.unwrap()
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let pg_manager = establish_database_connection();
+    dotenv().ok();
     env_logger::init();
+
+    let pg_manager = establish_database_connection();
 
     let pool = Pool::builder()
         .build(pg_manager)
@@ -100,8 +99,9 @@ async fn main() -> std::io::Result<()> {
     let casbin = init_casbin().await;
     let mut access_context = AccessContext::new();
 
+    // CHECK: maybe we dont need actives model?
     access_context
-        .add_enforcer("default".to_string(), casbin)
+        .add_enforcer("access".to_string(), casbin)
         .unwrap();
 
     let access = Arc::new(Access::new(access_context));

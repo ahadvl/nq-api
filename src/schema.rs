@@ -101,6 +101,19 @@ diesel::table! {
 }
 
 diesel::table! {
+    casbin_rule (id) {
+        id -> Int4,
+        ptype -> Varchar,
+        v0 -> Varchar,
+        v1 -> Varchar,
+        v2 -> Varchar,
+        v3 -> Varchar,
+        v4 -> Varchar,
+        v5 -> Varchar,
+    }
+}
+
+diesel::table! {
     mushafs (id) {
         id -> Int4,
         uuid -> Uuid,
@@ -177,7 +190,6 @@ diesel::table! {
 diesel::joinable!(app_employees -> app_accounts (employee_account_id));
 diesel::joinable!(app_organization_names -> app_accounts (account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
-diesel::joinable!(app_tokens -> app_accounts (terminated_by_id));
 diesel::joinable!(app_user_names -> app_accounts (account_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
 diesel::joinable!(quran_surahs -> mushafs (mushaf_id));
@@ -195,6 +207,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     app_user_names,
     app_users,
     app_verify_codes,
+    casbin_rule,
     mushafs,
     quran_ayahs,
     quran_surahs,
