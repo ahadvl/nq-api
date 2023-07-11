@@ -21,6 +21,8 @@ pub enum RouterError {
     NotAvailable(String),
 
     BadRequest(String),
+
+    Unauth(String),
 }
 
 impl Display for RouterError {
@@ -32,6 +34,7 @@ impl Display for RouterError {
             Self::Gone(message) => write!(f, "{}", message),
             Self::NotAvailable(what) => write!(f, "{} is not available", what),
             Self::BadRequest(message) => write!(f, "{}", message),
+            Self::Unauth(message) => write!(f, "{}", message),
         }
     }
 }
@@ -61,6 +64,7 @@ impl ResponseError for RouterError {
             Self::Gone(_) => StatusCode::GONE,
             Self::NotAvailable(_) => StatusCode::OK,
             Self::BadRequest(_) => StatusCode::BAD_REQUEST,
+            Self::Unauth(_) => StatusCode::FORBIDDEN,
         }
     }
 }
