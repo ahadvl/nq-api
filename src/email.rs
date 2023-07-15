@@ -19,7 +19,7 @@ impl EmailManager {
         default_from: String,
     ) -> Result<Self, Box<dyn Error>> {
         // Create a new smtpTransport object
-        let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay(host)?
+        let mailer = AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(host)?
             .port(port)
             .credentials(creds)
             .build();
