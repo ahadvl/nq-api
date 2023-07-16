@@ -36,20 +36,14 @@ pub async fn edit_organization(
     let access = access.into_inner();
 
     // TODO: Better way of checking this
-    if access
-        .enforce(
-            "access",
-            vec![
-                user_id.to_string(),
-                format!("org:{}", org_id),
-                "write".to_string(),
-            ],
-        )
-        .unwrap()
-        == false
-    {
-        return Err(RouterError::Unauth("Access denied".to_string()));
-    }
+    access.enforce(
+        "access",
+        vec![
+            user_id.to_string(),
+            format!("org:{}", org_id),
+            "write".to_string(),
+        ],
+    )?;
 
     let update_result: Result<String, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();

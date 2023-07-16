@@ -19,6 +19,9 @@ pub enum AccessErrorKind {
 
     // idk
     Enforce,
+
+    // Access denied
+    AccessDenied,
 }
 
 #[derive(Debug, Clone)]
@@ -135,7 +138,7 @@ impl Access {
 
     /// Check the requested Permission, returns bool
     /// If not error
-    pub fn enforce<T>(&self, name: &str, args: T) -> Result<bool, AccessError>
+    pub fn enforce<T>(&self, name: &str, args: T) -> Result<(), AccessError>
     where
         T: EnforceArgs,
     {
@@ -156,9 +159,15 @@ impl Access {
             )),
         }?;
 
-        // false -> Access denied
-        // true  -> Access granted
-        Ok(res)
+        if res == false {
+            return Err(AccessError {
+                kind: AccessErrorKind::AccessDenied,
+                detail: "Access denied!",
+                debug: None,
+            })
+        }
+
+        Ok(())
     }
 
     /// Adds a new policy
