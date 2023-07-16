@@ -99,7 +99,6 @@ async fn main() -> std::io::Result<()> {
     let casbin = init_casbin().await;
     let mut access_context = AccessContext::new();
 
-    // CHECK: maybe we dont need actives model?
     access_context
         .add_enforcer("access".to_string(), casbin)
         .unwrap();

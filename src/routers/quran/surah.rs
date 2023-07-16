@@ -27,6 +27,7 @@ pub struct SingleSurahResponse {
     pub surah_period: Option<String>,
     pub surah_number: i32,
     pub bismillah_status: String,
+    pub bismillah_text: Option<String>,
     pub number_of_ayahs: i64,
 }
 
@@ -220,6 +221,7 @@ pub async fn surah(
                 surah_period: surah.period,
                 surah_number: surah.number,
                 bismillah_status: surah.bismillah_status,
+                bismillah_text: surah.bismillah_text,
                 number_of_ayahs: final_ayahs.len() as i64,
             },
             ayahs: final_ayahs,

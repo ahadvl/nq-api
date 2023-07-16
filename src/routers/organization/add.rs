@@ -31,6 +31,7 @@ pub async fn add<'a>(
     let access = access.into_inner();
 
     validate(&new_org_info)?;
+
     let add_status: Result<u32, RouterError> = web::block(move || {
         let mut conn = conn.get().unwrap();
 
@@ -102,8 +103,7 @@ pub async fn add<'a>(
                 "write".to_string(),
             ],
         )
-        .await
-        .unwrap();
+        .await?;
 
     Ok("Created")
 }
