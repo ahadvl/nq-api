@@ -73,7 +73,7 @@ def parse_quran_suarhs_table(root, mushaf_id):
         if first_ayah.attrib['text'] == BISMILLAH:
             # also set the mushaf_id
             result.append(
-                f"('{surah_name}', NULL, {surah_num}, 'in_ayah', NULL, {mushaf_id})")
+                f"('{surah_name}', NULL, {surah_num}, 'first_ayah', NULL, {mushaf_id})")
 
         else:
             first_ayah_bismillah_status = first_ayah.get('bismillah', False)
