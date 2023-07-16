@@ -26,6 +26,7 @@ pub struct SingleSurahResponse {
     pub surah_name: String,
     pub surah_period: Option<String>,
     pub surah_number: i32,
+    pub bismillah_status: String,
     pub number_of_ayahs: i64,
 }
 
@@ -122,8 +123,8 @@ enum AyahTextType {
 /// The Ayah type that will return in the response
 #[derive(PartialOrd, Ord, Eq, Hash, PartialEq, Serialize, Clone, Debug)]
 pub struct SimpleAyah {
-    uuid: Uuid,
     number: i32,
+    uuid: Uuid,
     sajdeh: Option<String>,
 }
 
@@ -178,8 +179,8 @@ pub async fn surah(
 
         let ayahs_as_map: BTreeMap<SimpleAyah, Vec<QuranWord>> =
             multip(result, |ayah| SimpleAyah {
-                uuid: ayah.uuid,
                 number: ayah.ayah_number,
+                uuid: ayah.uuid,
                 sajdeh: ayah.sajdeh,
             });
 
@@ -218,6 +219,7 @@ pub async fn surah(
                 surah_name: surah.name,
                 surah_period: surah.period,
                 surah_number: surah.number,
+                bismillah_status: surah.bismillah_status,
                 number_of_ayahs: final_ayahs.len() as i64,
             },
             ayahs: final_ayahs,
