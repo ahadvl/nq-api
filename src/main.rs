@@ -1,10 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
-use diesel_adapter::casbin::{CoreApi, DefaultModel, Enforcer};
-use diesel_adapter::DieselAdapter;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
-use auth::access::access::{Access, AccessContext};
 use auth::token::TokenAuth;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -13,7 +10,6 @@ use email::EmailManager;
 use lettre::transport::smtp::authentication::Credentials;
 use std::env;
 use std::error::Error;
-use std::sync::Arc;
 use token_checker::UserIdFromToken;
 
 mod datetime;
@@ -69,17 +65,6 @@ pub fn establish_database_connection() -> ConnectionManager<PgConnection> {
     ConnectionManager::<PgConnection>::new(database_url)
 }
 
-pub async fn init_casbin() -> Enforcer {
-    let model = DefaultModel::from_str(include_str!("../config/access.conf"))
-        .await
-        .unwrap();
-
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let adapter = DieselAdapter::new(database_url, 10).unwrap();
-
-    Enforcer::new(model, adapter).await.unwrap()
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
@@ -96,14 +81,6 @@ async fn main() -> std::io::Result<()> {
     let mailer = create_emailer();
 
     let user_id_from_token = UserIdFromToken::new(pool.clone());
-    let casbin = init_casbin().await;
-    let mut access_context = AccessContext::new();
-
-    access_context
-        .add_enforcer("access".to_string(), casbin)
-        .unwrap();
-
-    let access = Arc::new(Access::new(access_context));
 
     HttpServer::new(move || {
         // Set All to the cors
@@ -113,7 +90,6 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(mailer.clone()))
-            .app_data(web::Data::new(access.clone()))
             .service(
                 web::scope("/account")
                     .route("/sendCode", web::post().to(send_code::send_code))
