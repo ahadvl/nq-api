@@ -310,9 +310,8 @@ pub struct PermissionCondition {
     #[serde(skip_serializing)]
     pub id: i32,
 
-    pub subject: String,
-    pub object: String,
-    pub action: String,
+    pub permission: String,
+    pub value: Option<String>,
 
     #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,
