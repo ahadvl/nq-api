@@ -1,7 +1,5 @@
 use actix_web::web::{self, ReqData};
-use auth::access::access::Access;
 use diesel::{dsl::exists, prelude::*, select};
-use std::sync::Arc;
 
 use crate::{
     error::RouterError,
@@ -19,7 +17,6 @@ pub async fn add<'a>(
     conn: web::Data<DbPool>,
     new_org: web::Json<NewOrgInfo>,
     data: ReqData<u32>,
-    access: web::Data<Arc<Access>>,
 ) -> Result<&'a str, RouterError> {
     use crate::schema::app_accounts::dsl::*;
     use crate::schema::app_employees::dsl::app_employees;
@@ -28,11 +25,10 @@ pub async fn add<'a>(
 
     let new_org_info = new_org.into_inner();
     let user_account_id = data.into_inner();
-    let access = access.into_inner();
 
     validate(&new_org_info)?;
 
-    let add_status: Result<u32, RouterError> = web::block(move || {
+    let result: Result<&'a str, RouterError> = web::block(move || {
         let mut conn = conn.get().unwrap();
 
         // Check if org already exists
@@ -85,25 +81,10 @@ pub async fn add<'a>(
         .insert_into(app_organization_names)
         .execute(&mut conn)?;
 
-        Ok(new_account.id as u32)
+        Ok("Created")
     })
     .await
     .unwrap();
 
-    let add_status = add_status?;
-
-    // TODO: dont use unwrap impl From trait for errors
-    access
-        .add_policy(
-            "access",
-            "p",
-            vec![
-                user_account_id.to_string(),
-                format!("org:{}", add_status),
-                "write".to_string(),
-            ],
-        )
-        .await?;
-
-    Ok("Created")
+    result
 }

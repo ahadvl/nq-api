@@ -3,7 +3,6 @@ use actix_web::{
     http::{header::ContentType, StatusCode},
     HttpResponse,
 };
-use auth::access::access::{AccessError, AccessErrorKind};
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use std::{error::Error, fmt::Display};
 use uuid::Error as UuidError;
@@ -97,19 +96,3 @@ impl From<UuidError> for RouterError {
     }
 }
 
-impl From<AccessErrorKind> for RouterError {
-    fn from(value: AccessErrorKind) -> Self {
-        match value {
-            AccessErrorKind::Lock => Self::InternalError,
-            AccessErrorKind::Enforce => Self::Unauth("Access Denied!".to_string()),
-            AccessErrorKind::NotFound => Self::NotFound("Enforcer Not found!".to_string()),
-            AccessErrorKind::AccessDenied => Self::Unauth("Access Denied!".to_string()),
-        }
-    }
-}
-
-impl<'a> From<AccessError<'a>> for RouterError {
-    fn from(value: AccessError) -> Self {
-        RouterError::from(value.kind)
-    }
-}

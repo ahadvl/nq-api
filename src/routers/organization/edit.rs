@@ -1,12 +1,9 @@
-use std::sync::Arc;
-
 use crate::{
     error::RouterError,
     models::{Account, Organization, OrganizationName},
     DbPool,
 };
 use actix_web::web::{self, ReqData};
-use auth::access::access::Access;
 use diesel::prelude::*;
 use serde::Deserialize;
 
@@ -23,7 +20,6 @@ pub async fn edit_organization(
     path: web::Path<u32>,
     info: web::Json<OrgInfoUpdatebleFileds>,
     pool: web::Data<DbPool>,
-    access: web::Data<Arc<Access>>,
     user_id: ReqData<u32>,
 ) -> Result<String, RouterError> {
     use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id, username};
@@ -31,19 +27,9 @@ pub async fn edit_organization(
     use crate::schema::app_organizations::dsl::*;
 
     let org_id = path.into_inner();
+    // TODO: check this user id
     let user_id = user_id.into_inner();
     let new_org = info.into_inner();
-    let access = access.into_inner();
-
-    // TODO: Better way of checking this
-    access.enforce(
-        "access",
-        vec![
-            user_id.to_string(),
-            format!("org:{}", org_id),
-            "write".to_string(),
-        ],
-    )?;
 
     let update_result: Result<String, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();

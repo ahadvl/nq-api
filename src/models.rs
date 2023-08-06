@@ -287,3 +287,34 @@ pub struct QuranMushaf {
     #[serde(skip_serializing)]
     pub updated_at: NaiveDateTime,
 }
+
+#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug)]
+#[diesel(table_name = app_permissions)]
+pub struct Permissions {
+    #[serde(skip_serializing)]
+    pub id: i32,
+
+    pub subject: String,
+    pub object: String,
+    pub action: String,
+
+    #[serde(skip_serializing)]
+    pub created_at: NaiveDateTime,
+    #[serde(skip_serializing)]
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug)]
+#[diesel(table_name = app_permission_conditions)]
+pub struct PermissionCondition {
+    #[serde(skip_serializing)]
+    pub id: i32,
+
+    pub permission: String,
+    pub value: Option<String>,
+
+    #[serde(skip_serializing)]
+    pub created_at: NaiveDateTime,
+    #[serde(skip_serializing)]
+    pub updated_at: NaiveDateTime,
+}

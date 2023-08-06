@@ -55,6 +55,26 @@ diesel::table! {
 }
 
 diesel::table! {
+    app_permission_conditions (id) {
+        id -> Int4,
+        permission_id -> Int4,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    app_permissions (id) {
+        id -> Int4,
+        subject -> Varchar,
+        object -> Varchar,
+        action -> Varchar,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     app_tokens (id) {
         id -> Int4,
         account_id -> Int4,
@@ -190,6 +210,7 @@ diesel::table! {
 diesel::joinable!(app_employees -> app_accounts (employee_account_id));
 diesel::joinable!(app_organization_names -> app_accounts (account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
+diesel::joinable!(app_permission_conditions -> app_permissions (permission_id));
 diesel::joinable!(app_user_names -> app_accounts (account_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
 diesel::joinable!(quran_surahs -> mushafs (mushaf_id));
@@ -203,6 +224,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     app_employees,
     app_organization_names,
     app_organizations,
+    app_permission_conditions,
+    app_permissions,
     app_tokens,
     app_user_names,
     app_users,
