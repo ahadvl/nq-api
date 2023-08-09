@@ -1,8 +1,10 @@
 [package]
-name = "authZ"
+name = "auth_z"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+actix-web = "4"
+actix-utils = "3.0.1"
+async-trait = "0.1.68"
+futures-util = { version = "0.3.7", default-features = false, features = ["std"] }
