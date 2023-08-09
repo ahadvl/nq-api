@@ -8,7 +8,8 @@ members = [".", "authN", "authZ"]
 
 [dependencies]
 env_logger = "0.10.0"
-auth = { path="auth" }
+auth_n = { path="authN" }
+auth_z = { path="authZ" }
 actix-web = "4"
 actix-cors = "0.6.4"
 diesel = { version = "2.0.4", features = ["postgres", "r2d2", "chrono", "uuid"] }

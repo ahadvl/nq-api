@@ -258,7 +258,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "auth"
+name = "auth_n"
 version = "0.0.5"
 dependencies = [
  "actix-utils",
@@ -266,6 +266,16 @@ dependencies = [
  "async-trait",
  "futures-util",
  "sha2",
+]
+
+[[package]]
+name = "auth_z"
+version = "0.1.0"
+dependencies = [
+ "actix-utils",
+ "actix-web",
+ "async-trait",
+ "futures-util",
 ]
 
 [[package]]
@@ -1078,7 +1088,8 @@ dependencies = [
  "actix-cors",
  "actix-web",
  "async-trait",
- "auth",
+ "auth_n",
+ "auth_z",
  "chrono",
  "diesel",
  "diesel_migrations",
