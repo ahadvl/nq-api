@@ -1,7 +1,7 @@
 use crate::{models::Token, DbPool};
 use actix_web::web;
 use async_trait::async_trait;
-use auth::token::{TokenChecker, TokenGenerator};
+use auth_n::token::{TokenChecker, TokenGenerator};
 use diesel::prelude::*;
 
 /// Returns the token selected

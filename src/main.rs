@@ -2,7 +2,8 @@ use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
-use auth::token::TokenAuth;
+use auth_z::ParsedPath;
+use auth_n::token::TokenAuth;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenvy::dotenv;

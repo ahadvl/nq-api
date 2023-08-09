@@ -4,7 +4,7 @@ use crate::models::{Account, Email, NewAccount, NewEmail, NewToken, NewUser, Use
 use crate::schema::app_emails;
 use crate::{validate::validate, DbPool};
 use actix_web::web;
-use auth::token::TokenGenerator;
+use auth_n::token::TokenGenerator;
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
