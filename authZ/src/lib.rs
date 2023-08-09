@@ -1,3 +1,5 @@
+pub mod middleware;
+
 use async_trait::async_trait;
 use std::error::Error;
 
