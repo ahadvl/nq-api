@@ -7,6 +7,6 @@ CREATE TABLE app_tokens (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT app_tokens_id PRIMARY KEY (id),
-    CONSTRAINT fk_account FOREIGN KEY(account_id) REFERENCES app_accounts(id)
+    CONSTRAINT fk_tkn_account FOREIGN KEY(account_id) REFERENCES app_accounts(id)
     /* CONSTRAINT fk_terminated_account FOREIGN KEY(terminated_by_id) REFERENCES app_accounts(id) */
 );
