@@ -1,9 +1,10 @@
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
+use authz::AuthZController;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
-use auth_z::ParsedPath;
 use auth_n::token::TokenAuth;
+use auth_z::middleware::{AuthZMiddleware, AuthZ};
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenvy::dotenv;
@@ -13,10 +14,11 @@ use std::env;
 use std::error::Error;
 use token_checker::UserIdFromToken;
 
+mod authz;
 mod datetime;
 mod email;
 mod error;
-mod models;
+pub mod models;
 mod routers;
 mod schema;
 mod test;
@@ -83,6 +85,8 @@ async fn main() -> std::io::Result<()> {
 
     let user_id_from_token = UserIdFromToken::new(pool.clone());
 
+    let auth_z_controller = AuthZController::new(pool.clone());
+
     HttpServer::new(move || {
         // Set All to the cors
         let cors = Cors::permissive();
@@ -115,6 +119,8 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 web::scope("/organization")
+                    .wrap(AuthZ::new(auth_z_controller.clone())) // The AuthZ middleware must be
+                                                                 // .wrap the first, I donno why.
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route("/name", web::post().to(name::add_name))
                     .route("/name/{uuid}", web::get().to(name::names))
