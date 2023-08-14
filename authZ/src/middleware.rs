@@ -1,10 +1,9 @@
 use actix_utils::future::{ready, Ready};
-use actix_web::http::header;
-use actix_web::HttpMessage;
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    error::ErrorUnauthorized,
-    Error,
+    error::{ErrorUnauthorized, ResponseError},
+    web::ReqData,
+    Error, HttpMessage,
 };
 use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
@@ -22,9 +21,7 @@ where
 {
     /// Construct `TokenAuth` middleware.
     pub fn new(permission: P) -> Self {
-        Self {
-            permission,
-        }
+        Self { permission }
     }
 }
 
@@ -73,7 +70,12 @@ where
         let service = Rc::clone(&self.service);
 
         Box::pin(async move {
-            Err(ErrorUnauthorized("This Token is not valid"))
+            //TODO
+            println!("{:?}", req.extensions().get::<u32>());
+            let res = service.call(req).await.unwrap();
+
+            return Ok(res);
+            //Err(ErrorUnauthorized("You don't have access to this resource!"))
         })
     }
 }
