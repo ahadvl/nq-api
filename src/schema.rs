@@ -58,6 +58,7 @@ diesel::table! {
     app_permission_conditions (id) {
         id -> Int4,
         permission_id -> Int4,
+        value -> Nullable<Varchar>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -211,6 +212,7 @@ diesel::joinable!(app_employees -> app_accounts (employee_account_id));
 diesel::joinable!(app_organization_names -> app_accounts (account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
 diesel::joinable!(app_permission_conditions -> app_permissions (permission_id));
+diesel::joinable!(app_tokens -> app_accounts (account_id));
 diesel::joinable!(app_user_names -> app_accounts (account_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
 diesel::joinable!(quran_surahs -> mushafs (mushaf_id));

@@ -8,12 +8,12 @@ use diesel::prelude::*;
 /// from database
 #[derive(Clone)]
 pub struct UserIdFromToken {
-    pool: DbPool,
+    db_pool: DbPool,
 }
 
 impl UserIdFromToken {
-    pub fn new(pool: DbPool) -> Self {
-        Self { pool }
+    pub fn new(db_pool: DbPool) -> Self {
+        Self { db_pool }
     }
 }
 
@@ -25,7 +25,7 @@ impl TokenChecker<u32> for UserIdFromToken {
         // Token as bytes
         let token_bytes: Vec<u8> = request_token.bytes().collect();
 
-        let mut conn = self.pool.get().unwrap();
+        let mut conn = self.db_pool.get().unwrap();
 
         let token = web::block(move || {
             // Hash the request token

@@ -5,32 +5,40 @@ use std::error::Error;
 
 #[async_trait]
 /// Model Permission
-pub trait ModelPermission {
+pub trait ModelPermission<T, A>
+where
+    T: Sized,
+{
     /// Returns the value of the attr
     ///
     /// if its exists
-    async fn get_attr<A>(&self, name: &str) -> Option<A>
+    async fn get_attr(&self, name: T) -> Option<A>
     where
         A: Sized;
 }
 
 #[async_trait]
 pub trait Permission {
+    type Output;
+
     /// Check if the permissions are valid
-    async fn check<E>(&self) -> Result<(), E>
-    where
-        E: Error + Sized;
+    async fn check<E>(
+        &self,
+        subject: String,
+        path: &'static ParsedPath,
+        method: String,
+    ) -> Self::Output;
 
     /// Get model
     ///
     /// Name defines wich model we should check
     /// for attrs
-    async fn get_model<M>(&self, name: &str) -> M
+    async fn get_model<T, A, M>(&self, name: &str) -> M
     where
-        M: ModelPermission + Sized;
+        M: ModelPermission<T, A> + Sized;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParsedPath<'a> {
     pub controller: Option<&'a str>,
     pub action: Option<&'a str>,

@@ -290,7 +290,7 @@ pub struct QuranMushaf {
 
 #[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug)]
 #[diesel(table_name = app_permissions)]
-pub struct Permissions {
+pub struct Permission {
     #[serde(skip_serializing)]
     pub id: i32,
 
