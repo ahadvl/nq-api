@@ -112,8 +112,7 @@ where
 
                 if let Some(data) = token_data {
                     req.extensions_mut().insert(data);
-                    println!("Token inserted!");
-                    let res = service.call(req).await.unwrap();
+                    let res = service.call(req).await?;
                     return Ok(res);
                 };
             }

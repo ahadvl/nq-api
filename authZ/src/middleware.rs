@@ -8,7 +8,7 @@ use actix_web::{
 use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
 
-use crate::Permission;
+use crate::{ParsedPath, Permission};
 
 #[derive(Clone, Default)]
 pub struct AuthZ<P> {
@@ -58,7 +58,7 @@ impl<S, B, F> Service<ServiceRequest> for AuthZMiddleware<S, F>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    F: Permission,
+    F: Permission + Clone + 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
@@ -68,14 +68,23 @@ where
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let service = Rc::clone(&self.service);
+        let permission = self.permission.clone();
+        let subject = req.extensions().get::<u32>().unwrap().clone();
+
+        let url_as_str = req.uri().path();
+
+        let path = ParsedPath::from(url_as_str);
 
         Box::pin(async move {
-            //TODO
-            println!("{:?}", req.extensions().get::<u32>());
-            let res = service.call(req).await.unwrap();
-
-            return Ok(res);
-            //Err(ErrorUnauthorized("You don't have access to this resource!"))
+            if permission
+                .check(subject.to_string(), path, req.method().to_string())
+                .await
+            {
+                let res = service.call(req).await?;
+                return Ok(res);
+            } else {
+                return Err(ErrorUnauthorized("You don't have access to this resource!"));
+            }
         })
     }
 }
