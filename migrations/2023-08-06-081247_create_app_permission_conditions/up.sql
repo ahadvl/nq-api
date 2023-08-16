@@ -1,6 +1,7 @@
 CREATE TABLE app_permission_conditions (
     id serial NOT NULL,
     permission_id serial NOT NULL,
+    name VARCHAR(450) NOT NULL,
     value VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
