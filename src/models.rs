@@ -304,13 +304,17 @@ pub struct Permission {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug)]
+#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug, Associations)]
+#[diesel(belongs_to(Permission))]
 #[diesel(table_name = app_permission_conditions)]
 pub struct PermissionCondition {
     #[serde(skip_serializing)]
     pub id: i32,
 
-    pub permission: String,
+    #[serde(skip_serializing)]
+    pub permission_id: i32,
+
+    pub name: String,
     pub value: Option<String>,
 
     #[serde(skip_serializing)]

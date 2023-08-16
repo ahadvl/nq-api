@@ -58,6 +58,7 @@ diesel::table! {
     app_permission_conditions (id) {
         id -> Int4,
         permission_id -> Int4,
+        name -> Varchar,
         value -> Nullable<Varchar>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,

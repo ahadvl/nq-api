@@ -1,10 +1,13 @@
+use crate::models::User;
 use crate::DbPool;
-use crate::{error::RouterError, models::User};
 use actix_web::web;
 use async_trait::async_trait;
 use auth_z::{ModelPermission, ParsedPath, Permission};
 use diesel::prelude::*;
 
+const ANY_FILTER: char = '*';
+
+#[derive(Debug)]
 enum Action {
     Create,
     Edit,
@@ -13,8 +16,9 @@ enum Action {
 }
 
 impl Action {
-    fn from_auth_z<'a>(path: &ParsedPath<'a>, method: &'a str) -> Self {
-        match (path.id, method) {
+    fn from_auth_z<'a>(path: &ParsedPath, method: &'a str) -> Self {
+        // Checks the id of path and request method
+        match (path.id.clone(), method) {
             (Some(_), "GET") => Self::View,
             (None, "POST") => Self::Create,
             (Some(_), "POST") => Self::Edit,
@@ -49,14 +53,11 @@ impl AuthZController {
 
 #[async_trait]
 impl Permission for AuthZController {
-    type Output = Result<(), RouterError>;
-    async fn check<E>(
-        &self,
-        subject: String,
-        path: &'static ParsedPath, // Is this a good thing ?
-        method: String,
-    ) -> Self::Output {
-        use crate::models::Permission;
+    //type Output = Result<(), RouterError>;
+    async fn check(&self, subject: String, path: ParsedPath, method: String) -> bool {
+        use crate::schema::app_permission_conditions::dsl::{
+            app_permission_conditions, name, value,
+        };
         use crate::schema::app_permissions::dsl::{
             action as permission_action, app_permissions, object as permission_object,
             subject as permission_subject,
@@ -66,23 +67,28 @@ impl Permission for AuthZController {
         let mut conn = self.db_pool.get().unwrap();
 
         let result = web::block(move || {
-            let subject_query = vec![subject, "*".to_string()];
+            // Default subject query
+            let subject_query = vec![subject, ANY_FILTER.to_string()];
 
-            let calculated_action = Action::from_auth_z(path, method.as_str());
+            // Foundout the requested Action
+            let calculated_action = Action::from_auth_z(&path, method.as_str());
 
-            let permission: Vec<Permission> = app_permissions
+            // Check the permissions and get the conditions
+            let conditions: Vec<(String, Option<String>)> = app_permissions
                 .filter(permission_subject.eq_any(subject_query))
                 .filter(permission_object.eq(path.controller.unwrap().clone()))
                 .filter(permission_action.eq::<&str>(calculated_action.into()))
-                .load(&mut conn)?;
+                .inner_join(app_permission_conditions)
+                .select((name, value))
+                .load(&mut conn)
+                .unwrap();
 
-            if permission.is_empty() {
-                return Err(RouterError::Unauth(
-                    "You don't have access to this resource or this action.".to_string(),
-                ));
+            if conditions.is_empty() {
+                return false;
             }
 
-            return Ok(());
+            // Now Check the conditions
+            true
         })
         .await
         .unwrap();
@@ -90,11 +96,14 @@ impl Permission for AuthZController {
         result
     }
 
-    async fn get_model<T, A, M>(&self, name: &str) -> M
+    async fn get_model<T, A, M>(&self, resource_name: &str, condition_name: &str) -> M
     where
         M: ModelPermission<T, A> + Sized,
     {
-        todo!()
+        match (resource_name, condition_name) {
+            ("user", "owner") => todo!(),
+            _ => todo!(),
+        }
     }
 }
 
