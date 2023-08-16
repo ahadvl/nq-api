@@ -18,34 +18,32 @@ where
 }
 
 #[async_trait]
-pub trait Permission {
-    type Output;
-
+pub trait Permission{
     /// Check if the permissions are valid
-    async fn check<E>(
+    async fn check(
         &self,
         subject: String,
-        path: &'static ParsedPath,
+        path: ParsedPath,
         method: String,
-    ) -> Self::Output;
+    ) -> bool;
 
     /// Get model
     ///
     /// Name defines wich model we should check
     /// for attrs
-    async fn get_model<T, A, M>(&self, name: &str) -> M
+    async fn get_model<T, A, M>(&self, resource_name: &str, condition_name: &str) -> M
     where
         M: ModelPermission<T, A> + Sized;
 }
 
 #[derive(Debug, Clone)]
-pub struct ParsedPath<'a> {
-    pub controller: Option<&'a str>,
-    pub action: Option<&'a str>,
-    pub id: Option<&'a str>,
+pub struct ParsedPath {
+    pub controller: Option<String>,
+    pub action: Option<String>,
+    pub id: Option<String>,
 }
 
-impl Default for ParsedPath<'_> {
+impl Default for ParsedPath {
     fn default() -> Self {
         Self {
             controller: None,
@@ -55,7 +53,7 @@ impl Default for ParsedPath<'_> {
     }
 }
 
-impl<'a> From<&'a str> for ParsedPath<'a> {
+impl<'a> From<&'a str> for ParsedPath {
     /// value must start with '/'
     ///
     /// `/controller/action/id`
@@ -64,7 +62,7 @@ impl<'a> From<&'a str> for ParsedPath<'a> {
     ///
     /// `/controller`
     fn from(value: &'a str) -> Self {
-        let mut splited = value.split('/').skip_while(|s| s.is_empty());
+        let mut splited = value.split('/').skip_while(|s| s.is_empty()).map(|c| c.to_string());
 
         if splited.clone().count() >= 3 {
             return Self {
