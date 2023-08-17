@@ -95,20 +95,21 @@ impl Permission for AuthZController {
 
         result
     }
-
-    async fn get_model<T, A, M>(&self, resource_name: &str, condition_name: &str) -> M
-    where
-        M: ModelPermission<T, A> + Sized,
-    {
-        match (resource_name, condition_name) {
-            ("user", "owner") => todo!(),
-            _ => todo!(),
-        }
-    }
 }
 
 enum ModelAttrib {
     Owner,
+}
+
+// Maybe we can use TryFrom
+impl From<&str> for ModelAttrib{
+    fn from(value: &str) -> Self {
+        match value {
+            "owner" => Self::Owner,
+
+            _ => panic!()
+        }
+    }
 }
 
 #[async_trait]
