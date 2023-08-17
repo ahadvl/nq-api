@@ -1,8 +1,7 @@
 use actix_utils::future::{ready, Ready};
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    error::{ErrorUnauthorized, ResponseError},
-    web::ReqData,
+    error::ErrorUnauthorized,
     Error, HttpMessage,
 };
 use futures_util::future::LocalBoxFuture;
@@ -82,9 +81,9 @@ where
             {
                 let res = service.call(req).await?;
                 return Ok(res);
-            } else {
-                return Err(ErrorUnauthorized("You don't have access to this resource!"));
             }
+
+            return Err(ErrorUnauthorized("You don't have access to this resource!"));
         })
     }
 }
