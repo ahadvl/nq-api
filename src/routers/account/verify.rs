@@ -4,7 +4,7 @@ use crate::models::{Account, Email, NewAccount, NewEmail, NewToken, NewUser, Use
 use crate::schema::app_emails;
 use crate::{validate::validate, DbPool};
 use actix_web::web;
-use auth_n::token::TokenGenerator;
+use auth_n::token::HashBuilder;
 use diesel::prelude::*;
 use rand::Rng;
 use serde::Deserialize;
@@ -38,8 +38,7 @@ pub async fn verify(
     if cfg!(debug_assertions) {
         let mut conn = pool.get().unwrap();
         let key = "secret".as_bytes().to_vec();
-        let mut token_hash = TokenGenerator::new(&key);
-        token_hash.generate();
+        let token_hash = HashBuilder::new().set_source(&key).generate();
 
         diesel::insert_into(app_tokens::dsl::app_tokens)
             .values(NewToken {
@@ -161,9 +160,7 @@ pub async fn verify(
         source.append(&mut random_bytes);
         source.append(&mut time_as_string.as_bytes().to_vec());
 
-        let mut token = TokenGenerator::new(&source);
-
-        token.generate();
+        let token = HashBuilder::new().set_source(&source).generate();
 
         let Some(result) = token.get_result() else {
             return Err(RouterError::InternalError);
@@ -173,10 +170,11 @@ pub async fn verify(
         let token_hash = {
             let result_bytes = result.as_bytes().to_vec();
 
-            token.set_source(&result_bytes);
-            token.generate();
-
-            token.get_result().unwrap()
+            token
+                .set_source(&result_bytes)
+                .generate()
+                .get_result()
+                .unwrap()
         };
 
         let new_token = NewToken {

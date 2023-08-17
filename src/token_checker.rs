@@ -1,7 +1,7 @@
 use crate::{models::Token, DbPool};
 use actix_web::web;
 use async_trait::async_trait;
-use auth_n::token::{TokenChecker, TokenGenerator};
+use auth_n::token::{HashBuilder, TokenChecker};
 use diesel::prelude::*;
 
 /// Returns the token selected
@@ -31,12 +31,11 @@ impl TokenChecker<u32> for UserIdFromToken {
             // Hash the request token
             // Here we use tokengenerator
             // But we can just use sha2
-            let mut token_generator = TokenGenerator::new(&token_bytes);
-            token_generator.generate();
+            let hash_builder = HashBuilder::new().set_source(&token_bytes).generate();
 
             // Selected hashed token from db
             let token = app_tokens
-                .filter(token_hash.eq(token_generator.get_result().unwrap()))
+                .filter(token_hash.eq(hash_builder.get_result().unwrap()))
                 .load::<Token>(&mut conn)
                 .unwrap();
 
