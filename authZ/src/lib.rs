@@ -4,7 +4,7 @@ use async_trait::async_trait;
 
 #[async_trait]
 /// Model Permission
-pub trait ModelPermission<T, A>
+pub trait ModelPermission<T, A> : Sync + Send
 where
     T: Sized,
 {
@@ -17,17 +17,28 @@ where
 }
 
 #[async_trait]
-pub trait Permission {
+pub trait CheckPermission {
     /// Check if the permissions are valid
     async fn check(&self, subject: String, path: ParsedPath, method: String) -> bool;
+}
 
-    // Get model
-    //
-    // Name defines wich model we should check
-    // for attrs
-    //async fn get_model<T, A, M>(&self, resource_name: &str, condition_name: &str) -> M
-    //where
-    //    M: ModelPermission<T, A> + Sized;
+#[async_trait]
+pub trait GetModel<T, A>
+where
+    T: Sized,
+    A: Sized,
+{
+    /// Get model
+    ///
+    /// Name defines wich model we should check
+    /// for attrs
+    ///
+    /// TODO: maybe Resource Id is not always Int(u32) ?
+    async fn get_model(
+        &self,
+        resource_name: &str,
+        resource_id: u32,
+    ) -> Box<dyn ModelPermission<T, A>>;
 }
 
 #[derive(Debug, Clone)]
