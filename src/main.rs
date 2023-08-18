@@ -4,7 +4,7 @@ use authz::AuthZController;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
 use auth_n::token::TokenAuth;
-use auth_z::middleware::{AuthZMiddleware, AuthZ};
+use auth_z::middleware::AuthZ;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenvy::dotenv;
@@ -120,7 +120,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/organization")
                     .wrap(AuthZ::new(auth_z_controller.clone())) // The AuthZ middleware must be
-                                                                 // .wrap the first, I donno why.
+                    // .wrap the first, I donno why.
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route("/name", web::post().to(name::add_name))
                     .route("/name/{uuid}", web::get().to(name::names))
