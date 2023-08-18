@@ -7,7 +7,7 @@ use actix_web::{
 use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
 
-use crate::{ParsedPath, Permission};
+use crate::{ParsedPath, CheckPermission};
 
 #[derive(Clone, Default)]
 pub struct AuthZ<P> {
@@ -16,7 +16,7 @@ pub struct AuthZ<P> {
 
 impl<P> AuthZ<P>
 where
-    P: Permission,
+    P: CheckPermission,
 {
     /// Construct `TokenAuth` middleware.
     pub fn new(permission: P) -> Self {
@@ -32,7 +32,7 @@ where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
-    F: Permission + Clone + 'static,
+    F: CheckPermission + Clone + 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
@@ -57,7 +57,7 @@ impl<S, B, F> Service<ServiceRequest> for AuthZMiddleware<S, F>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    F: Permission + Clone + 'static,
+    F: CheckPermission + Clone + 'static,
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
