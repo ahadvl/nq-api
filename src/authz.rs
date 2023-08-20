@@ -1,4 +1,6 @@
+use crate::error::RouterError;
 use crate::models::{Organization, User};
+use crate::select_model::SelectModel;
 use crate::DbPool;
 use actix_web::web;
 use async_trait::async_trait;
@@ -8,10 +10,18 @@ use diesel::prelude::*;
 const ANY_FILTER: char = '*';
 
 #[derive(Debug)]
+/// Request Action
 enum Action {
+    /// Create or POST request to a controller
     Create,
+
+    /// Edit or POST request with id to a controller
     Edit,
+
+    /// Delete or DELETE request with id to a controller
     Delete,
+
+    /// View or GET request to a controller, id is not required
     View,
 }
 
@@ -41,6 +51,7 @@ impl Into<&str> for Action {
 }
 
 #[derive(Debug, Clone)]
+/// Actual Context of AuthZ
 pub struct AuthZController {
     db_pool: DbPool,
 }
@@ -67,35 +78,38 @@ impl CheckPermission for AuthZController {
         let mut conn = self.db_pool.get().unwrap();
 
         let path_copy = path.clone();
-        let select_result: (Vec<i32>, Vec<(String, Option<String>)>) = web::block(move || {
-            // Default subject query
-            let subject_query = vec![subject_copy, ANY_FILTER.to_string()];
+        let select_result: Result<(Vec<i32>, Vec<(String, Option<String>)>), RouterError> =
+            web::block(move || {
+                // Default subject query
+                let subject_query = vec![subject_copy, ANY_FILTER.to_string()];
 
-            // Foundout the requested Action
-            let calculated_action = Action::from_auth_z(&path_copy, method.as_str());
+                // Foundout the requested Action
+                let calculated_action = Action::from_auth_z(&path_copy, method.as_str());
 
-            // Check the permissions and get the conditions
-            let permissions_filter = app_permissions
-                .filter(permission_subject.eq_any(subject_query))
-                .filter(permission_object.eq(path_copy.controller.unwrap().clone()))
-                .filter(permission_action.eq::<&str>(calculated_action.into()));
+                // Check the permissions and get the conditions
+                let permissions_filter = app_permissions
+                    .filter(permission_subject.eq_any(subject_query))
+                    .filter(permission_object.eq(path_copy.controller.unwrap().clone()))
+                    .filter(permission_action.eq::<&str>(calculated_action.into()));
 
-            let permissions = permissions_filter
-                .clone()
-                .select(permission_id)
-                .load(&mut conn)
-                .unwrap();
+                let permissions = permissions_filter
+                    .clone()
+                    .select(permission_id)
+                    .load(&mut conn)?;
 
-            let conditions = permissions_filter
-                .inner_join(app_permission_conditions)
-                .select((name, value))
-                .load(&mut conn)
-                .unwrap();
+                let conditions = permissions_filter
+                    .inner_join(app_permission_conditions)
+                    .select((name, value))
+                    .load(&mut conn)?;
 
-            (permissions, conditions)
-        })
-        .await
-        .unwrap();
+                Ok((permissions, conditions))
+            })
+            .await
+            .unwrap();
+
+        let Ok(select_result) = select_result else {
+            return false;
+        };
 
         if select_result.0.is_empty() {
             return false;
@@ -125,7 +139,7 @@ impl CheckPermission for AuthZController {
             let attr = model.get_attr(ModelAttrib::from(cond_name.as_str())).await;
 
             let res = match cond_value {
-                Some(v) => matches!(attr, Some(_)) && attr.unwrap().to_string() == subject,
+                Some(_v) => matches!(attr, Some(_)) && attr.unwrap().to_string() == subject,
                 None => true,
             };
 
@@ -143,46 +157,15 @@ impl GetModel<ModelAttrib, i32> for AuthZController {
         resource_name: &str,
         resource_id: u32,
     ) -> Box<dyn ModelPermission<ModelAttrib, i32>> {
-        use crate::schema::app_organizations::dsl as org_table;
-        use crate::schema::app_users::dsl as user_table;
-
-        let mut conn = self.db_pool.get().unwrap();
+        //let mut conn = self.db_pool.get().unwrap();
         let resource_id = resource_id as i32;
 
         // Resource must have been impl the Model permission trait
-        //
-        // *** Use web::block for database queries
         let model: Box<dyn ModelPermission<ModelAttrib, i32>> = match resource_name {
-            "user" => {
-                web::block(move || {
-                    // Get the Required Resource
-                    let selected_user: Vec<User> = user_table::app_users
-                        .filter(user_table::id.eq(resource_id))
-                        .load(&mut conn)
-                        .unwrap();
-
-                    let selected_user = selected_user.get(0).unwrap();
-
-                    Box::new(selected_user.clone())
-                })
-                .await
-                .unwrap()
-            }
+            "user" => Box::new(User::from_id(self.db_pool.clone(), resource_id).await),
 
             "organization" => {
-                web::block(move || {
-                    // Get the Required Resource
-                    let selected_org: Vec<Organization> = org_table::app_organizations
-                        .filter(org_table::id.eq(resource_id))
-                        .load(&mut conn)
-                        .unwrap();
-
-                    let selected_org = selected_org.get(0).unwrap();
-
-                    Box::new(selected_org.clone())
-                })
-                .await
-                .unwrap()
+                Box::new(Organization::from_id(self.db_pool.clone(), resource_id).await)
             }
 
             _ => todo!(),
@@ -212,8 +195,6 @@ impl ModelPermission<ModelAttrib, i32> for User {
     async fn get_attr(&self, name: ModelAttrib) -> Option<i32> {
         match name {
             ModelAttrib::Owner => Some(self.account_id),
-
-            _ => None,
         }
     }
 }
@@ -223,8 +204,6 @@ impl ModelPermission<ModelAttrib, i32> for Organization {
     async fn get_attr(&self, name: ModelAttrib) -> Option<i32> {
         match name {
             ModelAttrib::Owner => Some(self.account_id),
-
-            _ => None,
         }
     }
 }

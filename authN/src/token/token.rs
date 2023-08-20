@@ -1,7 +1,7 @@
 use sha2::{Digest, Sha256};
 
 /// Uses SHA256 for hashing
-/// recives bytes Vec<u8>
+/// recives bytes `Vec<u8>`
 #[derive(Clone)]
 pub struct HashBuilder<'a> {
     /// Target data

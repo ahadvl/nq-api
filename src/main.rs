@@ -24,6 +24,9 @@ mod schema;
 mod test;
 mod token_checker;
 mod validate;
+mod select_model;
+
+mod macros;
 
 use routers::account::logout;
 use routers::account::send_code;
