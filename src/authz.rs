@@ -1,3 +1,4 @@
+use crate::error::RouterError;
 use crate::models::{Organization, User};
 use crate::select_model::SelectModel;
 use crate::DbPool;
@@ -77,35 +78,38 @@ impl CheckPermission for AuthZController {
         let mut conn = self.db_pool.get().unwrap();
 
         let path_copy = path.clone();
-        let select_result: (Vec<i32>, Vec<(String, Option<String>)>) = web::block(move || {
-            // Default subject query
-            let subject_query = vec![subject_copy, ANY_FILTER.to_string()];
+        let select_result: Result<(Vec<i32>, Vec<(String, Option<String>)>), RouterError> =
+            web::block(move || {
+                // Default subject query
+                let subject_query = vec![subject_copy, ANY_FILTER.to_string()];
 
-            // Foundout the requested Action
-            let calculated_action = Action::from_auth_z(&path_copy, method.as_str());
+                // Foundout the requested Action
+                let calculated_action = Action::from_auth_z(&path_copy, method.as_str());
 
-            // Check the permissions and get the conditions
-            let permissions_filter = app_permissions
-                .filter(permission_subject.eq_any(subject_query))
-                .filter(permission_object.eq(path_copy.controller.unwrap().clone()))
-                .filter(permission_action.eq::<&str>(calculated_action.into()));
+                // Check the permissions and get the conditions
+                let permissions_filter = app_permissions
+                    .filter(permission_subject.eq_any(subject_query))
+                    .filter(permission_object.eq(path_copy.controller.unwrap().clone()))
+                    .filter(permission_action.eq::<&str>(calculated_action.into()));
 
-            let permissions = permissions_filter
-                .clone()
-                .select(permission_id)
-                .load(&mut conn)
-                .unwrap();
+                let permissions = permissions_filter
+                    .clone()
+                    .select(permission_id)
+                    .load(&mut conn)?;
 
-            let conditions = permissions_filter
-                .inner_join(app_permission_conditions)
-                .select((name, value))
-                .load(&mut conn)
-                .unwrap();
+                let conditions = permissions_filter
+                    .inner_join(app_permission_conditions)
+                    .select((name, value))
+                    .load(&mut conn)?;
 
-            (permissions, conditions)
-        })
-        .await
-        .unwrap();
+                Ok((permissions, conditions))
+            })
+            .await
+            .unwrap();
+
+        let Ok(select_result) = select_result else {
+            return false;
+        };
 
         if select_result.0.is_empty() {
             return false;
