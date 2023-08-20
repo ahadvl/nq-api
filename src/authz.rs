@@ -1,4 +1,5 @@
 use crate::models::{Organization, User};
+use crate::select_model::SelectModel;
 use crate::DbPool;
 use actix_web::web;
 use async_trait::async_trait;
@@ -8,10 +9,18 @@ use diesel::prelude::*;
 const ANY_FILTER: char = '*';
 
 #[derive(Debug)]
+/// Request Action
 enum Action {
+    /// Create or POST request to a controller
     Create,
+
+    /// Edit or POST request with id to a controller
     Edit,
+
+    /// Delete or DELETE request with id to a controller
     Delete,
+
+    /// View or GET request to a controller, id is not required
     View,
 }
 
@@ -41,6 +50,7 @@ impl Into<&str> for Action {
 }
 
 #[derive(Debug, Clone)]
+/// Actual Context of AuthZ
 pub struct AuthZController {
     db_pool: DbPool,
 }
@@ -125,7 +135,7 @@ impl CheckPermission for AuthZController {
             let attr = model.get_attr(ModelAttrib::from(cond_name.as_str())).await;
 
             let res = match cond_value {
-                Some(v) => matches!(attr, Some(_)) && attr.unwrap().to_string() == subject,
+                Some(_v) => matches!(attr, Some(_)) && attr.unwrap().to_string() == subject,
                 None => true,
             };
 
@@ -143,46 +153,15 @@ impl GetModel<ModelAttrib, i32> for AuthZController {
         resource_name: &str,
         resource_id: u32,
     ) -> Box<dyn ModelPermission<ModelAttrib, i32>> {
-        use crate::schema::app_organizations::dsl as org_table;
-        use crate::schema::app_users::dsl as user_table;
-
-        let mut conn = self.db_pool.get().unwrap();
+        //let mut conn = self.db_pool.get().unwrap();
         let resource_id = resource_id as i32;
 
         // Resource must have been impl the Model permission trait
-        //
-        // *** Use web::block for database queries
         let model: Box<dyn ModelPermission<ModelAttrib, i32>> = match resource_name {
-            "user" => {
-                web::block(move || {
-                    // Get the Required Resource
-                    let selected_user: Vec<User> = user_table::app_users
-                        .filter(user_table::id.eq(resource_id))
-                        .load(&mut conn)
-                        .unwrap();
-
-                    let selected_user = selected_user.get(0).unwrap();
-
-                    Box::new(selected_user.clone())
-                })
-                .await
-                .unwrap()
-            }
+            "user" => Box::new(User::from_id(self.db_pool.clone(), resource_id).await),
 
             "organization" => {
-                web::block(move || {
-                    // Get the Required Resource
-                    let selected_org: Vec<Organization> = org_table::app_organizations
-                        .filter(org_table::id.eq(resource_id))
-                        .load(&mut conn)
-                        .unwrap();
-
-                    let selected_org = selected_org.get(0).unwrap();
-
-                    Box::new(selected_org.clone())
-                })
-                .await
-                .unwrap()
+                Box::new(Organization::from_id(self.db_pool.clone(), resource_id).await)
             }
 
             _ => todo!(),
@@ -212,8 +191,6 @@ impl ModelPermission<ModelAttrib, i32> for User {
     async fn get_attr(&self, name: ModelAttrib) -> Option<i32> {
         match name {
             ModelAttrib::Owner => Some(self.account_id),
-
-            _ => None,
         }
     }
 }
@@ -223,8 +200,6 @@ impl ModelPermission<ModelAttrib, i32> for Organization {
     async fn get_attr(&self, name: ModelAttrib) -> Option<i32> {
         match name {
             ModelAttrib::Owner => Some(self.account_id),
-
-            _ => None,
         }
     }
 }
