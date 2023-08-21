@@ -139,7 +139,19 @@ impl CheckPermission for AuthZController {
             let attr = model.get_attr(ModelAttrib::from(cond_name.as_str())).await;
 
             let res = match cond_value {
-                Some(_v) => matches!(attr, Some(_)) && attr.unwrap().to_string() == subject,
+                // FIX: Is attr value must be id, or its true, false, none ?
+                //
+                // This is only works with Owner Condition
+                Some(v) => {
+                    // The Owner Id is required
+                    if v == "true" {
+                        matches!(attr, Some(_)) && subject == attr.unwrap().to_string()
+                    } else if v == "false" {
+                        matches!(attr, None) || subject != attr.unwrap().to_string()
+                    } else {
+                        true
+                    }
+                }
                 None => true,
             };
 
@@ -203,7 +215,7 @@ impl ModelPermission<ModelAttrib, i32> for User {
 impl ModelPermission<ModelAttrib, i32> for Organization {
     async fn get_attr(&self, name: ModelAttrib) -> Option<i32> {
         match name {
-            ModelAttrib::Owner => Some(self.account_id),
+            ModelAttrib::Owner => Some(self.owner_account_id),
         }
     }
 }
