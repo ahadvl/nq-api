@@ -4,7 +4,8 @@ use async_trait::async_trait;
 
 #[async_trait]
 /// Model Permission
-pub trait ModelPermission<T, A> : Sync + Send
+/// Returns the attr of the Model
+pub trait ModelPermission<T, A>: Sync + Send
 where
     T: Sized,
 {
@@ -19,6 +20,8 @@ where
 #[async_trait]
 pub trait CheckPermission {
     /// Check if the permissions are valid
+    ///
+    /// This args will passed from the Middleware
     async fn check(&self, subject: String, path: ParsedPath, method: String) -> bool;
 }
 
@@ -42,9 +45,32 @@ where
 }
 
 #[derive(Debug, Clone)]
+/// This is the Natiq Way of reading URLs
+///
+/// Overall format: `/{controller}/{action}/{id}`
+///
+/// Each of these can be Optional and None, For example this is a valid,
+/// Url: `/{controller}/{id}` Example: `/product/1`
+///
+/// Note that there is no action, ***Every part of natiq standard Url can be Optional***
 pub struct ParsedPath {
+    /// Path Controller
+    ///
+    /// example: `/organization`
+    /// format: `/{controller}`
     pub controller: Option<String>,
+
+    /// Path Action
+    ///
+    /// example: `/organization/add`
+    /// format: `/{_}/{action}/{_}`
     pub action: Option<String>,
+
+    /// Path Id
+    ///
+    /// example: `/organization/10`
+    /// example: `/organization/edit/10`
+    /// format: `/{_}/{_}/{id}`
     pub id: Option<String>,
 }
 

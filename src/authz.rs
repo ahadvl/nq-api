@@ -218,6 +218,8 @@ enum ModelAttrib {
 }
 
 impl From<ModelAttrib> for ModelAttribResult {
+    // From ModelAttrib return the Result Enum, so we can
+    // validate the Condition 
     fn from(value: ModelAttrib) -> Self {
         match value {
             ModelAttrib::Owner => ModelAttribResult::Owner(Owner {}),
@@ -227,6 +229,7 @@ impl From<ModelAttrib> for ModelAttribResult {
 
 // Maybe we can use TryFrom
 impl From<&str> for ModelAttrib {
+    // Returns ModelAttrib from &str (string)
     fn from(value: &str) -> Self {
         match value {
             "owner" => Self::Owner,
