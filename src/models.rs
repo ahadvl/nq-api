@@ -136,12 +136,13 @@ pub struct NewEmail<'a> {
 }
 
 #[derive(Selectable, Identifiable, Associations, Queryable, PartialEq, Debug, Serialize, Clone)]
-#[diesel(belongs_to(Account))]
+#[diesel(belongs_to(Account, foreign_key = account_id))]
 #[diesel(table_name = app_organizations)]
 pub struct Organization {
     pub id: i32,
     pub uuid: Uuid,
     pub account_id: i32,
+    pub owner_account_id: i32,
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
     pub national_id: String,
@@ -175,6 +176,7 @@ pub struct NewOrganizationName {
 #[diesel(table_name = app_organizations)]
 pub struct NewOrganization {
     pub account_id: i32,
+    pub owner_account_id: i32,
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
     pub national_id: String,
