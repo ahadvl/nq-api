@@ -64,7 +64,6 @@ impl AuthZController {
 
 #[async_trait]
 impl CheckPermission for AuthZController {
-    //type Output = Result<(), RouterError>;
     async fn check(&self, subject: String, path: ParsedPath, method: String) -> bool {
         use crate::schema::app_permission_conditions::dsl::{
             app_permission_conditions, name, value,
@@ -74,10 +73,11 @@ impl CheckPermission for AuthZController {
             object as permission_object, subject as permission_subject,
         };
 
+        // these will be moved to the web::block closure
         let subject_copy = subject.clone();
-        let mut conn = self.db_pool.get().unwrap();
-
         let path_copy = path.clone();
+
+        let mut conn = self.db_pool.get().unwrap();
         let select_result: Result<(Vec<i32>, Vec<(String, Option<String>)>), RouterError> =
             web::block(move || {
                 // Default subject query
@@ -136,22 +136,11 @@ impl CheckPermission for AuthZController {
         let mut result = false;
         // We Got the model now we check every condition
         for (cond_name, cond_value) in select_result.1 {
-            let attr = model.get_attr(ModelAttrib::from(cond_name.as_str())).await;
+            let model_attr = ModelAttrib::from(cond_name.as_str());
+            let attr = model.get_attr(model_attr.clone()).await;
 
             let res = match cond_value {
-                // FIX: Is attr value must be id, or its true, false, none ?
-                //
-                // This is only works with Owner Condition
-                Some(v) => {
-                    // The Owner Id is required
-                    if v == "true" {
-                        matches!(attr, Some(_)) && subject == attr.unwrap().to_string()
-                    } else if v == "false" {
-                        matches!(attr, None) || subject != attr.unwrap().to_string()
-                    } else {
-                        true
-                    }
-                }
+                Some(v) => ModelAttribResult::from(model_attr).validate(attr, &subject, &v),
                 None => true,
             };
 
@@ -187,8 +176,53 @@ impl GetModel<ModelAttrib, i32> for AuthZController {
     }
 }
 
+trait ValidateAttrib<'a> {
+    fn validate(&self, attribute: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool
+    where
+        Self: Sized;
+}
+
+#[derive(Debug, Clone)]
+pub struct Owner;
+
+impl<'a> ValidateAttrib<'a> for Owner {
+    // Validates the Owner Condition
+    fn validate(&self, attr: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool {
+        if condition_value == "true" {
+            matches!(attr, Some(_)) && subject == attr.unwrap().to_string()
+        } else if condition_value == "false" {
+            matches!(attr, None) || subject != attr.unwrap().to_string()
+        } else {
+            true
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+enum ModelAttribResult {
+    /// Owner Condition Result
+    Owner(Owner),
+}
+
+impl<'a> ValidateAttrib<'a> for ModelAttribResult {
+    fn validate(&self, attribute: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool {
+        match self {
+            Self::Owner(owner) => owner.validate(attribute, subject, condition_value),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 enum ModelAttrib {
     Owner,
+}
+
+impl From<ModelAttrib> for ModelAttribResult {
+    fn from(value: ModelAttrib) -> Self {
+        match value {
+            ModelAttrib::Owner => ModelAttribResult::Owner(Owner {}),
+        }
+    }
 }
 
 // Maybe we can use TryFrom
