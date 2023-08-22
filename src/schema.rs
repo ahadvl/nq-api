@@ -46,6 +46,7 @@ diesel::table! {
         id -> Int4,
         uuid -> Uuid,
         account_id -> Int4,
+        owner_account_id -> Int4,
         profile_image -> Nullable<Text>,
         established_date -> Date,
         national_id -> Varchar,

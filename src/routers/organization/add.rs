@@ -53,6 +53,7 @@ pub async fn add<'a>(
 
         let new_organization = NewOrganization {
             account_id: new_account.id,
+            owner_account_id: user_account_id as i32,
             profile_image: new_org_info.profile_image,
             established_date: new_org_info.established_date,
             national_id: new_org_info.national_id,
