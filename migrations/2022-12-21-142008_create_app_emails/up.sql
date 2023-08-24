@@ -10,5 +10,5 @@ CREATE TABLE app_emails (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT app_emails_id PRIMARY KEY (id),
-    CONSTRAINT fk_account FOREIGN KEY(account_id) REFERENCES app_accounts(id)
+    CONSTRAINT fk_email_account_rel FOREIGN KEY(account_id) REFERENCES app_accounts(id)
 );
