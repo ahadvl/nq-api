@@ -1,4 +1,6 @@
-use actix_web::web::{self, ReqData};
+use std::str::FromStr;
+
+use actix_web::web;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -20,15 +22,15 @@ pub struct NewName {
 }
 
 pub async fn add_name<'a>(
+    path: web::Path<String>,
     pool: web::Data<DbPool>,
     new_name_req: web::Json<NewName>,
-    data: ReqData<u32>,
 ) -> Result<&'a str, RouterError> {
-    use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id};
+    use crate::schema::app_accounts::dsl::{app_accounts, uuid as uuid_from_account};
     use crate::schema::app_organization_names::dsl::*;
 
     let new_name = new_name_req.into_inner();
-    let user_account_id = data.into_inner();
+    let org_uuid = path.into_inner();
 
     validate(&new_name)?;
 
@@ -36,7 +38,7 @@ pub async fn add_name<'a>(
         let mut conn = pool.get().unwrap();
 
         let account = app_accounts
-            .filter(acc_id.eq(user_account_id as i32))
+            .filter(uuid_from_account.eq(Uuid::from_str(org_uuid.as_str())?))
             .load::<Account>(&mut conn)?;
 
         let Some(account) = account.get(0) else {
@@ -64,9 +66,9 @@ pub async fn names(
     pool: web::Data<DbPool>,
     path: web::Path<String>,
 ) -> Result<web::Json<Vec<OrganizationName>>, RouterError> {
-    use crate::schema::app_accounts::dsl::app_accounts;
+    use crate::schema::app_accounts::dsl::{app_accounts, uuid as uuid_from_account};
     use crate::schema::app_organization_names::dsl::app_organization_names;
-    use crate::schema::app_organizations::dsl::{app_organizations, uuid};
+    use crate::schema::app_organizations::dsl::app_organizations;
 
     let path = path.into_inner();
 
@@ -77,7 +79,7 @@ pub async fn names(
 
         let names = app_organizations
             .inner_join(app_accounts.inner_join(app_organization_names))
-            .filter(uuid.eq(id))
+            .filter(uuid_from_account.eq(id))
             .select(OrganizationName::as_select())
             .load::<OrganizationName>(&mut conn)?;
 
