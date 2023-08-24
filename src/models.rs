@@ -9,6 +9,7 @@ use validator::Validate;
 #[diesel(table_name = app_accounts)]
 pub struct Account {
     pub id: i32,
+    pub uuid: Uuid,
     pub username: String,
     pub account_type: String,
 }
@@ -61,16 +62,23 @@ pub struct NewVerifyCode<'a> {
     pub email: &'a String,
 }
 
-#[derive(Associations, Identifiable, Queryable, Debug, Clone, Serialize)]
+#[derive(Associations, Identifiable, Queryable, Debug, Clone, Serialize, Selectable)]
 #[diesel(belongs_to(Account))]
 #[diesel(table_name = app_users)]
 pub struct User {
+    #[serde(skip_serializing)]
     pub id: i32,
+
+    #[serde(skip_serializing)]
     pub account_id: i32,
+
     pub birthday: Option<NaiveDate>,
     pub profile_image: Option<String>,
     pub language: Option<String>,
+
+    #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,
+    #[serde(skip_serializing)]
     pub updated_at: NaiveDateTime,
 }
 
@@ -140,7 +148,6 @@ pub struct NewEmail<'a> {
 #[diesel(table_name = app_organizations)]
 pub struct Organization {
     pub id: i32,
-    pub uuid: Uuid,
     pub account_id: i32,
     pub owner_account_id: i32,
     pub profile_image: Option<String>,
