@@ -3,6 +3,7 @@
 diesel::table! {
     app_accounts (id) {
         id -> Int4,
+        uuid -> Uuid,
         username -> Varchar,
         account_type -> Text,
     }
@@ -44,7 +45,6 @@ diesel::table! {
 diesel::table! {
     app_organizations (id) {
         id -> Int4,
-        uuid -> Uuid,
         account_id -> Int4,
         owner_account_id -> Int4,
         profile_image -> Nullable<Text>,
@@ -210,12 +210,13 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(app_employees -> app_accounts (employee_account_id));
+diesel::joinable!(app_emails -> app_accounts (account_id));
 diesel::joinable!(app_organization_names -> app_accounts (account_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
 diesel::joinable!(app_permission_conditions -> app_permissions (permission_id));
 diesel::joinable!(app_tokens -> app_accounts (account_id));
 diesel::joinable!(app_user_names -> app_accounts (account_id));
+diesel::joinable!(app_users -> app_accounts (account_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
 diesel::joinable!(quran_surahs -> mushafs (mushaf_id));
 diesel::joinable!(quran_words -> quran_ayahs (ayah_id));
