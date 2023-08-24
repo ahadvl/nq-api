@@ -2,7 +2,7 @@
   "openapi": "3.0.2",
   "info": {
     "title": "NatiqQuran Api",
-    "version": "0.0.3"
+    "version": "0.0.4"
   },
   "servers": [
     {
@@ -19,7 +19,7 @@
       "description": "manage organizations"
     },
     {
-      "name": "profile",
+      "name": "user",
       "description": "view or edit the org/user profile"
     },
     {
@@ -113,7 +113,7 @@
         }
       }
     },
-    "/profile": {
+    "/user": {
       "get": {
         "parameters": [
           {
