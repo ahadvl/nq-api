@@ -1,6 +1,6 @@
 pub mod account;
 pub mod organization;
-pub mod profile;
+pub mod user;
 pub mod quran;
 
 use std::collections::BTreeMap;

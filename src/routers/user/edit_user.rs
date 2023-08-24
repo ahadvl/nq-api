@@ -1,7 +1,10 @@
-use actix_web::web::{self, ReqData};
+use std::str::FromStr;
+
+use actix_web::web;
 use chrono::NaiveDate;
 use diesel::prelude::*;
 use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::{
     error::RouterError,
@@ -10,7 +13,7 @@ use crate::{
 };
 
 #[derive(Deserialize)]
-pub struct EditableProfile {
+pub struct EditableUser {
     pub username: String,
     pub first_name: String,
     pub last_name: String,
@@ -21,24 +24,24 @@ pub struct EditableProfile {
 
 /// Edit the profile
 /// wants a new profile and token
-pub async fn edit_profile<'a>(
-    data: ReqData<u32>,
+pub async fn edit_user<'a>(
+    path: web::Path<String>,
     pool: web::Data<DbPool>,
-    new_profile: web::Json<EditableProfile>,
+    new_user: web::Json<EditableUser>,
 ) -> Result<&'a str, RouterError> {
-    use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id, username};
+    use crate::schema::app_accounts::dsl::{app_accounts, username, uuid as uuid_from_account};
     use crate::schema::app_user_names::dsl::{first_name, last_name, primary_name};
     use crate::schema::app_users::dsl::*;
 
-    let user_id = data.into_inner();
-    let new_profile = new_profile.into_inner();
+    let account_uuid = path.into_inner();
+    let new_user = new_user.into_inner();
 
     let edit_status: Result<&'a str, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         // First find the org from id
         let account = app_accounts
-            .filter(acc_id.eq(user_id as i32))
+            .filter(uuid_from_account.eq(Uuid::from_str(account_uuid.as_str())?))
             .load::<Account>(&mut conn)?;
 
         let Some(account) = account.get(0) else {
@@ -53,14 +56,14 @@ pub async fn edit_profile<'a>(
 
         // Now update the account username
         diesel::update(account)
-            .set(username.eq(new_profile.username))
+            .set(username.eq(new_user.username))
             .execute(&mut conn)?;
 
         // And update the other data
         diesel::update(current_user_profile)
             .set((
-                birthday.eq(new_profile.birthday),
-                profile_image.eq(new_profile.profile_image),
+                birthday.eq(new_user.birthday),
+                profile_image.eq(new_user.profile_image),
             ))
             .execute(&mut conn)?;
 
@@ -75,8 +78,8 @@ pub async fn edit_profile<'a>(
         // Now we update it
         diesel::update(&name)
             .set((
-                first_name.eq(new_profile.first_name),
-                last_name.eq(new_profile.last_name),
+                first_name.eq(new_user.first_name),
+                last_name.eq(new_user.last_name),
             ))
             .execute(&mut conn)?;
 

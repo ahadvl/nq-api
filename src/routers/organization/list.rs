@@ -44,7 +44,7 @@ pub async fn get_list_of_organizations(
         let result = select_all
             .iter()
             .map(|(org, account, name)| OrgWithName {
-                uuid: org.uuid,
+                uuid: account.uuid,
                 established_date: org.established_date,
                 national_id: org.national_id.clone(),
                 primary_name: name.name.clone(),

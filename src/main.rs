@@ -32,8 +32,7 @@ use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
 use routers::organization::{add, edit, list, name, view};
-use routers::profile::edit_profile;
-use routers::profile::profile;
+use routers::user::{edit_user, user, users_list};
 use routers::quran::{mushaf, surah};
 
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
@@ -115,10 +114,11 @@ async fn main() -> std::io::Result<()> {
             )
             .service(web::resource("/mushaf").route(web::get().to(mushaf::mushaf)))
             .service(
-                web::resource("/user")
+                web::scope("/user")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
-                    .route(web::get().to(profile::view_profile))
-                    .route(web::post().to(edit_profile::edit_profile)),
+                    .route("", web::get().to(users_list::users_list))
+                    .route("/{uuid}", web::get().to(user::view_user))
+                    .route("/{uuid}", web::post().to(edit_user::edit_user)),
             )
             .service(
                 web::scope("/organization")

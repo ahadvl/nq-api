@@ -2,7 +2,6 @@
 
 CREATE TABLE app_organizations(
     id serial NOT NULL,
-    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     account_id serial REFERENCES app_accounts(id),
     owner_account_id serial,
     profile_image TEXT,

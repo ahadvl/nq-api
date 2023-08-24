@@ -1,7 +1,10 @@
-use actix_web::web::{self, ReqData};
+use std::str::FromStr;
+
+use actix_web::web;
 use chrono::NaiveDate;
 use diesel::prelude::*;
 use serde::Serialize;
+use uuid::Uuid;
 
 use crate::error::RouterError;
 use crate::models::{Account, Email, User, UserName};
@@ -9,7 +12,7 @@ use crate::DbPool;
 
 #[derive(Serialize)]
 pub struct FullUserProfile {
-    pub id: i32,
+    pub uuid: String,
     pub email: String,
     pub username: String,
     pub first_name: Option<String>,
@@ -18,26 +21,25 @@ pub struct FullUserProfile {
     pub profile_image: Option<String>,
 }
 
-pub async fn view_profile(
+pub async fn view_user(
     pool: web::Data<DbPool>,
-    data: ReqData<u32>,
+    path: web::Path<String>,
 ) -> Result<web::Json<FullUserProfile>, RouterError> {
-    use crate::schema::app_accounts::dsl::{app_accounts, id as id_from_accounts};
+    use crate::schema::app_accounts::dsl::{app_accounts, uuid as uuid_from_accounts};
     use crate::schema::app_user_names::dsl::primary_name;
 
-    // Get userId from token Checker
-    let acc_id = data.into_inner();
+    let account_uuid = path.into_inner();
 
     // select user form db
     // with user_id
-    let user_profile: Result<web::Json<FullUserProfile>, RouterError> = web::block(move || {
+    let user: Result<web::Json<FullUserProfile>, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
         let account = app_accounts
-            .filter(id_from_accounts.eq(acc_id as i32))
+            .filter(uuid_from_accounts.eq(Uuid::from_str(account_uuid.as_str())?))
             .load::<Account>(&mut conn)?;
 
-        let Some(account)= account.get(0) else {
+        let Some(account) = account.get(0) else {
             return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
@@ -63,7 +65,7 @@ pub async fn view_profile(
                 let name: &UserName = names.get(0).unwrap();
 
                 FullUserProfile {
-                    id: account.id,
+                    uuid: account.uuid.to_string(),
                     email: email.email,
                     username: account.username.to_owned(),
                     first_name: Some(name.first_name.to_owned()),
@@ -74,7 +76,7 @@ pub async fn view_profile(
             }
 
             None => FullUserProfile {
-                id: account.id,
+                uuid: account.uuid.to_string(),
                 email: email.email,
                 username: account.username.to_owned(),
                 first_name: None,
@@ -89,5 +91,5 @@ pub async fn view_profile(
     .await
     .unwrap();
 
-    user_profile
+    user
 }
