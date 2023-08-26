@@ -1,415 +1,578 @@
 {
-  "openapi": "3.0.2",
-  "info": {
-    "title": "NatiqQuran Api",
-    "version": "0.0.4"
-  },
-  "servers": [
-    {
-      "url": "http://api.natiq.net"
+    "openapi": "3.0.2",
+    "info": {
+        "title": "NatiqQuran Api",
+        "version": "0.0.4"
+    },
+    "servers": [
+        {
+            "url": "http://api.natiq.net"
+        }
+    ],
+    "tags": [
+        {
+            "name": "account",
+            "description": "for auth, and users"
+        },
+        {
+            "name": "organization",
+            "description": "manage organizations"
+        },
+        {
+            "name": "user",
+            "description": "view, delete, edit, view list, the Users"
+        },
+        {
+            "name": "quran",
+            "description": "All the quran related routers"
+        }
+    ],
+    "paths": {
+        "/account/sendCode": {
+            "post": {
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "description": "the email address",
+                                        "example": "info@natiq.com"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "account"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Code sended."
+                    }
+                }
+            }
+        },
+        "/account/verify": {
+            "post": {
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "description": "the email address",
+                                        "example": "info@natiq.com"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "description": "the code",
+                                        "minLength": 6,
+                                        "maxLength": 6,
+                                        "example": 123456
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "account"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the new user token"
+                    }
+                }
+            }
+        },
+        "/account/logout": {
+            "get": {
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "account"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "expires the token of user"
+                    }
+                }
+            }
+        },
+        "/user": {
+            "get": {
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "user"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the user full profile"
+                    }
+                }
+            },
+            "post": {
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "description": "The unique username for new profile",
+                                        "example": "Mahdi1279"
+                                    },
+                                    "first_name": {
+                                        "type": "string",
+                                        "description": "the first name of user",
+                                        "example": "Mahdi"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "description": "the last name of user",
+                                        "example": "Mohammadi"
+                                    },
+                                    "birthday": {
+                                        "type": "string",
+                                        "description": "The date of the birth",
+                                        "example": "1989-12-2"
+                                    },
+                                    "profile_image": {
+                                        "type": "string",
+                                        "description": "The url of a profile image",
+                                        "example": "https://assets.natiq.com/mahdi-profile-image.jpg"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "user"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "edited"
+                    }
+                }
+            }
+        },
+        "/organizations": {
+            "get": {
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the list of all orgs"
+                    }
+                }
+            },
+            "post": {
+                "description": "Adds the new org",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "description": "The unique username for new org",
+                                        "example": "github"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The full name of org",
+                                        "example": "github org"
+                                    },
+                                    "profile_image": {
+                                        "type": "string",
+                                        "description": "The url of a profile image",
+                                        "example": "https://assets.natiq.com/nema-profile-image.jpg"
+                                    },
+                                    "established_date": {
+                                        "type": "string",
+                                        "description": "The established date of org(company)",
+                                        "example": "1988-03-12"
+                                    },
+                                    "national_id": {
+                                        "type": "string",
+                                        "description": "The national id of a company",
+                                        "minLength": 11,
+                                        "maxLength": 11,
+                                        "example": "12345678911"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means new org was created"
+                    }
+                }
+            }
+        },
+        "/organization/{org_uuid}": {
+            "get": {
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "org_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the org with id you specified"
+                    }
+                }
+            },
+            "post": {
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "org_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "description": "The unique username for new org",
+                                        "example": "github"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The full name of org",
+                                        "example": "github org"
+                                    },
+                                    "profile_image": {
+                                        "type": "string",
+                                        "description": "The url of a profile image",
+                                        "example": "https://assets.natiq.com/nema-profile-image.jpg"
+                                    },
+                                    "established_date": {
+                                        "type": "string",
+                                        "description": "The established date of org(company)",
+                                        "example": "1988-03-12"
+                                    },
+                                    "national_id": {
+                                        "type": "string",
+                                        "description": "The national id of a company",
+                                        "minLength": 11,
+                                        "maxLength": 11,
+                                        "example": "12345678911"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means organization with id you specified"
+                    }
+                }
+            }
+        },
+        "/organizations/name": {
+            "post": {
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "New name",
+                                        "example": "ali"
+                                    },
+                                    "language": {
+                                        "type": "string",
+                                        "description": "language",
+                                        "minLength": 2,
+                                        "maxLength": 2,
+                                        "example": "en"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Added"
+                    }
+                }
+            }
+        },
+        "/organization/name/{name_uuid}": {
+            "get": {
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "name_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Added"
+                    }
+                }
+            },
+            "post": {
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "name_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "New name",
+                                        "example": "ali"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "edited"
+                    }
+                }
+            },
+            "delete": {
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "name_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "deleted"
+                    }
+                }
+            }
+        },
+        "/mushaf": {
+            "description": "Returns the list of mushafs",
+            "get": {
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the mushafs list"
+                    }
+                }
+            }
+        },
+        "/surah": {
+            "description": "Returns the list of surahs",
+            "get": {
+                "parameters": [
+                    {
+                        "in": "query",
+                        "required": true,
+                        "name": "mushaf",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the surahs list"
+                    }
+                }
+            }
+        },
+        "/surah/{suarh_uuid}": {
+            "description": "Returns the single surah",
+            "get": {
+                "parameters": [
+                    {
+                        "in": "query",
+                        "required": true,
+                        "name": "mushaf",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the single surah"
+                    }
+                }
+            }
+        }
     }
-  ],
-  "tags": [
-    {
-      "name": "account",
-      "description": "for auth, and users"
-    },
-    {
-      "name": "organization",
-      "description": "manage organizations"
-    },
-    {
-      "name": "user",
-      "description": "view or edit the org/user profile"
-    },
-    {
-      "name": "quran",
-      "description": "All the quran related routers"
-    }
-  ],
-  "paths": {
-    "/account/sendCode": {
-      "post": {
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "description": "the email address",
-                    "example": "info@natiq.com"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "account"
-        ],
-        "responses": {
-          "200": {
-            "description": "Code sended."
-          }
-        }
-      }
-    },
-    "/account/verify": {
-      "post": {
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "description": "the email address",
-                    "example": "info@natiq.com"
-                  },
-                  "code": {
-                    "type": "string",
-                    "description": "the code",
-                    "minLength": 6,
-                    "maxLength": 6,
-                    "example": 123456
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "account"
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the new user token"
-          }
-        }
-      }
-    },
-    "/account/logout": {
-      "get": {
-        "parameters": [
-          {
-            "in": "header",
-            "required": true,
-            "name": "Authorization",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "tags": [
-          "account"
-        ],
-        "responses": {
-          "200": {
-            "description": "expires the token of user"
-          }
-        }
-      }
-    },
-    "/user": {
-      "get": {
-        "parameters": [
-          {
-            "in": "header",
-            "required": true,
-            "name": "Authorization",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "tags": [
-          "profile"
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the user profile"
-          }
-        }
-      },
-      "post": {
-        "parameters": [
-          {
-            "in": "header",
-            "required": true,
-            "name": "Authorization",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "type": "string",
-                    "description": "The unique username for new profile",
-                    "example": "Mahdi1279"
-                  },
-                  "first_name": {
-                    "type": "string",
-                    "description": "the first name of user",
-                    "example": "Mahdi"
-                  },
-                  "last_name": {
-                    "type": "string",
-                    "description": "the last name of user",
-                    "example": "Mohammadi"
-                  },
-                  "birthday": {
-                    "type": "string",
-                    "description": "The date of the birth",
-                    "example": "1989-12-2"
-                  },
-                  "profile_image": {
-                    "type": "string",
-                    "description": "The url of a profile image",
-                    "example": "https://assets.natiq.com/mahdi-profile-image.jpg"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "profile"
-        ],
-        "responses": {
-          "200": {
-            "description": "edited"
-          },
-          "500": {
-            "description": "{some error}"
-          }
-        }
-      }
-    },
-    "/organizations": {
-      "get": {
-        "parameters": [
-          {
-            "in": "header",
-            "required": true,
-            "name": "Authorization",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "tags": [
-          "organization"
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the list of all orgs"
-          }
-        }
-      },
-      "post": {
-        "description": "Adds the new org",
-        "parameters": [
-          {
-            "in": "header",
-            "required": true,
-            "name": "Authorization",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "type": "string",
-                    "description": "The unique username for new org",
-                    "example": "github"
-                  },
-                  "name": {
-                    "type": "string",
-                    "description": "The full name of org",
-                    "example": "github org"
-                  },
-                  "profile_image": {
-                    "type": "string",
-                    "description": "The url of a profile image",
-                    "example": "https://assets.natiq.com/nema-profile-image.jpg"
-                  },
-                  "established_date": {
-                    "type": "string",
-                    "description": "The established date of org(company)",
-                    "example": "1988-03-12"
-                  },
-                  "national_id": {
-                    "type": "string",
-                    "description": "The national id of a company",
-                    "minLength": 11,
-                    "maxLength": 11,
-                    "example": "12345678911"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "organization"
-        ],
-        "responses": {
-          "200": {
-            "description": "This means new org was created"
-          }
-        }
-      }
-    },
-    "/organization/{org_id}": {
-      "get": {
-        "parameters": [
-          {
-            "in": "header",
-            "required": true,
-            "name": "Authorization",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "required": true,
-            "name": "org_id",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "tags": [
-          "organization"
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the org with id you specified"
-          }
-        }
-      },
-      "post": {
-        "parameters": [
-          {
-            "required": true,
-            "in": "header",
-            "name": "Authorization",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "required": true,
-            "name": "org_id",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "type": "string",
-                    "description": "The unique username for new org",
-                    "example": "github"
-                  },
-                  "name": {
-                    "type": "string",
-                    "description": "The full name of org",
-                    "example": "github org"
-                  },
-                  "profile_image": {
-                    "type": "string",
-                    "description": "The url of a profile image",
-                    "example": "https://assets.natiq.com/nema-profile-image.jpg"
-                  },
-                  "established_date": {
-                    "type": "string",
-                    "description": "The established date of org(company)",
-                    "example": "1988-03-12"
-                  },
-                  "national_id": {
-                    "type": "string",
-                    "description": "The national id of a company",
-                    "minLength": 11,
-                    "maxLength": 11,
-                    "example": "12345678911"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "organization"
-        ],
-        "responses": {
-          "200": {
-            "description": "This means organization with id you specified"
-          }
-        }
-      }
-    },
-    "/surah": {
-      "description": "Returns the list of all surahs",
-      "get" : {
-        "parameters": [
-          {
-            "in": "query",
-            "required": true,
-            "name": "mushaf",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the surahs list"
-          }
-        }
-      }
-    },
-    "/surah/{suarh_id}": {
-      "description": "Returns the single surah",
-      "get" : {
-        "parameters": [
-          {
-            "in": "query",
-            "required": true,
-            "name": "mushaf",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the single surah"
-          }
-        }
-      }
-    }
-  }
 }
