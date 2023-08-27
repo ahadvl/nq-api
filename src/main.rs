@@ -32,7 +32,7 @@ use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
 use routers::organization::{add, edit, list, name, view};
-use routers::permission::permissions_list;
+use routers::permission::{permissions_list, view_permission};
 use routers::quran::{mushaf, surah};
 use routers::user::{edit_user, user, users_list};
 
@@ -137,7 +137,8 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 web::scope("/permission")
-                    .route("", web::get().to(permissions_list::get_list_of_permissions)),
+                    .route("", web::get().to(permissions_list::get_list_of_permissions))
+                    .route("/{permission_uuid}", web::get().to(view_permission::get_permission))
             )
     })
     .bind(("0.0.0.0", 8080))?
