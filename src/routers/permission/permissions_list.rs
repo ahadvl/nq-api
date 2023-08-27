@@ -1,7 +1,13 @@
+use std::collections::BTreeMap;
+
 use crate::{
     error::RouterError,
     models::{Permission, PermissionCondition},
-    DbPool, routers::permission::PermissionWithConditions,
+    routers::{
+        multip,
+        permission::{PermissionWithConditions, SimplePermission},
+    },
+    DbPool,
 };
 use actix_web::web;
 use diesel::prelude::*;
@@ -11,22 +17,49 @@ use diesel::prelude::*;
 /// with related Conditions
 pub async fn get_list_of_permissions(
     pool: web::Data<DbPool>,
-) -> Result<web::Json<Vec<Permission>>, RouterError> {
+) -> Result<web::Json<Vec<PermissionWithConditions>>, RouterError> {
     use crate::schema::app_permission_conditions::dsl::app_permission_conditions;
     use crate::schema::app_permissions::dsl::app_permissions;
 
-    let permissions: Result<PermissionWithConditions, RouterError> = web::block(move || {
+    let permissions: Result<Vec<PermissionWithConditions>, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
-        let permissions_with_conditions: Vec<(Permission, PermissionCondition)> = app_permissions
-            .inner_join(app_permission_conditions)
-            .select((Permission::as_select(), PermissionCondition::as_select()))
-            .load(&mut conn)?;
+        // TODO: fix None Condition
+        let permissions_with_conditions: Vec<(Permission, Option<PermissionCondition>)> =
+            app_permissions
+                .left_join(app_permission_conditions)
+                .select((
+                    Permission::as_select(),
+                    // This is for situation that there is no
+                    // condition related to this Permission
+                    Option::<PermissionCondition>::as_select(),
+                ))
+                .load(&mut conn)?;
 
-        todo!()
+        let permissions_with_conditions_map: BTreeMap<
+            SimplePermission,
+            Vec<Option<PermissionCondition>>,
+        > = multip(permissions_with_conditions, |p: Permission| {
+            SimplePermission {
+                uuid: p.uuid,
+                subject: p.subject,
+                object: p.object,
+                action: p.action,
+            }
+        });
+
+        let result: Vec<PermissionWithConditions> = permissions_with_conditions_map
+            .into_iter()
+            .map(|(simple_permission, conditions)| PermissionWithConditions {
+                conditions,
+                permission: simple_permission,
+            })
+            .collect();
+
+        Ok(result)
     })
     .await
     .unwrap();
 
-    todo!()
+    Ok(web::Json(permissions?))
 }

@@ -2,6 +2,7 @@ pub mod account;
 pub mod organization;
 pub mod user;
 pub mod quran;
+pub mod permission;
 
 use std::collections::BTreeMap;
 use std::hash::Hash;

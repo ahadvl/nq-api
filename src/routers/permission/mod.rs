@@ -1,13 +1,20 @@
 use crate::models::PermissionCondition;
+use serde::Serialize;
+use uuid::Uuid;
 
 pub mod permissions_list;
 
-
-#[derive(Debug, Clone)]
-pub struct PermissionWithConditions {
+#[derive(Serialize, Eq, Ord, Hash, Debug, Clone, PartialEq, PartialOrd)]
+pub struct SimplePermission {
+    uuid: Uuid,
     subject: String,
     object: String,
     action: String,
-    conditions: Vec<PermissionCondition>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct PermissionWithConditions {
+    #[serde(flatten)]
+    permission: SimplePermission,
+    conditions: Vec<Option<PermissionCondition>>,
+}
