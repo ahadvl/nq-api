@@ -58,6 +58,7 @@ diesel::table! {
 diesel::table! {
     app_permission_conditions (id) {
         id -> Int4,
+        uuid -> Uuid,
         permission_id -> Int4,
         name -> Varchar,
         value -> Nullable<Varchar>,
@@ -69,6 +70,7 @@ diesel::table! {
 diesel::table! {
     app_permissions (id) {
         id -> Int4,
+        uuid -> Uuid,
         subject -> Varchar,
         object -> Varchar,
         action -> Varchar,
