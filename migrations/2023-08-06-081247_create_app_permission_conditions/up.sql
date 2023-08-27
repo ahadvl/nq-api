@@ -1,5 +1,6 @@
 CREATE TABLE app_permission_conditions (
     id serial NOT NULL,
+    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     permission_id serial NOT NULL,
     name VARCHAR(450) NOT NULL,
     value VARCHAR(255),
