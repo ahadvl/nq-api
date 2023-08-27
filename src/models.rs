@@ -297,11 +297,13 @@ pub struct QuranMushaf {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug)]
+#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug, Selectable)]
 #[diesel(table_name = app_permissions)]
 pub struct Permission {
     #[serde(skip_serializing)]
     pub id: i32,
+
+    pub uuid: Uuid,
 
     pub subject: String,
     pub object: String,
@@ -313,12 +315,24 @@ pub struct Permission {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug, Associations)]
+#[derive(
+    Deserialize,
+    Serialize,
+    Clone,
+    Validate,
+    Identifiable,
+    Queryable,
+    Debug,
+    Associations,
+    Selectable,
+)]
 #[diesel(belongs_to(Permission))]
 #[diesel(table_name = app_permission_conditions)]
 pub struct PermissionCondition {
     #[serde(skip_serializing)]
     pub id: i32,
+
+    pub uuid: Uuid,
 
     #[serde(skip_serializing)]
     pub permission_id: i32,

@@ -1,5 +1,6 @@
 CREATE TABLE app_permissions (
     id serial NOT NULL,
+    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     subject VARCHAR(255) NOT NULL,
     object VARCHAR(255) NOT NULL,
     action VARCHAR(255) NOT NULL,

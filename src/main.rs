@@ -21,10 +21,10 @@ mod error;
 pub mod models;
 mod routers;
 mod schema;
+mod select_model;
 mod test;
 mod token_checker;
 mod validate;
-mod select_model;
 
 mod macros;
 
@@ -32,8 +32,9 @@ use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
 use routers::organization::{add, edit, list, name, view};
-use routers::user::{edit_user, user, users_list};
+use routers::permission::{permissions_list, view_permission};
 use routers::quran::{mushaf, surah};
+use routers::user::{edit_user, user, users_list};
 
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -123,7 +124,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/organization")
                     .wrap(AuthZ::new(auth_z_controller.clone())) // The AuthZ middleware must be
-                    // .wrap the first, I donno why.
+                    // .wrap first, I donno why.
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route("/name", web::post().to(name::add_name))
                     .route("/name/{uuid}", web::get().to(name::names))
@@ -133,6 +134,11 @@ async fn main() -> std::io::Result<()> {
                     .route("", web::post().to(add::add))
                     .route("/{org_id}", web::get().to(view::view))
                     .route("/{org_id}", web::post().to(edit::edit_organization)),
+            )
+            .service(
+                web::scope("/permission")
+                    .route("", web::get().to(permissions_list::get_list_of_permissions))
+                    .route("/{permission_uuid}", web::get().to(view_permission::get_permission))
             )
     })
     .bind(("0.0.0.0", 8080))?

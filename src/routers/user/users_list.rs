@@ -22,23 +22,32 @@ pub async fn users_list(
         let mut conn = pool.get().unwrap();
 
         // What is this :|
+        // I know this is ugly but 
         // this is the best way to make query in this situation
-        // but this is ugly
         //
         // good luck if you gonna read this :)
         let users: Vec<(Uuid, String, User, String, String, String)> = app_users
             .inner_join(
+                // Join the accounts, emails and user_names
+                // tables together
                 app_accounts
                     .inner_join(app_emails)
                     .inner_join(app_user_names),
             )
+            // We only want the primary user name
             .filter(primary_name.eq(true))
             .select((
+                // select the uuid of account
                 uuid_of_account,
+                // username of the account
                 account_username,
+                // The User Model
                 User::as_select(),
+                // User's primary email
                 email_address,
+                // First name from names table
                 f_name,
+                // and last name
                 l_name,
             ))
             .load(&mut conn)?;
