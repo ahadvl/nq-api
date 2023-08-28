@@ -3,10 +3,7 @@ use std::str::FromStr;
 use crate::{
     error::RouterError,
     models::{Permission, PermissionCondition},
-    routers::{
-        multip,
-        permission::{PermissionWithConditions, SimplePermission},
-    },
+    routers::permission::{PermissionWithConditions, SimplePermission},
     DbPool,
 };
 use actix_web::web;

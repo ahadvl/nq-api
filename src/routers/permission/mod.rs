@@ -1,9 +1,16 @@
 use crate::models::{Permission, PermissionCondition};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+pub mod add_permission;
 pub mod permissions_list;
 pub mod view_permission;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SimpleCondition {
+    name: String,
+    value: Option<String>,
+}
 
 #[derive(Serialize, Eq, Ord, Hash, Debug, Clone, PartialEq, PartialOrd)]
 pub struct SimplePermission {
