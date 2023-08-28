@@ -136,7 +136,10 @@ impl CheckPermission for AuthZController {
         let mut result = false;
         // We Got the model now we check every condition
         for (cond_name, cond_value) in select_result.1 {
-            let model_attr = ModelAttrib::from(cond_name.as_str());
+            let Ok(model_attr) = ModelAttrib::try_from(cond_name.as_str()) else {
+                return false
+            };
+
             let attr = model.get_attr(model_attr.clone()).await;
 
             let res = match cond_value {
@@ -176,7 +179,7 @@ impl GetModel<ModelAttrib, i32> for AuthZController {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConditionValueType {
     Boolean,
 }
@@ -195,7 +198,7 @@ impl TryFrom<&str> for ConditionValueType {
     }
 }
 
-trait Condition<'a> {
+pub trait Condition<'a> {
     /// Validates the condition based on subject and value
     fn validate(&self, attribute: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool
     where
@@ -228,7 +231,7 @@ impl<'a> Condition<'a> for Owner {
 }
 
 #[derive(Debug, Clone)]
-enum ModelAttribResult {
+pub enum ModelAttribResult {
     /// Owner Condition Result
     Owner(Owner),
 }
@@ -248,7 +251,7 @@ impl<'a> Condition<'a> for ModelAttribResult {
 }
 
 #[derive(Debug, Clone)]
-enum ModelAttrib {
+pub enum ModelAttrib {
     Owner,
 }
 
@@ -263,13 +266,17 @@ impl From<ModelAttrib> for ModelAttribResult {
 }
 
 // Maybe we can use TryFrom
-impl From<&str> for ModelAttrib {
+impl TryFrom<&str> for ModelAttrib {
+    type Error = RouterError;
     // Returns ModelAttrib from &str (string)
-    fn from(value: &str) -> Self {
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
-            "owner" => Self::Owner,
+            "owner" => Ok(Self::Owner),
 
-            _ => panic!(),
+            v => Err(RouterError::BadRequest(format!(
+                "Condition with name {} not found!",
+                v
+            ))),
         }
     }
 }
