@@ -176,8 +176,33 @@ impl GetModel<ModelAttrib, i32> for AuthZController {
     }
 }
 
-trait ValidateAttrib<'a> {
+#[derive(Debug, Clone)]
+pub enum ConditionValueType {
+    Boolean,
+}
+
+impl TryFrom<&str> for ConditionValueType {
+    type Error = RouterError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "true" | "false" => Ok(Self::Boolean),
+
+            _ => Err(RouterError::BadRequest(
+                "Condition Value Type is not correct!".to_string(),
+            )),
+        }
+    }
+}
+
+trait Condition<'a> {
+    /// Validates the condition based on subject and value
     fn validate(&self, attribute: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool
+    where
+        Self: Sized;
+
+    /// Returns the value type of the condition
+    fn get_value_type(&self) -> ConditionValueType
     where
         Self: Sized;
 }
@@ -185,7 +210,7 @@ trait ValidateAttrib<'a> {
 #[derive(Debug, Clone)]
 pub struct Owner;
 
-impl<'a> ValidateAttrib<'a> for Owner {
+impl<'a> Condition<'a> for Owner {
     // Validates the Owner Condition
     fn validate(&self, attr: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool {
         if condition_value == "true" {
@@ -196,6 +221,10 @@ impl<'a> ValidateAttrib<'a> for Owner {
             true
         }
     }
+
+    fn get_value_type(&self) -> ConditionValueType {
+        ConditionValueType::Boolean
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -204,10 +233,16 @@ enum ModelAttribResult {
     Owner(Owner),
 }
 
-impl<'a> ValidateAttrib<'a> for ModelAttribResult {
+impl<'a> Condition<'a> for ModelAttribResult {
     fn validate(&self, attribute: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool {
         match self {
             Self::Owner(owner) => owner.validate(attribute, subject, condition_value),
+        }
+    }
+
+    fn get_value_type(&self) -> ConditionValueType {
+        match self {
+            Self::Owner(owner) => owner.get_value_type(),
         }
     }
 }
@@ -219,7 +254,7 @@ enum ModelAttrib {
 
 impl From<ModelAttrib> for ModelAttribResult {
     // From ModelAttrib return the Result Enum, so we can
-    // validate the Condition 
+    // validate the Condition
     fn from(value: ModelAttrib) -> Self {
         match value {
             ModelAttrib::Owner => ModelAttribResult::Owner(Owner {}),
