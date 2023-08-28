@@ -315,6 +315,14 @@ pub struct Permission {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Insertable)]
+#[diesel(table_name = app_permissions)]
+pub struct NewPermission<'a> {
+    pub subject: &'a String,
+    pub object: &'a String,
+    pub action: &'a String,
+}
+
 #[derive(
     Deserialize,
     Serialize,
@@ -344,4 +352,12 @@ pub struct PermissionCondition {
     pub created_at: NaiveDateTime,
     #[serde(skip_serializing)]
     pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = app_permission_conditions)]
+pub struct NewPermissionCondition {
+    pub permission_id: i32,
+    pub name: String,
+    pub value: Option<String>,
 }
