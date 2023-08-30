@@ -23,12 +23,21 @@
             "description": "view, delete, edit, view list, the Users"
         },
         {
+            "name": "permission",
+            "description": "manage permissions"
+        },
+        {
+            "name": "permission_conditions",
+            "description": "get list of all possible conditions"
+        },
+        {
             "name": "quran",
             "description": "All the quran related routers"
         }
     ],
     "paths": {
         "/account/sendCode": {
+            "description": "Send code for sign in or sign up",
             "post": {
                 "requestBody": {
                     "content": {
@@ -57,6 +66,7 @@
             }
         },
         "/account/verify": {
+            "description": "Return the new user's token",
             "post": {
                 "requestBody": {
                     "content": {
@@ -86,12 +96,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns the new user token"
+                        "description": "Returns the new user's token"
                     }
                 }
             }
         },
         "/account/logout": {
+            "description": "Expire the user's token",
             "get": {
                 "parameters": [
                     {
@@ -115,6 +126,7 @@
         },
         "/user": {
             "get": {
+                "description": "Return the user's full profile",
                 "parameters": [
                     {
                         "in": "header",
@@ -130,11 +142,12 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns the user full profile"
+                        "description": "Returns the user's full profile"
                     }
                 }
             },
             "post": {
+                "description": "Edit the user's full profile",
                 "parameters": [
                     {
                         "in": "header",
@@ -186,13 +199,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "edited"
+                        "description": "User's full profile was edited"
                     }
                 }
             }
         },
         "/organizations": {
             "get": {
+                "description": "Return the list of all organizations",
                 "parameters": [
                     {
                         "in": "header",
@@ -208,12 +222,12 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns the list of all orgs"
+                        "description": "Returns the list of all organizations"
                     }
                 }
             },
             "post": {
-                "description": "Adds the new org",
+                "description": "Add the new organization",
                 "parameters": [
                     {
                         "in": "header",
@@ -267,13 +281,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "This means new org was created"
+                        "description": "This means new organization was created"
                     }
                 }
             }
         },
         "/organization/{org_uuid}": {
             "get": {
+                "description": "View organization with id you specified",
                 "parameters": [
                     {
                         "in": "header",
@@ -297,11 +312,12 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns the org with id you specified"
+                        "description": "Returns the organization with id you specified"
                     }
                 }
             },
             "post": {
+                "description": "Edit permission with id you specified",
                 "parameters": [
                     {
                         "required": true,
@@ -363,13 +379,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "This means organization with id you specified"
+                        "description": "Organization with id you specified was edited"
                     }
                 }
             }
         },
         "/organizations/name": {
             "post": {
+                "description": "Add the organization name in another language",
                 "parameters": [
                     {
                         "in": "header",
@@ -408,13 +425,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Added"
+                        "description": "Organization name in another language added"
                     }
                 }
             }
         },
         "/organization/name/{name_uuid}": {
             "get": {
+                "description": "View the organization name in another language with id you specified",
                 "parameters": [
                     {
                         "required": true,
@@ -438,11 +456,12 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Added"
+                        "description": "Returns the organization name in another language with id you specified"
                     }
                 }
             },
             "post": {
+                "description": "Edit the organization name in another language with id you specified",
                 "parameters": [
                     {
                         "required": true,
@@ -482,11 +501,12 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "edited"
+                        "description": "The organization name in another language with id you specified was edited"
                     }
                 }
             },
             "delete": {
+                "description": "Delet the organization name in another language with id you specified",
                 "parameters": [
                     {
                         "required": true,
@@ -510,7 +530,225 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "deleted"
+                        "description": "The organization name in another language with id you specified was deleted"
+                    }
+                }
+            }    
+        },
+        "/permission":{
+            "get": {
+                "description": "Ruturn the list of all permissions",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the list of all permissions"
+                    }
+                }
+            },
+            "post": {
+                "description": "Add new permission",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "subject": {
+                                        "type": "string",
+                                        "description": "The user uuid or * for all users",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "object": {
+                                        "type": "string",
+                                        "description": "The controller that the user need to access",
+                                        "example": "Translation, Reciters & etc"
+                                    },
+                                    "action": {
+                                        "type": "string",
+                                        "description": "The action that the user need to implement on controller",
+                                        "example": "Add, Edit, View, List, Delet & etc"
+                                    },
+                                    "conditions": {
+                                        "type": "array",
+                                        "description" : "each condition must include name & value, Possible Conditions: isOwner(Boolean)",
+                                        "example": "[{ \"name\": \"isOwner\", \"value\":\"True\"]"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "permission"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means new permission was created"
+                    }
+                }
+            }
+        },
+        "/permission/{user_uuid}":{
+            "get": {
+                "description": "View permission with id you specified",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "user_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }                    
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the permission with id you specified"
+                    }
+                }
+            },
+            "post": {
+                "description": "Edit permission with id you specified",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "user_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }                    
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "subject": {
+                                        "type": "string",
+                                        "description": "The user uuid or * for all users",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "object": {
+                                        "type": "string",
+                                        "description": "The controller that the user need to access",
+                                        "example": "Translation, Reciters & etc"
+                                    },
+                                    "action": {
+                                        "type": "string",
+                                        "description": "The action that the user need to implement on controller",
+                                        "example": "Add, Edit, View, List, Delet & etc"
+                                    },
+                                    "conditions": {
+                                        "type": "array",
+                                        "description" : "each condition must include name & value, Possible Conditions: isOwner(Boolean)",
+                                        "example": "[{ \"name\": \"isOwner\", \"value\":\"True\"]"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "permission"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permission with id you specified was edited"
+                    }
+                }
+            },            
+            "delete": {
+                "description": "Delet permission with id you specified",
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "user_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permission with id you specified was deleted"
+                    }
+                }
+            }              
+        },
+        "/permission_conditions":{
+            "description": "Returns the list of all permission conditions",           
+            "get": {
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "permission_conditions"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the list of all permission conditions"
                     }
                 }
             }
