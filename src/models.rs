@@ -346,7 +346,7 @@ pub struct PermissionCondition {
     pub permission_id: i32,
 
     pub name: String,
-    pub value: Option<String>,
+    pub value: String,
 
     #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,
@@ -359,5 +359,5 @@ pub struct PermissionCondition {
 pub struct NewPermissionCondition {
     pub permission_id: i32,
     pub name: String,
-    pub value: Option<String>,
+    pub value: String,
 }

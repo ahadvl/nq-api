@@ -61,7 +61,7 @@ diesel::table! {
         uuid -> Uuid,
         permission_id -> Int4,
         name -> Varchar,
-        value -> Nullable<Varchar>,
+        value -> Varchar,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }

@@ -78,7 +78,7 @@ impl CheckPermission for AuthZController {
         let path_copy = path.clone();
 
         let mut conn = self.db_pool.get().unwrap();
-        let select_result: Result<(Vec<i32>, Vec<(String, Option<String>)>), RouterError> =
+        let select_result: Result<(Vec<i32>, Vec<(String, String)>), RouterError> =
             web::block(move || {
                 // Default subject query
                 let subject_query = vec![subject_copy, ANY_FILTER.to_string()];
@@ -131,9 +131,6 @@ impl CheckPermission for AuthZController {
             )
             .await;
 
-        // TODO: Better Way ?
-        //
-        let mut result = false;
         // We Got the model now we check every condition
         for (cond_name, cond_value) in select_result.1 {
             let Ok(model_attr) = ModelAttrib::try_from(cond_name.as_str()) else {
@@ -142,15 +139,14 @@ impl CheckPermission for AuthZController {
 
             let attr = model.get_attr(model_attr.clone()).await;
 
-            let res = match cond_value {
-                Some(v) => ModelAttribResult::from(model_attr).validate(attr, &subject, &v),
-                None => true,
-            };
+            let result = ModelAttribResult::from(model_attr).validate(attr, &subject, &cond_value);
 
-            result = res;
+            if result {
+                return true;
+            }
         }
 
-        result
+        false
     }
 }
 
@@ -271,7 +267,7 @@ impl TryFrom<&str> for ModelAttrib {
     // Returns ModelAttrib from &str (string)
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
-            "owner" => Ok(Self::Owner),
+            "isOwner" => Ok(Self::Owner),
 
             v => Err(RouterError::BadRequest(format!(
                 "Condition with name {} not found!",

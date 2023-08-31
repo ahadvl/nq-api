@@ -9,7 +9,7 @@ pub mod view_permission;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SimpleCondition {
     name: String,
-    value: Option<String>,
+    value: String,
 }
 
 #[derive(Serialize, Eq, Ord, Hash, Debug, Clone, PartialEq, PartialOrd)]
