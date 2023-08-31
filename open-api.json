@@ -199,7 +199,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "User full profile was edited"
+                        "description": "User full profile edited"
                     }
                 }
             }
@@ -379,7 +379,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Organization with id you specified was edited"
+                        "description": "Organization with id you specified edited"
                     }
                 }
             }
@@ -501,7 +501,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The organization name in another language with id you specified was edited"
+                        "description": "The organization name in another language with id you specified edited"
                     }
                 }
             },
@@ -530,7 +530,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The organization name in another language with id you specified was deleted"
+                        "description": "The organization name in another language with id you specified deleted"
                     }
                 }
             }    
@@ -587,12 +587,12 @@
                                     },
                                     "action": {
                                         "type": "string",
-                                        "description": "The action that needs to be implemented on the controller",
+                                        "description": "The action for controller & etc",
                                         "example": "Add, Edit, View, List, Delete & etc"
                                     },
                                     "conditions": {
                                         "type": "array",
-                                        "description" : "Array of conditions, each condition is an object includ has name & value, currently only possible condition is isOwner(Boolian)",
+                                        "description" : "Array of conditions, each condition is an object includ has name & value, currently only possible condition is isOwner(Boolean)",
                                         "example": "[{ \"name\": \"isOwner\", \"value\":\"true\"]"
                                     }
                                 }
@@ -678,12 +678,12 @@
                                     },
                                     "action": {
                                         "type": "string",
-                                        "description": "The action that the user need to implement on controller",
+                                        "description": "The action for controller & etc",
                                         "example": "Add, Edit, View, List, Delete & etc"
                                     },
                                     "conditions": {
                                         "type": "array",
-                                        "description" : "Array of conditions, each condition is an object includ has name & value, currently only possible condition is isOwner(Boolian)",
+                                        "description" : "Array of conditions, each condition is an object includ has name & value, currently only possible condition is isOwner(Boolean)",
                                         "example": "[{ \"name\": \"isOwner\", \"value\":\"true\"]"
                                     }
                                 }
@@ -696,7 +696,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Permission with id you specified was edited"
+                        "description": "Permission with id you specified edited"
                     }
                 }
             },            
@@ -725,7 +725,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Permission with id you specified was deleted"
+                        "description": "Permission with id you specified deleted"
                     }
                 }
             }              
