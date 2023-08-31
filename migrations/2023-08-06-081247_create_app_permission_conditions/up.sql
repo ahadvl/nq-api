@@ -3,7 +3,7 @@ CREATE TABLE app_permission_conditions (
     uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     permission_id serial NOT NULL,
     name VARCHAR(450) NOT NULL,
-    value VARCHAR(255),
+    value VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT app_permission_conditions_id PRIMARY KEY (id),
