@@ -49,27 +49,19 @@ pub async fn add_permission<'a>(
             let attr_result = ModelAttribResult::from(model_attr);
             let value_type = attr_result.get_value_type();
 
-            if let Some(request_value_type) = &condition.value {
-                let request_value_type = ConditionValueType::try_from(request_value_type.as_str())?;
+            let request_value_type = ConditionValueType::try_from(condition.value.as_str())?;
 
-                if value_type != request_value_type {
-                    return Err(RouterError::BadRequest(
-                        "Condition value type is not correct!".to_string(),
-                    ));
-                }
-
-                insertable_conditions.push(NewPermissionCondition {
-                    permission_id: new_permission.id,
-                    name: condition.name,
-                    value: condition.value,
-                });
-            } else {
-                insertable_conditions.push(NewPermissionCondition {
-                    permission_id: new_permission.id,
-                    name: condition.name,
-                    value: None,
-                });
+            if value_type != request_value_type {
+                return Err(RouterError::BadRequest(
+                    "Condition value type is not correct!".to_string(),
+                ));
             }
+
+            insertable_conditions.push(NewPermissionCondition {
+                permission_id: new_permission.id,
+                name: condition.name,
+                value: condition.value,
+            });
         }
 
         insertable_conditions

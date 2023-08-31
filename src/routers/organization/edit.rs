@@ -3,7 +3,7 @@ use crate::{
     models::{Account, Organization, OrganizationName},
     DbPool,
 };
-use actix_web::web::{self, ReqData};
+use actix_web::web;
 use diesel::prelude::*;
 use serde::Deserialize;
 
@@ -20,7 +20,6 @@ pub async fn edit_organization(
     path: web::Path<u32>,
     info: web::Json<OrgInfoUpdatebleFileds>,
     pool: web::Data<DbPool>,
-    user_id: ReqData<u32>,
 ) -> Result<String, RouterError> {
     use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id, username};
     use crate::schema::app_organization_names::dsl::{language, name};
@@ -28,7 +27,7 @@ pub async fn edit_organization(
 
     let org_id = path.into_inner();
     // TODO: check this user id
-    let user_id = user_id.into_inner();
+    //let user_id = user_id.into_inner();
     let new_org = info.into_inner();
 
     let update_result: Result<String, RouterError> = web::block(move || {
