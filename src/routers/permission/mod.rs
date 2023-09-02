@@ -10,6 +10,7 @@ pub mod add_permission;
 pub mod edit_permission;
 pub mod permissions_list;
 pub mod view_permission;
+pub mod delete_permission;
 
 #[derive(Serialize, Deserialize)]
 pub struct NewPermissionData {
