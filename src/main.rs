@@ -32,7 +32,9 @@ use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
 use routers::organization::{add, edit, list, name, view};
-use routers::permission::{add_permission, permissions_list, view_permission};
+use routers::permission::{
+    add_permission, delete_permission, edit_permission, permissions_list, view_permission,
+};
 use routers::quran::{mushaf, surah};
 use routers::user::{edit_user, user, users_list};
 
@@ -142,6 +144,14 @@ async fn main() -> std::io::Result<()> {
                     .route(
                         "/{permission_uuid}",
                         web::get().to(view_permission::get_permission),
+                    )
+                    .route(
+                        "/{permission_uuid}",
+                        web::post().to(edit_permission::edit_permission),
+                    )
+                    .route(
+                        "/{permission_uuid}",
+                        web::delete().to(delete_permission::delete_permission),
                     ),
             )
     })
