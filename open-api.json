@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "http://api.natiq.net"
+            "url": "https://api.natiq.net"
         }
     ],
     "tags": [
@@ -800,7 +800,15 @@
                         "schema": {
                             "type": "string"
                         }
-                    }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "surah_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }   
                 ],
                 "tags": [
                     "quran"
