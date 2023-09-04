@@ -1,50 +1,126 @@
-use std::{collections::HashSet, hash::Hash};
+use std::{collections::HashMap, fmt::Debug, hash::Hash};
 
+/// The final result of Diff
+///
+/// So the dev can know When to update
+/// ,insert or delete item
+#[derive(Debug, PartialEq)]
 pub enum Difference<T> {
-    Update(T),
+    /// Update the existing Data
+    ///
+    /// First T is target and second is
+    /// the update (new object)
+    Update(T, T),
+
+    /// New Data
     Insert(T),
+
+    /// Removed Data
     Remove(T),
 }
-
 /// Finds the difference between Two Vectors
 pub struct Diff<'a, T>
 where
-    T: Hash + Eq + PartialEq + Sized,
+    T: Hash + Eq + PartialEq,
 {
-    target_vec: &'a [T],
-    new_vec: &'a [T],
+    target: HashMap<&'a str, T>,
+    new: &'a [(&'a str, T)],
 }
 
 impl<'a, T> Diff<'a, T>
 where
-    T: Hash + Eq + PartialEq + Sized,
+    T: Hash + Eq + PartialEq + Sized + Ord + Debug,
 {
     /// Creates a new Diff Object
-    pub fn new(target_vec: &'a [T], new_vec: &'a [T]) -> Self {
-        Self {
-            new_vec,
-            target_vec,
-        }
+    pub fn new(target: HashMap<&'a str, T>, new: &'a [(&'a str, T)]) -> Self {
+        Self { new, target }
     }
 
-    /// Collect ony the Unique items (skip unchaged items)
-    fn get_unique_items(&self) -> HashSet<&T> {
-        let mut set: HashSet<&T> = HashSet::new();
+    pub fn diff(&self) -> Vec<Difference<&T>> {
+        let mut result = vec![];
 
-        for item in self.target_vec {
-            set.insert(item);
+        for (name, object) in self.new {
+            match self.target.get(name) {
+                Some(i) => {
+                    if i != object {
+                        result.push(Difference::Update(i, object));
+                    }
+                }
+                None => result.push(Difference::Insert(object)),
+            }
         }
 
-        for item in self.new_vec {
-            set.insert(item);
-        }
+        result
+    }
+}
 
-        set
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Hash, Ord, Eq, PartialEq, Debug, PartialOrd)]
+    struct TestData<'a> {
+        name: &'a str,
+        value: &'a str,
     }
 
-    pub fn diff(&self) -> Vec<Difference<T>> {
-        let unique_items = self.get_unique_items();
+    #[test]
+    fn test_diff() {
+        let target = HashMap::from([
+            (
+                "Hello",
+                TestData {
+                    name: "Hello",
+                    value: "true",
+                },
+            ),
+            (
+                "OkMa",
+                TestData {
+                    name: "OOK",
+                    value: "OOK",
+                },
+            ),
+        ]);
 
-        todo!()
+        let new = vec![
+            (
+                "Hello",
+                TestData {
+                    name: "Hello",
+                    value: "false",
+                },
+            ),
+            (
+                "Ok",
+                TestData {
+                    name: "Ok",
+                    value: "test",
+                },
+            ),
+        ];
+
+        let diff = Diff::new(target, &new);
+        let result = diff.diff();
+
+        let expected = vec![
+            Difference::Update(
+                &TestData {
+                    name: "Hello",
+                    value: "true",
+                },
+                &TestData {
+                    name: "Hello",
+                    value: "false",
+                },
+            ),
+            Difference::Insert(&TestData {
+                name: "Ok",
+                value: "test",
+            }),
+        ];
+
+        
+        assert_eq!(expected, result);
     }
 }
