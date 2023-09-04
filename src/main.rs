@@ -26,6 +26,7 @@ mod test;
 mod token_checker;
 mod validate;
 
+mod diff;
 mod macros;
 
 use routers::account::logout;
