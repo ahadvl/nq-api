@@ -610,7 +610,7 @@
                 }
             }
         },
-        "/permission/{user_uuid}":{
+        "/permission/{permission_uuid}":{
             "get": {
                 "description": "View permission with id you specified",
                 "parameters": [
@@ -625,7 +625,7 @@
                     {
                         "in": "path",
                         "required": true,
-                        "name": "user_uuid",
+                        "name": "permission_uuid",
                         "schema": {
                             "type": "string"
                         }
@@ -654,7 +654,7 @@
                     {
                         "in": "path",
                         "required": true,
-                        "name": "user_uuid",
+                        "name": "permission_uuid",
                         "schema": {
                             "type": "string"
                         }
@@ -714,7 +714,7 @@
                     {
                         "in": "path",
                         "required": true,
-                        "name": "user_uuid",
+                        "name": "permission_uuid",
                         "schema": {
                             "type": "string"
                         }
