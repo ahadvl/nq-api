@@ -5,7 +5,7 @@ use std::{collections::HashMap, fmt::Debug, hash::Hash};
 /// So the dev can know When to update
 /// ,insert or delete item
 #[derive(Debug, PartialEq)]
-pub enum Difference<T> {
+pub enum DifferenceResult<T> {
     /// Update the existing Data
     ///
     /// First T is target and second is
@@ -19,7 +19,7 @@ pub enum Difference<T> {
     Remove(T),
 }
 /// Finds the difference between Two Vectors
-pub struct Diff<'a, T>
+pub struct Difference<'a, T>
 where
     T: Hash + Eq + PartialEq,
 {
@@ -27,7 +27,7 @@ where
     new: &'a [(&'a str, T)],
 }
 
-impl<'a, T> Diff<'a, T>
+impl<'a, T> Difference<'a, T>
 where
     T: Hash + Eq + PartialEq + Sized + Ord + Debug,
 {
@@ -36,17 +36,17 @@ where
         Self { new, target }
     }
 
-    pub fn diff(&self) -> Vec<Difference<&T>> {
+    pub fn diff(&self) -> Vec<DifferenceResult<&T>> {
         let mut result = vec![];
 
         for (name, object) in self.new {
             match self.target.get(name) {
                 Some(i) => {
                     if i != object {
-                        result.push(Difference::Update(i, object));
+                        result.push(DifferenceResult::Update(i, object));
                     }
                 }
-                None => result.push(Difference::Insert(object)),
+                None => result.push(DifferenceResult::Insert(object)),
             }
         }
 
@@ -100,11 +100,11 @@ mod tests {
             ),
         ];
 
-        let diff = Diff::new(target, &new);
+        let diff = Difference::new(target, &new);
         let result = diff.diff();
 
         let expected = vec![
-            Difference::Update(
+            DifferenceResult::Update(
                 &TestData {
                     name: "Hello",
                     value: "true",
@@ -114,13 +114,12 @@ mod tests {
                     value: "false",
                 },
             ),
-            Difference::Insert(&TestData {
+            DifferenceResult::Insert(&TestData {
                 name: "Ok",
                 value: "test",
             }),
         ];
 
-        
         assert_eq!(expected, result);
     }
 }
