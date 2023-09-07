@@ -7,7 +7,7 @@ use actix_web::{
 use futures_util::future::LocalBoxFuture;
 use std::rc::Rc;
 
-use crate::{ParsedPath, CheckPermission};
+use crate::{CheckPermission, ParsedPath};
 
 #[derive(Clone, Default)]
 pub struct AuthZ<P> {
@@ -68,7 +68,10 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let service = Rc::clone(&self.service);
         let permission = self.permission.clone();
-        let subject = req.extensions().get::<u32>().unwrap().clone();
+        let subject = match req.extensions().get::<u32>() {
+            Some(id) => Some(id.clone()),
+            None => None,
+        };
 
         let url_as_str = req.uri().path();
 
@@ -76,7 +79,7 @@ where
 
         Box::pin(async move {
             if permission
-                .check(subject.to_string(), path, req.method().to_string())
+                .check(subject, path, req.method().to_string())
                 .await
             {
                 let res = service.call(req).await?;
