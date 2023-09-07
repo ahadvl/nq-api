@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "http://api.natiq.net"
+            "url": "https://api.natiq.net"
         }
     ],
     "tags": [
@@ -610,7 +610,7 @@
                 }
             }
         },
-        "/permission/{user_uuid}":{
+        "/permission/{permission_uuid}":{
             "get": {
                 "description": "View permission with id you specified",
                 "parameters": [
@@ -625,7 +625,7 @@
                     {
                         "in": "path",
                         "required": true,
-                        "name": "user_uuid",
+                        "name": "permission_uuid",
                         "schema": {
                             "type": "string"
                         }
@@ -654,7 +654,7 @@
                     {
                         "in": "path",
                         "required": true,
-                        "name": "user_uuid",
+                        "name": "permission_uuid",
                         "schema": {
                             "type": "string"
                         }
@@ -714,7 +714,7 @@
                     {
                         "in": "path",
                         "required": true,
-                        "name": "user_uuid",
+                        "name": "permission_uuid",
                         "schema": {
                             "type": "string"
                         }
@@ -800,7 +800,15 @@
                         "schema": {
                             "type": "string"
                         }
-                    }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "surah_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }   
                 ],
                 "tags": [
                     "quran"
