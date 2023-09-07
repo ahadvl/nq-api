@@ -64,7 +64,7 @@ impl AuthZController {
 
 #[async_trait]
 impl CheckPermission for AuthZController {
-    async fn check(&self, subject: String, path: ParsedPath, method: String) -> bool {
+    async fn check(&self, subject: Option<u32>, path: ParsedPath, method: String) -> bool {
         use crate::schema::app_permission_conditions::dsl::{
             app_permission_conditions, name, value,
         };
@@ -81,7 +81,10 @@ impl CheckPermission for AuthZController {
         let select_result: Result<(Vec<i32>, Vec<(String, String)>), RouterError> =
             web::block(move || {
                 // Default subject query
-                let subject_query = vec![subject_copy, ANY_FILTER.to_string()];
+                let subject_query = match subject_copy {
+                    Some(subject) => vec![subject.to_string(), ANY_FILTER.to_string()],
+                    None => vec![ANY_FILTER.to_string()],
+                };
 
                 // Foundout the requested Action
                 let calculated_action = Action::from_auth_z(&path_copy, method.as_str());
@@ -139,7 +142,16 @@ impl CheckPermission for AuthZController {
 
             let attr = model.get_attr(model_attr.clone()).await;
 
-            let result = ModelAttribResult::from(model_attr).validate(attr, &subject, &cond_value);
+            let inner_subject = match subject {
+                Some(id) => Some(id.to_string()),
+                None => None,
+            };
+
+            let result = ModelAttribResult::from(model_attr).validate(
+                attr,
+                inner_subject.as_deref(),
+                &cond_value,
+            );
 
             if result {
                 return true;
@@ -196,7 +208,12 @@ impl TryFrom<&str> for ConditionValueType {
 
 pub trait Condition<'a> {
     /// Validates the condition based on subject and value
-    fn validate(&self, attribute: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool
+    fn validate(
+        &self,
+        attribute: Option<i32>,
+        subject: Option<&'a str>,
+        condition_value: &'a str,
+    ) -> bool
     where
         Self: Sized;
 
@@ -211,7 +228,16 @@ pub struct Owner;
 
 impl<'a> Condition<'a> for Owner {
     // Validates the Owner Condition
-    fn validate(&self, attr: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool {
+    fn validate(
+        &self,
+        attr: Option<i32>,
+        subject: Option<&'a str>,
+        condition_value: &'a str,
+    ) -> bool {
+        let Some(subject) = subject else {
+            return false;
+        };
+
         if condition_value == "true" {
             matches!(attr, Some(_)) && subject == attr.unwrap().to_string()
         } else if condition_value == "false" {
@@ -233,7 +259,12 @@ pub enum ModelAttribResult {
 }
 
 impl<'a> Condition<'a> for ModelAttribResult {
-    fn validate(&self, attribute: Option<i32>, subject: &'a str, condition_value: &'a str) -> bool {
+    fn validate(
+        &self,
+        attribute: Option<i32>,
+        subject: Option<&'a str>,
+        condition_value: &'a str,
+    ) -> bool {
         match self {
             Self::Owner(owner) => owner.validate(attribute, subject, condition_value),
         }
