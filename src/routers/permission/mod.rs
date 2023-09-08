@@ -23,6 +23,7 @@ pub struct NewPermissionData {
 
 #[derive(PartialEq, Eq, Hash, Serialize, Deserialize, Debug, Clone)]
 pub struct SimpleCondition {
+    /// We just need the id at runtime, not Deserialize and Serialize
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
     id: i32,
