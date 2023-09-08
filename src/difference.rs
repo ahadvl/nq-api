@@ -10,6 +10,9 @@ pub trait GetKey {
         Self: Sized;
 }
 
+/// Holds the data that Difference Object Can read
+///
+/// and simplify the Difference Object Usage
 pub struct DifferenceContext<T>
 where
     T: GetKey,
@@ -23,6 +26,10 @@ where
     T: GetKey,
 {
     /// Creates a new Context
+    ///
+    /// Only needs a vec of T where T impliments the GetKey trait
+    /// so the context can turn the target Vec into HashMap, and
+    /// new Vec to type Vec<(String,T)>
     pub fn new(target: Vec<T>, new: Vec<T>) -> Self {
         let mut target_map: HashMap<String, T> = HashMap::new();
 
@@ -48,8 +55,8 @@ where
 pub enum DifferenceResult<T> {
     /// Update the existing Data
     ///
-    /// First T is target and second is
-    /// the update (new object)
+    /// First T is old  second is
+    /// the update (new)
     Update(T, T),
 
     /// New Data
@@ -60,10 +67,18 @@ pub enum DifferenceResult<T> {
 }
 
 /// Finds the difference between Two Vectors
+///
+/// You can use new function to construct but its better
+/// to use DifferenceContext for cleaner code and avoid
+/// any confusion
 pub struct Difference<T>
 where
     T: Hash + Eq + PartialEq,
 {
+    // Internal state of Difference
+    // This Data types makes easier to compute
+    // for Difference Object
+    
     target: HashMap<String, T>,
     new: Vec<(String, T)>,
 }
@@ -93,8 +108,6 @@ where
                     // Else we ignore it (there is no change)
                 }
 
-                // there is nothing like that
-                //
                 // then this is a new data
                 None => result.push(DifferenceResult::Insert(object)),
             }
@@ -102,6 +115,9 @@ where
 
         // Get the remaining data from target and turn them into
         // DifferenceResult
+        //
+        // remaining data means we found the update and insert, when remains
+        // must be removed
         let remaining_as_remove: Vec<DifferenceResult<T>> = self
             .target
             .to_owned()
@@ -116,6 +132,8 @@ where
 }
 
 /// Construct Difference from DifferenceContext
+///
+/// For clearner code
 impl<T> From<DifferenceContext<T>> for Difference<T>
 where
     T: Hash + Eq + PartialEq + Sized + Clone + GetKey,
