@@ -1,8 +1,10 @@
 use std::str::FromStr;
 
 use crate::{
+    difference::{Difference, DifferenceContext, DifferenceResult},
     error::RouterError,
-    models::{Permission, NewPermissionCondition},
+    models::{NewPermissionCondition, Permission, PermissionCondition},
+    routers::permission::SimpleCondition,
     DbPool,
 };
 use actix_web::web::{self, Path};
@@ -21,7 +23,10 @@ pub async fn edit_permission<'a>(
     new_permission: web::Json<NewPermissionData>,
     pool: web::Data<DbPool>,
 ) -> Result<&'a str, RouterError> {
-    use crate::schema::app_permission_conditions::dsl::{app_permission_conditions, permission_id};
+    use crate::schema::app_permission_conditions::dsl::{
+        app_permission_conditions, id as condition_id, name as condition_name,
+        value as condition_value,
+    };
     use crate::schema::app_permissions::dsl::{
         action, app_permissions, object, subject, uuid as uuid_of_permission,
     };
@@ -42,28 +47,49 @@ pub async fn edit_permission<'a>(
             ))
             .get_result(&mut conn)?;
 
-        // Delete the related conditions to permission
-        diesel::delete(app_permission_conditions.filter(permission_id.eq(permission.id)))
-            .execute(&mut conn)?;
+        // Get existsing conditions
+        let target_conditions: Vec<PermissionCondition> =
+            PermissionCondition::belonging_to(&permission).get_results(&mut conn)?;
 
-        // Now We must insert the Conditions
-        // however We must make sure the request conditions
-        // actualy exists
-        let mut insertable_conditions: Vec<NewPermissionCondition> = Vec::new();
+        // Turn PermissionCondition into SimpleCondition
+        let target_conditions: Vec<SimpleCondition> = target_conditions
+            .into_iter()
+            .map(|condition| SimpleCondition::from(condition))
+            .collect();
 
-        for condition in new_permission.conditions {
-            let _ = condition.validate()?;
+        // Provide required data
+        let difference_context =
+            DifferenceContext::new(target_conditions, new_permission.conditions);
 
-            insertable_conditions.push(NewPermissionCondition {
-                permission_id: permission.id,
-                name: condition.name,
-                value: condition.value,
-            });
+        // Create Difference Object from context
+        let mut difference = Difference::from(difference_context);
+
+        // Found the difference between Existing conditions and new conditions,
+        let difference_result = difference.diff();
+
+        // Now we gonna walk the results and do what they say :)
+        for diff_action in difference_result {
+            match diff_action {
+                DifferenceResult::Update(old, new) => {
+                    diesel::update(app_permission_conditions.filter(condition_id.eq(old.id)))
+                        .set((condition_name.eq(new.name), condition_value.eq(new.value)))
+                        .execute(&mut conn)?;
+                }
+                DifferenceResult::Insert(new) => {
+                    NewPermissionCondition {
+                        name: new.name,
+                        value: new.value,
+                        permission_id: permission.id,
+                    }
+                    .insert_into(app_permission_conditions)
+                    .execute(&mut conn)?;
+                }
+                DifferenceResult::Remove(old) => {
+                    diesel::delete(app_permission_conditions.filter(condition_id.eq(old.id)))
+                        .execute(&mut conn)?;
+                }
+            }
         }
-
-        insertable_conditions
-            .insert_into(app_permission_conditions)
-            .execute(&mut conn)?;
 
         Ok("Updated")
     })

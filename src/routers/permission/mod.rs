@@ -1,5 +1,6 @@
 use crate::{
     authz::{Condition, ConditionValueType, ModelAttrib, ModelAttribResult},
+    difference::GetKey,
     error::RouterError,
     models::{Permission, PermissionCondition},
 };
@@ -7,10 +8,10 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub mod add_permission;
+pub mod delete_permission;
 pub mod edit_permission;
 pub mod permissions_list;
 pub mod view_permission;
-pub mod delete_permission;
 
 #[derive(Serialize, Deserialize)]
 pub struct NewPermissionData {
@@ -20,10 +21,29 @@ pub struct NewPermissionData {
     conditions: Vec<SimpleCondition>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Serialize, Deserialize, Debug, Clone)]
 pub struct SimpleCondition {
+    #[serde(skip_serializing)]
+    #[serde(skip_deserializing)]
+    id: i32,
     name: String,
     value: String,
+}
+
+impl GetKey for SimpleCondition {
+    fn get_key(&self) -> String {
+        self.name.to_owned()
+    }
+}
+
+impl From<PermissionCondition> for SimpleCondition {
+    fn from(value: PermissionCondition) -> Self {
+        Self {
+            id: value.id,
+            name: value.name,
+            value: value.value,
+        }
+    }
 }
 
 impl SimpleCondition {
