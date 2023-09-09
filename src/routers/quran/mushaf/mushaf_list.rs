@@ -5,7 +5,7 @@ use actix_web::web;
 use diesel::prelude::*;
 
 /// Get the lists of mushafs
-pub async fn mushaf(pool: web::Data<DbPool>) -> Result<web::Json<Vec<QuranMushaf>>, RouterError> {
+pub async fn mushaf_list(pool: web::Data<DbPool>) -> Result<web::Json<Vec<QuranMushaf>>, RouterError> {
     use crate::schema::mushafs::dsl::*;
 
     let result = web::block(move || {
