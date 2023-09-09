@@ -297,6 +297,13 @@ pub struct QuranMushaf {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Insertable)]
+#[diesel(table_name = mushafs)]
+pub struct NewQuranMushaf<'a> {
+    pub name: Option<&'a str>,
+    pub source: Option<&'a str>,
+}
+
 #[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug, Selectable)]
 #[diesel(table_name = app_permissions)]
 pub struct Permission {
