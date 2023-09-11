@@ -1,6 +1,8 @@
+pub mod surah_add;
+pub mod surah_delete;
+pub mod surah_edit;
 pub mod surah_list;
 pub mod surah_view;
-pub mod surah_delete;
 
 use crate::models::QuranWord;
 use serde::{Deserialize, Serialize};
@@ -90,4 +92,15 @@ pub struct SurahListResponse {
     pub period: Option<String>,
     pub number: i32,
     pub number_of_ayahs: i64,
+}
+
+/// User request body type
+#[derive(Serialize, Clone, Debug, Deserialize)]
+pub struct SimpleSurah {
+    pub name: String,
+    pub period: Option<String>,
+    pub number: i32,
+    pub bismillah_status: String,
+    pub bismillah_text: Option<String>,
+    pub mushaf_id: i32,
 }
