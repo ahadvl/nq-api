@@ -280,6 +280,17 @@ pub struct QuranSurah {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Insertable)]
+#[diesel(table_name = quran_surahs)]
+pub struct NewQuranSurah {
+    pub name: String,
+    pub period: Option<String>,
+    pub number: i32,
+    pub bismillah_status: String,
+    pub bismillah_text: Option<String>,
+    pub mushaf_id: i32,
+}
+
 #[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Selectable, Debug)]
 #[diesel(table_name = mushafs)]
 pub struct QuranMushaf {
