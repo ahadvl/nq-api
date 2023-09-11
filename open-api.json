@@ -15,20 +15,16 @@
             "description": "For authorization, and users"
         },
         {
-            "name": "organization",
-            "description": "Manage organizations"
-        },
-        {
             "name": "user",
             "description": "List, View, Edit & Delete users"
         },
         {
-            "name": "permission",
-            "description": "Manage permissions"
+            "name": "organization",
+            "description": "Manage organizations"
         },
         {
-            "name": "permission_conditions",
-            "description": "Get list of all possible conditions"
+            "name": "permission",
+            "description": "Manage permissions"
         },
         {
             "name": "quran",
@@ -744,7 +740,7 @@
                     }
                 ],
                 "tags": [
-                    "permission_conditions"
+                    "permission"
                 ],
                 "responses": {
                     "200": {
@@ -764,7 +760,151 @@
                         "description": "Returns the mushafs list"
                     }
                 }
+            },
+            "post": {
+                "description": "Add the new mushaf",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The mushaf name",
+                                        "example": "hafs"
+                                    },
+                                    "source": {
+                                        "type": "string",
+                                        "description": "The mushaf text source",
+                                        "example": "tanzil"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means new mushaf was created"
+                    }
+                }
             }
+        },
+        "/mushaf/{mushaf_uuid}":{
+            "get": {
+                "description": "View mushaf with id you specified",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "mushaf_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }                    
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the mushaf with id you specified"
+                    }
+                }
+            },
+            "post": {
+                "description": "Edit mushaf with id you specified",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "mushaf_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }                    
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The mushaf name",
+                                        "example": "hafs"
+                                    },
+                                    "source": {
+                                        "type": "string",
+                                        "description": "The mushaf text source",
+                                        "example": "tanzil"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mushaf with id you specified edited"
+                    }
+                }
+            },            
+            "delete": {
+                "description": "Delete mushaf with id you specified",
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "mushaf_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mushaf with id you specified deleted"
+                    }
+                }
+            }              
         },
         "/surah": {
             "description": "Returns the list of surahs",
