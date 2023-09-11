@@ -38,7 +38,7 @@ use routers::permission::{
 };
 use routers::quran::{
     mushaf::{mushaf_add, mushaf_delete, mushaf_edit, mushaf_list, mushaf_view},
-    surah,
+    surah::{surah_list, surah_view},
 };
 use routers::user::{edit_user, user, users_list};
 
@@ -116,8 +116,8 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 web::scope("/surah")
-                    .route("", web::get().to(surah::surahs_list))
-                    .route("/{surah_uuid}", web::get().to(surah::surah)),
+                    .route("", web::get().to(surah_list::surah_list))
+                    .route("/{surah_uuid}", web::get().to(surah_view::surah_view)),
             )
             .service(
                 web::scope("/mushaf")
