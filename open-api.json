@@ -1079,7 +1079,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "This means new surah was edited"
+                        "description": "This means the surah was edited"
                     }
                 }
             },           
