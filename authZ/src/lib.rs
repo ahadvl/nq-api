@@ -22,7 +22,7 @@ pub trait CheckPermission {
     /// Check if the permissions are valid
     ///
     /// This args will passed from the Middleware
-    async fn check(&self, subject: String, path: ParsedPath, method: String) -> bool;
+    async fn check(&self, subject: Option<u32>, path: ParsedPath, method: String) -> bool;
 }
 
 #[async_trait]

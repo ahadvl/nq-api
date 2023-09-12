@@ -26,14 +26,20 @@ mod test;
 mod token_checker;
 mod validate;
 
+mod difference;
 mod macros;
 
 use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
 use routers::organization::{add, edit, list, name, view};
-use routers::permission::{add_permission, permissions_list, view_permission};
-use routers::quran::{mushaf, surah};
+use routers::permission::{
+    add_permission, delete_permission, edit_permission, permissions_list, view_permission,
+};
+use routers::quran::{
+    mushaf::{mushaf_add, mushaf_delete, mushaf_edit, mushaf_list, mushaf_view},
+    surah::{surah_add, surah_delete, surah_list, surah_view},
+};
 use routers::user::{edit_user, user, users_list};
 
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
@@ -110,10 +116,22 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 web::scope("/surah")
-                    .route("", web::get().to(surah::surahs_list))
-                    .route("/{surah_uuid}", web::get().to(surah::surah)),
+                    .route("", web::get().to(surah_list::surah_list))
+                    .route("", web::post().to(surah_add::surah_add))
+                    .route("/{surah_uuid}", web::get().to(surah_view::surah_view))
+                    .route(
+                        "/{surah_uuid}",
+                        web::delete().to(surah_delete::surah_delete),
+                    ),
             )
-            .service(web::resource("/mushaf").route(web::get().to(mushaf::mushaf)))
+            .service(
+                web::scope("/mushaf")
+                    .route("", web::get().to(mushaf_list::mushaf_list))
+                    .route("", web::post().to(mushaf_add::mushaf_add))
+                    .route("/{uuid}", web::get().to(mushaf_view::mushaf_view))
+                    .route("/{uuid}", web::post().to(mushaf_edit::mushaf_edit))
+                    .route("/{uuid}", web::delete().to(mushaf_delete::mushaf_delete)),
+            )
             .service(
                 web::scope("/user")
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
@@ -142,6 +160,14 @@ async fn main() -> std::io::Result<()> {
                     .route(
                         "/{permission_uuid}",
                         web::get().to(view_permission::get_permission),
+                    )
+                    .route(
+                        "/{permission_uuid}",
+                        web::post().to(edit_permission::edit_permission),
+                    )
+                    .route(
+                        "/{permission_uuid}",
+                        web::delete().to(delete_permission::delete_permission),
                     ),
             )
     })
