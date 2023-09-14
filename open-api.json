@@ -27,7 +27,7 @@
             "description": "Manage permissions"
         },
         {
-            "name": "control panel",
+            "name": "Quran control panel",
             "description": "All the quran related routers"
         }
     ],
@@ -753,7 +753,7 @@
             "description": "Returns the list of mushafs",
             "get": {
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -795,7 +795,7 @@
                     }
                 },
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -818,7 +818,7 @@
                     }                    
                 ],
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -868,7 +868,7 @@
                     }
                 },
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -897,7 +897,7 @@
                     }
                 ],
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -920,7 +920,7 @@
                     }
                 ],
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -982,7 +982,7 @@
                     }
                 },
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -1005,7 +1005,7 @@
                     }   
                 ],
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -1075,7 +1075,7 @@
                     }
                 },
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
@@ -1104,7 +1104,7 @@
                     }
                 ],
                 "tags": [
-                    "control panel"
+                    "Quran control panel"
                 ],
                 "responses": {
                     "200": {
