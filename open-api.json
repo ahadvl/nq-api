@@ -927,20 +927,74 @@
                         "description": "Returns the surahs list"
                     }
                 }
+            },
+            "post": {
+                "description": "Add the new surah",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The surah name",
+                                        "example": "الفاتحة"
+                                    },
+                                    "period": {
+                                        "type": "string",
+                                        "description": "Surah is makki or madani",
+                                        "example": "makki"
+                                    },
+                                    "number": {
+                                        "type": "number",
+                                        "description": "Number of surah",
+                                        "example": 1
+                                    },
+                                    "mushaf_id": {
+                                        "type": "string",
+                                        "description": "The mushaf_uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "bismillah_text": {
+                                        "type": "string",
+                                        "description": "Text of bismillah or null for the without bismillah surah (Refer to bismillah_status)",
+                                        "example": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
+                                    },
+                                    "bismillah_status": {
+                                        "type": "string",
+                                        "description": "About the status of bsmillah in surah for example surah start with bismillah, surah start with bismillah as first ayah & surah start without bismillah",
+                                        "example": "true, false & as_first_ayah"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means new surah was added"
+                    }
+                }
             }
         },
         "/surah/{suarh_uuid}": {
             "description": "Returns the single surah",
             "get": {
                 "parameters": [
-                    {
-                        "in": "query",
-                        "required": true,
-                        "name": "mushaf",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "in": "path",
                         "required": true,
@@ -956,6 +1010,105 @@
                 "responses": {
                     "200": {
                         "description": "Returns the single surah"
+                    }
+                }
+            },
+            "post": {
+                "description": "Edit surah with id you specified",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "surah_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    } 
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The surah name",
+                                        "example": "الفاتحة"
+                                    },
+                                    "period": {
+                                        "type": "string",
+                                        "description": "Surah is makki or madani",
+                                        "example": "makki"
+                                    },
+                                    "number": {
+                                        "type": "number",
+                                        "description": "Number of surah",
+                                        "example": 1
+                                    },
+                                    "mushaf_id": {
+                                        "type": "string",
+                                        "description": "The mushaf_uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "bismillah_text": {
+                                        "type": "string",
+                                        "description": "Bismillah text or null for the without bismillah surah (Refer to bismillah_status)",
+                                        "example": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
+                                    },
+                                    "bismillah_status": {
+                                        "type": "string",
+                                        "description": "About the status of bsmillah in surah for example surah start with bismillah, surah start with bismillah as first ayah & surah start without bismillah",
+                                        "example": "true, false & as_first_ayah"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means the surah was edited"
+                    }
+                }
+            },           
+            "delete": {
+                "description": "Delete surah with id you specified",
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "surah_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Surah with id you specified deleted"
                     }
                 }
             }
