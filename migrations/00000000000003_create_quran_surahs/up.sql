@@ -5,7 +5,6 @@ CREATE TABLE quran_surahs (
     period VARCHAR(50),
     number serial NOT NULL,
     bismillah_status VARCHAR(10) NOT NULL,
-    bismillah_text TEXT,
     mushaf_id serial NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
