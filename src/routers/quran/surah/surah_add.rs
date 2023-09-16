@@ -34,7 +34,6 @@ pub async fn surah_add<'a>(
             period: new_surah.period,
             number: new_surah.number,
             mushaf_id: mushaf,
-            bismillah_text: new_surah.bismillah_text,
             bismillah_status: new_surah.bismillah_status,
         }
         .insert_into(quran_surahs)

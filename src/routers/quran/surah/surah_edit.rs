@@ -16,8 +16,8 @@ pub async fn surah_edit<'a>(
 ) -> Result<&'a str, RouterError> {
     use crate::schema::mushafs::dsl::{id as mushaf_id, mushafs, uuid as mushaf_uuid};
     use crate::schema::quran_surahs::dsl::{
-        bismillah_status, bismillah_text, mushaf_id as surah_mushaf_id, name, number, period,
-        quran_surahs, uuid as surah_uuid,
+        bismillah_status, mushaf_id as surah_mushaf_id, name, number, period, quran_surahs,
+        uuid as surah_uuid,
     };
 
     let new_surah = new_surah.into_inner();
@@ -40,7 +40,6 @@ pub async fn surah_edit<'a>(
                 number.eq(new_surah.number),
                 surah_mushaf_id.eq(mushaf),
                 name.eq(new_surah.name),
-                bismillah_text.eq(new_surah.bismillah_text),
                 bismillah_status.eq(new_surah.bismillah_status),
                 period.eq(new_surah.period),
             ))

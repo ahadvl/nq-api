@@ -78,7 +78,7 @@ pub async fn surah_view(
                 surah_period: surah.period,
                 surah_number: surah.number,
                 bismillah_status: surah.bismillah_status,
-                bismillah_text: surah.bismillah_text,
+                bismillah_text: mushaf.bismillah_text,
                 number_of_ayahs: final_ayahs.len() as i64,
             },
             ayahs: final_ayahs,
