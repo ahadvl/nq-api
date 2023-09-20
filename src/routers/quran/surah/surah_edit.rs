@@ -16,7 +16,7 @@ pub async fn surah_edit<'a>(
 ) -> Result<&'a str, RouterError> {
     use crate::schema::mushafs::dsl::{id as mushaf_id, mushafs, uuid as mushaf_uuid};
     use crate::schema::quran_surahs::dsl::{
-        bismillah_status, mushaf_id as surah_mushaf_id, name, number, period, quran_surahs,
+        bismillah_status, bismillah_as_first_ayah, mushaf_id as surah_mushaf_id, name, number, period, quran_surahs,
         uuid as surah_uuid,
     };
 
@@ -41,6 +41,7 @@ pub async fn surah_edit<'a>(
                 surah_mushaf_id.eq(mushaf),
                 name.eq(new_surah.name),
                 bismillah_status.eq(new_surah.bismillah_status),
+                bismillah_as_first_ayah.eq(new_surah.bismillah_as_first_ayah),
                 period.eq(new_surah.period),
             ))
             .execute(&mut conn)?;

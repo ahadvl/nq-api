@@ -79,7 +79,8 @@ pub struct SingleSurahResponse {
     pub surah_name: String,
     pub surah_period: Option<String>,
     pub surah_number: i32,
-    pub bismillah_status: String,
+    pub bismillah_status: bool,
+    pub bismillah_as_first_ayah: bool,
     pub bismillah_text: Option<String>,
     pub number_of_ayahs: i64,
 }
@@ -100,6 +101,7 @@ pub struct SimpleSurah {
     pub name: String,
     pub period: Option<String>,
     pub number: i32,
-    pub bismillah_status: String,
+    pub bismillah_status: bool,
+    pub bismillah_as_first_ayah: bool,
     pub mushaf_uuid: String,
 }
