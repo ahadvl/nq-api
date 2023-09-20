@@ -144,6 +144,7 @@ diesel::table! {
         uuid -> Uuid,
         name -> Nullable<Varchar>,
         source -> Nullable<Varchar>,
+        bismillah_text -> Nullable<Text>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
     }
@@ -168,8 +169,8 @@ diesel::table! {
         name -> Varchar,
         period -> Nullable<Varchar>,
         number -> Int4,
-        bismillah_status -> Varchar,
-        bismillah_text -> Nullable<Text>,
+        bismillah_status -> Bool,
+        bismillah_as_first_ayah -> Bool,
         mushaf_id -> Int4,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,

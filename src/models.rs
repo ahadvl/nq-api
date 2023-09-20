@@ -271,7 +271,6 @@ pub struct QuranSurah {
     pub period: Option<String>,
     pub number: i32,
     pub bismillah_status: String,
-    pub bismillah_text: Option<String>,
     pub mushaf_id: i32,
 
     #[serde(skip_serializing)]
@@ -287,7 +286,6 @@ pub struct NewQuranSurah {
     pub period: Option<String>,
     pub number: i32,
     pub bismillah_status: String,
-    pub bismillah_text: Option<String>,
     pub mushaf_id: i32,
 }
 
@@ -302,6 +300,8 @@ pub struct QuranMushaf {
     pub name: Option<String>,
     pub source: Option<String>,
 
+    pub bismillah_text: Option<String>,
+
     #[serde(skip_serializing)]
     pub created_at: NaiveDateTime,
     #[serde(skip_serializing)]
@@ -313,6 +313,7 @@ pub struct QuranMushaf {
 pub struct NewQuranMushaf<'a> {
     pub name: Option<&'a str>,
     pub source: Option<&'a str>,
+    pub bismillah_text: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug, Selectable)]
