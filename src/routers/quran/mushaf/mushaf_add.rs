@@ -21,6 +21,7 @@ pub async fn mushaf_add<'a>(
         NewQuranMushaf {
             name: Some(&new_mushaf.name),
             source: Some(&new_mushaf.source),
+            bismillah_text: new_mushaf.bismillah_text,
         }
         .insert_into(mushafs)
         .execute(&mut conn)?;

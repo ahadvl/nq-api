@@ -1,11 +1,12 @@
+#!/usr/bin/env python3
+
 # This script will create natiq essential quran tables
-# Tables this script will create ->
 # quran_ayahs | quran_words | quran_surahs
-# More clearly the result of this script is the sql code
-# that will create tables and insert the data (quran)
+#
+# This script will generate table creation sql and execute's into 
+# the given database.
 #
 # (nq-team)
-
 
 import hashlib
 import sys
@@ -14,15 +15,17 @@ import psycopg2
 
 TANZIL_QURAN_SOURCE_HASH = "a22c0d515c37a5667160765c2d1d171fa4b9d7d8778e47161bb0fe894cf61c1d"
 
-INSERTABLE_QURAN_MUSHAF_TABLE = "mushafs(id, name, source)"
-INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period, number, bismillah_status, bismillah_text, mushaf_id)"
+INSERTABLE_QURAN_MUSHAF_TABLE = "mushafs(id, name, source, bismillah_text)"
+INSERTABLE_QURAN_SURAH_TABLE = "quran_surahs(name, period, number, bismillah_status, bismillah_as_first_ayah, mushaf_id)"
 INSERTABLE_QURAN_WORDS_TABLE = "quran_words(ayah_id, word)"
 INSERTABLE_QURAN_AYAHS_TABLE = "quran_ayahs(surah_id, ayah_number, sajdeh)"
 
 BISMILLAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
 
+USAGE_TEXT = "./quran_parser [xml_file_path] [database_name] [database_host_url] [database_user] [database_password] [database_port]"
+
 # The surah, ayah number has the sajdeh
-# There are 3 types we must provid to the user
+# There are 3 types we must provide to the user
 # vajib, mustahab and none
 # if the ayah is not available in this list then return its sajdeh as none
 sajdahs = {
@@ -42,10 +45,11 @@ sajdahs = {
     (84, 21): "mustahab",
 }
 
-
 def exit_err(msg):
     exit("Error: " + msg)
 
+def exit_usage():
+    exit("Usage: " + USAGE_TEXT)
 
 # This will hash the source
 # and check it to be equal to
@@ -73,16 +77,15 @@ def parse_quran_suarhs_table(root, mushaf_id):
         if first_ayah.attrib['text'] == BISMILLAH:
             # also set the mushaf_id
             result.append(
-                f"('{surah_name}', NULL, {surah_num}, 'first_ayah', NULL, {mushaf_id})")
+                f"('{surah_name}', NULL, {surah_num}, true, true, {mushaf_id})")
 
         else:
             first_ayah_bismillah_status = first_ayah.get('bismillah', False)
 
             status = 'true' if first_ayah_bismillah_status != False else 'false'
-            text = f"'{first_ayah_bismillah_status}'" if first_ayah_bismillah_status != False else 'NULL'
 
             result.append(
-                f"('{surah_name}', NULL, {surah_num}, '{status}', {text}, {mushaf_id})")
+                f"('{surah_name}', NULL, {surah_num}, '{status}', false, {mushaf_id})")
 
         surah_num += 1
 
@@ -141,6 +144,10 @@ def parse_quran_ayahs_table(root):
 
 
 def main(args):
+    if len(args) < 7:
+        print("Invalid args!\n")
+        exit_usage()
+
     # Get the quran path
     quran_xml_path = args[1]
 
@@ -192,7 +199,7 @@ def main(args):
 
     # Insert hafs mushaf to the mushafs table
     hafs_sql = insert_to_table(
-        INSERTABLE_QURAN_MUSHAF_TABLE, "(2, 'hafs', 'tanzil')")
+        INSERTABLE_QURAN_MUSHAF_TABLE, f"(2, 'hafs', 'tanzil', '{BISMILLAH}')")
 
     # Execute the final sql code and mushaf one
     cur.execute(hafs_sql)

@@ -12,16 +12,16 @@ const ANY_FILTER: char = '*';
 #[derive(Debug)]
 /// Request Action
 enum Action {
-    /// Create or POST request to a controller
+    /// Create (POST) request to a controller
     Create,
 
-    /// Edit or POST request with id to a controller
+    /// Edit (POST) request with id to a controller
     Edit,
 
-    /// Delete or DELETE request with id to a controller
+    /// Delete (DELETE) request with id to a controller
     Delete,
 
-    /// View or GET request to a controller, id is not required
+    /// View (GET) request to a controller, id is not required
     View,
 }
 
