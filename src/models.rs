@@ -270,7 +270,8 @@ pub struct QuranSurah {
     pub name: String,
     pub period: Option<String>,
     pub number: i32,
-    pub bismillah_status: String,
+    pub bismillah_status: bool,
+    pub bismillah_as_first_ayah: bool,
     pub mushaf_id: i32,
 
     #[serde(skip_serializing)]
@@ -285,7 +286,8 @@ pub struct NewQuranSurah {
     pub name: String,
     pub period: Option<String>,
     pub number: i32,
-    pub bismillah_status: String,
+    pub bismillah_status: bool,
+    pub bismillah_as_first_ayah: bool,
     pub mushaf_id: i32,
 }
 
