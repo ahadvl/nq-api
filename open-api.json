@@ -788,6 +788,11 @@
                                         "type": "string",
                                         "description": "The mushaf text source",
                                         "example": "tanzil"
+                                    },
+                                    "bismillah_text": {
+                                        "type": "string",
+                                        "description": "The mushaf bismillah text",
+                                        "example": "بسم الله الرحمن الرحيم"
                                     }
                                 }
                             }
@@ -861,6 +866,11 @@
                                         "type": "string",
                                         "description": "The mushaf text source",
                                         "example": "tanzil"
+                                    },
+                                    "bismillah_text": {
+                                        "type": "string",
+                                        "description": "The mushaf bismillah text",
+                                        "example": "بسم الله الرحمن الرحيم"
                                     }
                                 }
                             }
@@ -966,15 +976,15 @@
                                         "description": "The mushaf_uuid",
                                         "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
                                     },
-                                    "bismillah_text": {
-                                        "type": "string",
-                                        "description": "Text of bismillah or null for the without bismillah surah (Refer to bismillah_status)",
-                                        "example": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
-                                    },
                                     "bismillah_status": {
-                                        "type": "string",
-                                        "description": "About the status of bsmillah in surah for example surah start with bismillah, surah start with bismillah as first ayah & surah start without bismillah",
-                                        "example": "true, false & as_first_ayah"
+                                        "type": "boolean",
+                                        "description": "Determines if bismillah exists in surah",
+                                        "example": "true"
+                                    },
+                                    "bismillah_as_first_ayah": {
+                                        "type": "boolean",
+                                        "description": "Determines if bismillah exists and its in the first_ayah content",
+                                        "example": "false"
                                     }
                                 }
                             }
@@ -1059,15 +1069,15 @@
                                         "description": "The mushaf_uuid",
                                         "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
                                     },
-                                    "bismillah_text": {
-                                        "type": "string",
-                                        "description": "Bismillah text or null for the without bismillah surah (Refer to bismillah_status)",
-                                        "example": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
-                                    },
                                     "bismillah_status": {
-                                        "type": "string",
-                                        "description": "About the status of bsmillah in surah for example surah start with bismillah, surah start with bismillah as first ayah & surah start without bismillah",
-                                        "example": "true, false & as_first_ayah"
+                                        "type": "boolean",
+                                        "description": "Determines if bismillah exists in surah",
+                                        "example": "true"
+                                    },
+                                    "bismillah_as_first_ayah": {
+                                        "type": "boolean",
+                                        "description": "Determines if bismillah exists and its in the first_ayah content",
+                                        "example": "false"
                                     }
                                 }
                             }
