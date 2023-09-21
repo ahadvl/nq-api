@@ -27,6 +27,7 @@ pub struct NewAccount<'a> {
 pub struct UserName {
     pub id: i32,
     pub account_id: i32,
+    pub creator_user_id: i32,
     pub primary: bool,
     pub first_name: String,
     pub last_name: String,
@@ -38,6 +39,7 @@ pub struct UserName {
 pub struct NewUserNames {
     pub account_id: i32,
     pub primary_name: bool,
+    pub creator_user_id: i32,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub language: Option<String>,
@@ -105,6 +107,7 @@ pub struct NewUser {
 pub struct Token {
     pub id: i32,
     pub user_id: i32,
+    pub creator_user_id: i32,
     pub token_hash: String,
     pub terminated: bool,
     pub teminated_by_id: i32,
@@ -115,8 +118,9 @@ pub struct Token {
 #[derive(Queryable, Insertable)]
 #[diesel(table_name = app_tokens)]
 pub struct NewToken<'a> {
-    pub account_id: &'a i32,
-    pub token_hash: &'a String,
+    pub creator_user_id: i32,
+    pub account_id: i32,
+    pub token_hash: &'a str,
 }
 
 #[derive(Identifiable, Queryable, Associations, PartialEq, Debug, Clone)]
@@ -125,6 +129,7 @@ pub struct NewToken<'a> {
 pub struct Email {
     pub id: i32,
     pub account_id: i32,
+    pub creator_user_id: i32,
     pub email: String,
     pub verified: bool,
     pub primary: bool,
@@ -137,6 +142,7 @@ pub struct Email {
 #[diesel(table_name = app_emails)]
 pub struct NewEmail<'a> {
     pub account_id: i32,
+    pub creator_user_id: i32,
     pub email: &'a String,
     pub verified: bool,
     pub primary: bool,
@@ -150,6 +156,7 @@ pub struct Organization {
     pub id: i32,
     pub account_id: i32,
     pub owner_account_id: i32,
+    pub creator_user_id: i32,
     pub profile_image: Option<String>,
     pub established_date: NaiveDate,
     pub national_id: String,
@@ -164,6 +171,7 @@ pub struct OrganizationName {
     #[serde(skip_serializing)]
     pub id: i32,
     pub uuid: Uuid,
+    pub creator_user_id: i32,
 
     #[serde(skip_serializing)]
     pub account_id: i32,
@@ -174,6 +182,7 @@ pub struct OrganizationName {
 #[derive(Insertable)]
 #[diesel(table_name = app_organization_names)]
 pub struct NewOrganizationName {
+    pub creator_user_id: i32,
     pub account_id: i32,
     pub name: String,
     pub language: String,
@@ -182,6 +191,7 @@ pub struct NewOrganizationName {
 #[derive(Insertable, Deserialize, Validate)]
 #[diesel(table_name = app_organizations)]
 pub struct NewOrganization {
+    pub creator_user_id: i32,
     pub account_id: i32,
     pub owner_account_id: i32,
     pub profile_image: Option<String>,
@@ -194,6 +204,7 @@ pub struct NewOrganization {
 pub struct Employee {
     pub id: i32,
     pub org_account_id: i32,
+    pub creator_user_id: i32,
     pub employee_account_id: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -203,6 +214,7 @@ pub struct Employee {
 #[diesel(table_name = app_employees)]
 pub struct NewEmployee {
     pub org_account_id: i32,
+    pub creator_user_id: i32,
     pub employee_account_id: i32,
 }
 
@@ -223,8 +235,8 @@ pub struct NewEmployee {
 pub struct QuranAyah {
     #[serde(skip_serializing)]
     pub id: i32,
-
     pub uuid: Uuid,
+    pub creator_user_id: i32,
 
     #[serde(skip_serializing)]
     pub surah_id: i32,
@@ -244,8 +256,8 @@ pub struct QuranAyah {
 pub struct QuranWord {
     #[serde(skip_serializing)]
     pub id: i32,
-
     pub uuid: Uuid,
+    pub creator_user_id: i32,
 
     #[serde(skip_serializing)]
     pub ayah_id: i32,
@@ -264,8 +276,9 @@ pub struct QuranWord {
 pub struct QuranSurah {
     #[serde(skip_serializing)]
     pub id: i32,
-
     pub uuid: Uuid,
+
+    pub creator_user_id: i32,
 
     pub name: String,
     pub period: Option<String>,
@@ -283,6 +296,7 @@ pub struct QuranSurah {
 #[derive(Insertable)]
 #[diesel(table_name = quran_surahs)]
 pub struct NewQuranSurah {
+    pub creator_user_id: i32,
     pub name: String,
     pub period: Option<String>,
     pub number: i32,
@@ -296,8 +310,8 @@ pub struct NewQuranSurah {
 pub struct QuranMushaf {
     #[serde(skip_serializing)]
     pub id: i32,
-
     pub uuid: Uuid,
+    pub creator_user_id: i32,
 
     pub name: Option<String>,
     pub source: Option<String>,
@@ -313,6 +327,7 @@ pub struct QuranMushaf {
 #[derive(Insertable)]
 #[diesel(table_name = mushafs)]
 pub struct NewQuranMushaf<'a> {
+    pub creator_user_id: i32,
     pub name: Option<&'a str>,
     pub source: Option<&'a str>,
     pub bismillah_text: Option<String>,
@@ -323,8 +338,9 @@ pub struct NewQuranMushaf<'a> {
 pub struct Permission {
     #[serde(skip_serializing)]
     pub id: i32,
-
     pub uuid: Uuid,
+
+    pub creator_user_id: i32,
 
     pub subject: String,
     pub object: String,
@@ -339,6 +355,7 @@ pub struct Permission {
 #[derive(Insertable)]
 #[diesel(table_name = app_permissions)]
 pub struct NewPermission<'a> {
+    pub creator_user_id: i32,
     pub subject: &'a String,
     pub object: &'a String,
     pub action: &'a String,
@@ -360,8 +377,9 @@ pub struct NewPermission<'a> {
 pub struct PermissionCondition {
     #[serde(skip_serializing)]
     pub id: i32,
-
     pub uuid: Uuid,
+
+    pub creator_user_id: i32,
 
     #[serde(skip_serializing)]
     pub permission_id: i32,
@@ -378,6 +396,7 @@ pub struct PermissionCondition {
 #[derive(Insertable)]
 #[diesel(table_name = app_permission_conditions)]
 pub struct NewPermissionCondition {
+    pub creator_user_id: i32,
     pub permission_id: i32,
     pub name: String,
     pub value: String,

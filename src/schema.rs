@@ -13,6 +13,7 @@ diesel::table! {
     app_emails (id) {
         id -> Int4,
         account_id -> Int4,
+        creator_user_id -> Int4,
         email -> Text,
         verified -> Bool,
         primary -> Bool,
@@ -26,6 +27,7 @@ diesel::table! {
     app_employees (id) {
         id -> Int4,
         org_account_id -> Int4,
+        creator_user_id -> Int4,
         employee_account_id -> Int4,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
@@ -36,6 +38,7 @@ diesel::table! {
     app_organization_names (id) {
         id -> Int4,
         uuid -> Uuid,
+        creator_user_id -> Int4,
         account_id -> Int4,
         name -> Varchar,
         language -> Varchar,
@@ -46,6 +49,7 @@ diesel::table! {
     app_organizations (id) {
         id -> Int4,
         account_id -> Int4,
+        creator_user_id -> Int4,
         owner_account_id -> Int4,
         profile_image -> Nullable<Text>,
         established_date -> Date,
@@ -59,6 +63,7 @@ diesel::table! {
     app_permission_conditions (id) {
         id -> Int4,
         uuid -> Uuid,
+        creator_user_id -> Int4,
         permission_id -> Int4,
         name -> Varchar,
         value -> Varchar,
@@ -71,6 +76,7 @@ diesel::table! {
     app_permissions (id) {
         id -> Int4,
         uuid -> Uuid,
+        creator_user_id -> Int4,
         subject -> Varchar,
         object -> Varchar,
         action -> Varchar,
@@ -83,6 +89,7 @@ diesel::table! {
     app_tokens (id) {
         id -> Int4,
         account_id -> Int4,
+        creator_user_id -> Int4,
         token_hash -> Varchar,
         terminated -> Bool,
         terminated_by_id -> Int4,
@@ -95,6 +102,7 @@ diesel::table! {
     app_user_names (id) {
         id -> Int4,
         account_id -> Int4,
+        creator_user_id -> Int4,
         primary_name -> Bool,
         first_name -> Varchar,
         last_name -> Varchar,
@@ -126,22 +134,10 @@ diesel::table! {
 }
 
 diesel::table! {
-    casbin_rule (id) {
-        id -> Int4,
-        ptype -> Varchar,
-        v0 -> Varchar,
-        v1 -> Varchar,
-        v2 -> Varchar,
-        v3 -> Varchar,
-        v4 -> Varchar,
-        v5 -> Varchar,
-    }
-}
-
-diesel::table! {
     mushafs (id) {
         id -> Int4,
         uuid -> Uuid,
+        creator_user_id -> Int4,
         name -> Nullable<Varchar>,
         source -> Nullable<Varchar>,
         bismillah_text -> Nullable<Text>,
@@ -154,6 +150,7 @@ diesel::table! {
     quran_ayahs (id) {
         id -> Int4,
         uuid -> Uuid,
+        creator_user_id -> Int4,
         surah_id -> Int4,
         ayah_number -> Int4,
         sajdeh -> Nullable<Varchar>,
@@ -166,6 +163,7 @@ diesel::table! {
     quran_surahs (id) {
         id -> Int4,
         uuid -> Uuid,
+        creator_user_id -> Int4,
         name -> Varchar,
         period -> Nullable<Varchar>,
         number -> Int4,
@@ -181,6 +179,7 @@ diesel::table! {
     quran_words (id) {
         id -> Int4,
         uuid -> Uuid,
+        creator_user_id -> Int4,
         ayah_id -> Int4,
         word -> Text,
         created_at -> Timestamptz,
@@ -192,6 +191,7 @@ diesel::table! {
     translations (id) {
         id -> Int4,
         uuid -> Nullable<Uuid>,
+        creator_user_id -> Int4,
         translator_id -> Int4,
         language -> Varchar,
         release_year -> Nullable<Date>,
@@ -205,6 +205,7 @@ diesel::table! {
     translations_text (id) {
         id -> Int4,
         uuid -> Nullable<Uuid>,
+        creator_user_id -> Int4,
         translation_id -> Int4,
         ayah_id -> Int4,
         text -> Text,
@@ -214,15 +215,29 @@ diesel::table! {
 }
 
 diesel::joinable!(app_emails -> app_accounts (account_id));
+diesel::joinable!(app_emails -> app_users (creator_user_id));
+diesel::joinable!(app_employees -> app_users (creator_user_id));
 diesel::joinable!(app_organization_names -> app_accounts (account_id));
+diesel::joinable!(app_organization_names -> app_users (creator_user_id));
 diesel::joinable!(app_organizations -> app_accounts (account_id));
+diesel::joinable!(app_organizations -> app_users (creator_user_id));
 diesel::joinable!(app_permission_conditions -> app_permissions (permission_id));
+diesel::joinable!(app_permission_conditions -> app_users (creator_user_id));
+diesel::joinable!(app_permissions -> app_users (creator_user_id));
 diesel::joinable!(app_tokens -> app_accounts (account_id));
+diesel::joinable!(app_tokens -> app_users (creator_user_id));
 diesel::joinable!(app_user_names -> app_accounts (account_id));
+diesel::joinable!(app_user_names -> app_users (creator_user_id));
 diesel::joinable!(app_users -> app_accounts (account_id));
+diesel::joinable!(mushafs -> app_users (creator_user_id));
+diesel::joinable!(quran_ayahs -> app_users (creator_user_id));
 diesel::joinable!(quran_ayahs -> quran_surahs (surah_id));
+diesel::joinable!(quran_surahs -> app_users (creator_user_id));
 diesel::joinable!(quran_surahs -> mushafs (mushaf_id));
+diesel::joinable!(quran_words -> app_users (creator_user_id));
 diesel::joinable!(quran_words -> quran_ayahs (ayah_id));
+diesel::joinable!(translations -> app_users (creator_user_id));
+diesel::joinable!(translations_text -> app_users (creator_user_id));
 diesel::joinable!(translations_text -> quran_ayahs (ayah_id));
 diesel::joinable!(translations_text -> translations (translation_id));
 
@@ -238,7 +253,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     app_user_names,
     app_users,
     app_verify_codes,
-    casbin_rule,
     mushafs,
     quran_ayahs,
     quran_surahs,
