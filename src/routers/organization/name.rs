@@ -12,6 +12,7 @@ use crate::{
 };
 use uuid::Uuid;
 use validator::Validate;
+use crate::models::User;
 
 #[derive(Validate, Deserialize, Serialize)]
 pub struct NewName {
@@ -25,12 +26,15 @@ pub async fn add_name<'a>(
     path: web::Path<String>,
     pool: web::Data<DbPool>,
     new_name_req: web::Json<NewName>,
+    data: web::ReqData<u32>,
 ) -> Result<&'a str, RouterError> {
     use crate::schema::app_accounts::dsl::{app_accounts, uuid as uuid_from_account};
     use crate::schema::app_organization_names::dsl::*;
+    use crate::schema::app_users::dsl::{app_users, account_id as user_acc_id};
 
     let new_name = new_name_req.into_inner();
     let org_uuid = path.into_inner();
+    let data = data.into_inner();
 
     validate(&new_name)?;
 
@@ -45,7 +49,10 @@ pub async fn add_name<'a>(
             return Err(RouterError::NotFound("Account not found".to_string()));
         };
 
+        let user: User = app_users.filter(user_acc_id.eq(data as i32)).get_result(&mut conn)?;
+
         NewOrganizationName {
+            creator_user_id: user.id,
             account_id: account.id,
             name: new_name.name,
             language: new_name.language,

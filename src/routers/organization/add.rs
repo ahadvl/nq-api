@@ -9,6 +9,7 @@ use crate::{
     validate::validate,
     DbPool,
 };
+use crate::models::User;
 
 use super::new_organization_info::NewOrgInfo;
 
@@ -22,6 +23,7 @@ pub async fn add<'a>(
     use crate::schema::app_employees::dsl::app_employees;
     use crate::schema::app_organization_names::dsl::app_organization_names;
     use crate::schema::app_organizations::dsl::app_organizations;
+    use crate::schema::app_users::dsl::{app_users, account_id as user_acc_id};
 
     let new_org_info = new_org.into_inner();
     let user_account_id = data.into_inner();
@@ -51,7 +53,10 @@ pub async fn add<'a>(
         .insert_into(app_accounts)
         .get_result::<Account>(&mut conn)?;
 
+        let user: User = app_users.filter(user_acc_id.eq(user_account_id as i32)).get_result(&mut conn)?;
+
         let new_organization = NewOrganization {
+            creator_user_id: user.id,
             account_id: new_account.id,
             owner_account_id: user_account_id as i32,
             profile_image: new_org_info.profile_image,
@@ -67,6 +72,7 @@ pub async fn add<'a>(
             .get_result::<Account>(&mut conn)?;
 
         NewEmployee {
+            creator_user_id: user.id,
             employee_account_id: user_account.id,
             org_account_id: new_organization.account_id,
         }
@@ -75,6 +81,7 @@ pub async fn add<'a>(
 
         // Add new name to the org
         NewOrganizationName {
+            creator_user_id: user.id,
             account_id: new_account.id,
             language: "default".to_string(),
             name: new_org_info.name,

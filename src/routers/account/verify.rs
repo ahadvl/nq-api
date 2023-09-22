@@ -42,17 +42,12 @@ pub async fn verify(
 
         diesel::insert_into(app_tokens::dsl::app_tokens)
             .values(NewToken {
-                account_id: &1,
+                creator_user_id: 0,
+                account_id: 1,
                 token_hash: &token_hash.get_result().unwrap(),
             })
             .execute(&mut conn)
             .unwrap();
-
-        // TODO: dont use unwrap impl From iter for errors
-        //        access
-        //            .add_policy("actives", "p", vec![1.to_string()])
-        //            .await
-        //            .unwrap();
 
         return Ok(String::from("secret"));
     }
@@ -123,6 +118,7 @@ pub async fn verify(
             .get_result::<User>(&mut conn)?;
 
             NewEmail {
+                creator_user_id: new_user.id,
                 email: &info.email,
                 account_id: new_account.id,
                 verified: true,
@@ -178,7 +174,8 @@ pub async fn verify(
         };
 
         let new_token = NewToken {
-            account_id: &user.account_id,
+            creator_user_id: user.id,
+            account_id: user.account_id,
             token_hash: &token_hash,
         };
 

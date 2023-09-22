@@ -86,7 +86,7 @@ impl CheckPermission for AuthZController {
                     None => vec![ANY_FILTER.to_string()],
                 };
 
-                // Foundout the requested Action
+                // Found the requested Action
                 let calculated_action = Action::from_auth_z(&path_copy, method.as_str());
 
                 // Check the permissions and get the conditions

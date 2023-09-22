@@ -117,21 +117,42 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/surah")
                     .route("", web::get().to(surah_list::surah_list))
-                    .route("", web::post().to(surah_add::surah_add))
                     .route("/{surah_uuid}", web::get().to(surah_view::surah_view))
-                    .route("/{surah_uuid}", web::post().to(surah_edit::surah_edit))
-                    .route(
-                        "/{surah_uuid}",
-                        web::delete().to(surah_delete::surah_delete),
-                    ),
+                    .service(
+                        web::resource("")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .route(web::post().to(surah_add::surah_add))
+                    )
+                    .service(
+                        web::resource("/{surah_uuid}")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .route(web::post().to(surah_edit::surah_edit))
+                            .route(web::delete().to(surah_delete::surah_delete))
+                    )
             )
             .service(
                 web::scope("/mushaf")
                     .route("", web::get().to(mushaf_list::mushaf_list))
                     .route("", web::post().to(mushaf_add::mushaf_add))
-                    .route("/{uuid}", web::get().to(mushaf_view::mushaf_view))
-                    .route("/{uuid}", web::post().to(mushaf_edit::mushaf_edit))
-                    .route("/{uuid}", web::delete().to(mushaf_delete::mushaf_delete)),
+                    .service(
+                        web::resource("")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .route(web::post().to(mushaf_add::mushaf_add))
+                    )
+                    .service(
+                        web::resource("/{uuid}")
+                            .route(web::get().to(mushaf_view::mushaf_view))
+                    )
+                    .service(
+                        web::resource("/{uuid}")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .route(web::post().to(mushaf_edit::mushaf_edit))
+                            .route(web::delete().to(mushaf_delete::mushaf_delete))
+                    )
             )
             .service(
                 web::scope("/user")
@@ -142,8 +163,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 web::scope("/organization")
-                    .wrap(AuthZ::new(auth_z_controller.clone())) // The AuthZ middleware must be
-                    // .wrap first, I donno why.
+                    .wrap(AuthZ::new(auth_z_controller.clone()))
                     .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route("/name", web::post().to(name::add_name))
                     .route("/name/{uuid}", web::get().to(name::names))
@@ -156,6 +176,8 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 web::scope("/permission")
+                    .wrap(AuthZ::new(auth_z_controller.clone()))
+                    .wrap(TokenAuth::new(user_id_from_token.clone()))
                     .route("", web::get().to(permissions_list::get_list_of_permissions))
                     .route("", web::post().to(add_permission::add_permission))
                     .route(

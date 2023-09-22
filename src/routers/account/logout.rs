@@ -24,7 +24,7 @@ pub async fn logout<'a>(
             .limit(1)
             .first::<Token>(&mut conn)?;
 
-        // Now teminate the token
+        // Now terminate the token
         // Set the terminated to true
         // And set request id to the terminated_by_id
         // This may change.

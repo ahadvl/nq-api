@@ -10,6 +10,7 @@ use crate::{
 use actix_web::web::{self, Path};
 use diesel::prelude::*;
 use uuid::Uuid;
+use crate::models::User;
 
 use super::NewPermissionData;
 
@@ -22,6 +23,7 @@ pub async fn edit_permission<'a>(
     target_permission: Path<String>,
     new_permission: web::Json<NewPermissionData>,
     pool: web::Data<DbPool>,
+    data: web::ReqData<u32>
 ) -> Result<&'a str, RouterError> {
     use crate::schema::app_permission_conditions::dsl::{
         app_permission_conditions, id as condition_id, name as condition_name,
@@ -30,9 +32,11 @@ pub async fn edit_permission<'a>(
     use crate::schema::app_permissions::dsl::{
         action, app_permissions, object, subject, uuid as uuid_of_permission,
     };
+    use crate::schema::app_users::dsl::{app_users, account_id as user_acc_id};
 
     let target_permission = target_permission.into_inner();
     let new_permission = new_permission.into_inner();
+    let data = data.into_inner();
 
     let result: Result<&'a str, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
@@ -47,7 +51,7 @@ pub async fn edit_permission<'a>(
             ))
             .get_result(&mut conn)?;
 
-        // Get existsing conditions
+        // Get existing conditions
         let target_conditions: Vec<PermissionCondition> =
             PermissionCondition::belonging_to(&permission).get_results(&mut conn)?;
 
@@ -67,6 +71,9 @@ pub async fn edit_permission<'a>(
         // Found the difference between Existing conditions and new conditions,
         let difference_result = difference.diff();
 
+        // Get the user form account_id so we can set the creator property
+        let user: User = app_users.filter(user_acc_id.eq(data as i32)).get_result(&mut conn)?;
+
         // Now we gonna walk the results and do what they say :)
         for diff_action in difference_result {
             match diff_action {
@@ -77,6 +84,7 @@ pub async fn edit_permission<'a>(
                 }
                 DifferenceResult::Insert(new) => {
                     NewPermissionCondition {
+                        creator_user_id: user.id,
                         name: new.name,
                         value: new.value,
                         permission_id: permission.id,
