@@ -107,7 +107,6 @@ pub struct NewUser {
 pub struct Token {
     pub id: i32,
     pub user_id: i32,
-    pub creator_user_id: i32,
     pub token_hash: String,
     pub terminated: bool,
     pub teminated_by_id: i32,
@@ -118,7 +117,6 @@ pub struct Token {
 #[derive(Queryable, Insertable)]
 #[diesel(table_name = app_tokens)]
 pub struct NewToken<'a> {
-    pub creator_user_id: i32,
     pub account_id: i32,
     pub token_hash: &'a str,
 }
