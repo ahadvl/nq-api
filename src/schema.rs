@@ -89,7 +89,6 @@ diesel::table! {
     app_tokens (id) {
         id -> Int4,
         account_id -> Int4,
-        creator_user_id -> Int4,
         token_hash -> Varchar,
         terminated -> Bool,
         terminated_by_id -> Int4,
@@ -225,7 +224,6 @@ diesel::joinable!(app_permission_conditions -> app_permissions (permission_id));
 diesel::joinable!(app_permission_conditions -> app_users (creator_user_id));
 diesel::joinable!(app_permissions -> app_users (creator_user_id));
 diesel::joinable!(app_tokens -> app_accounts (account_id));
-diesel::joinable!(app_tokens -> app_users (creator_user_id));
 diesel::joinable!(app_user_names -> app_accounts (account_id));
 diesel::joinable!(app_user_names -> app_users (creator_user_id));
 diesel::joinable!(app_users -> app_accounts (account_id));
