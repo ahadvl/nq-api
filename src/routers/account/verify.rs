@@ -42,7 +42,6 @@ pub async fn verify(
 
         diesel::insert_into(app_tokens::dsl::app_tokens)
             .values(NewToken {
-                creator_user_id: 0,
                 account_id: 1,
                 token_hash: &token_hash.get_result().unwrap(),
             })
@@ -174,7 +173,6 @@ pub async fn verify(
         };
 
         let new_token = NewToken {
-            creator_user_id: user.id,
             account_id: user.account_id,
             token_hash: &token_hash,
         };

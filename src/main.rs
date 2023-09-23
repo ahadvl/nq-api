@@ -40,7 +40,7 @@ use routers::quran::{
     mushaf::{mushaf_add, mushaf_delete, mushaf_edit, mushaf_list, mushaf_view},
     surah::{surah_add, surah_delete, surah_edit, surah_list, surah_view},
 };
-use routers::user::{edit_user, user, users_list};
+use routers::user::{edit_user, user, users_list, delete_user};
 
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -110,7 +110,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/verify", web::post().to(verify::verify))
                     .service(
                         web::resource("/logout")
-                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::get().to(logout::logout)),
                     ),
             )
@@ -121,13 +121,13 @@ async fn main() -> std::io::Result<()> {
                     .service(
                         web::resource("")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
-                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::post().to(surah_add::surah_add))
                     )
                     .service(
                         web::resource("/{surah_uuid}")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
-                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::post().to(surah_edit::surah_edit))
                             .route(web::delete().to(surah_delete::surah_delete))
                     )
@@ -139,7 +139,7 @@ async fn main() -> std::io::Result<()> {
                     .service(
                         web::resource("")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
-                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::post().to(mushaf_add::mushaf_add))
                     )
                     .service(
@@ -149,22 +149,23 @@ async fn main() -> std::io::Result<()> {
                     .service(
                         web::resource("/{uuid}")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
-                            .wrap(TokenAuth::new(user_id_from_token.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::post().to(mushaf_edit::mushaf_edit))
                             .route(web::delete().to(mushaf_delete::mushaf_delete))
                     )
             )
             .service(
                 web::scope("/user")
-                    .wrap(TokenAuth::new(user_id_from_token.clone()))
+                    .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                     .route("", web::get().to(users_list::users_list))
                     .route("/{uuid}", web::get().to(user::view_user))
-                    .route("/{uuid}", web::post().to(edit_user::edit_user)),
+                    .route("/{uuid}", web::post().to(edit_user::edit_user))
+                    .route("/{uuid}", web::delete().to(delete_user::delete_user)),
             )
             .service(
                 web::scope("/organization")
                     .wrap(AuthZ::new(auth_z_controller.clone()))
-                    .wrap(TokenAuth::new(user_id_from_token.clone()))
+                    .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                     .route("/name", web::post().to(name::add_name))
                     .route("/name/{uuid}", web::get().to(name::names))
                     .route("/name/{uuid}", web::post().to(name::edit_name))
@@ -177,7 +178,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/permission")
                     .wrap(AuthZ::new(auth_z_controller.clone()))
-                    .wrap(TokenAuth::new(user_id_from_token.clone()))
+                    .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                     .route("", web::get().to(permissions_list::get_list_of_permissions))
                     .route("", web::post().to(add_permission::add_permission))
                     .route(

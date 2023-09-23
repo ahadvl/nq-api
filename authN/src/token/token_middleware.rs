@@ -35,6 +35,7 @@ where
 
 #[derive(Clone, Default)]
 pub struct TokenAuth<F, Type> {
+    authorization_header_required: bool,
     finder: F,
     phantom_type: PhantomData<Type>,
 }
@@ -45,8 +46,9 @@ where
     Type: Sized,
 {
     /// Construct `TokenAuth` middleware.
-    pub fn new(finder: F) -> Self {
+    pub fn new(finder: F, authorization_header_required: bool) -> Self {
         Self {
+            authorization_header_required,
             finder,
             phantom_type: PhantomData,
         }
@@ -74,6 +76,7 @@ where
         ready(Ok(TokenAuthMiddleware {
             service: Rc::new(service),
             token_finder: self.finder.clone(),
+            authorization_header_required: self.authorization_header_required,
             phantom_type: PhantomData,
         }))
     }
@@ -82,6 +85,7 @@ where
 pub struct TokenAuthMiddleware<S, F, Type> {
     service: Rc<S>,
     token_finder: F,
+    authorization_header_required: bool,
     phantom_type: PhantomData<Type>,
 }
 
@@ -101,23 +105,35 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let service = Rc::clone(&self.service);
         let token_finder = self.token_finder.clone();
+        let header_required = self.authorization_header_required.clone();
 
         Box::pin(async move {
-            if let Some(token) = req
+            match req
                 .headers()
                 .get(header::AUTHORIZATION)
                 .and_then(|token| token.to_str().ok())
             {
-                let token_data = token_finder.get_user_id(token).await;
+                Some(token) => {
+                    let token_data = token_finder.get_user_id(token).await;
 
-                if let Some(data) = token_data {
-                    req.extensions_mut().insert(data);
+                    if let Some(data) = token_data {
+                        req.extensions_mut().insert(data);
+                        let res = service.call(req).await?;
+                        return Ok(res);
+                    };
+
+                    Err(ErrorUnauthorized("This Token is not valid"))
+                }
+                None => {
+                    if header_required {
+                        return Err(ErrorUnauthorized("This Token is not valid"));
+                    }
+
                     let res = service.call(req).await?;
-                    return Ok(res);
-                };
-            }
 
-            Err(ErrorUnauthorized("This Token is not valid"))
+                    Ok(res)
+                }
+            }
         })
     }
 }
