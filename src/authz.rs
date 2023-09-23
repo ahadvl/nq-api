@@ -253,9 +253,32 @@ impl<'a> Condition<'a> for Owner {
 }
 
 #[derive(Debug, Clone)]
+pub struct Login;
+
+impl<'a> Condition<'a> for Login {
+    // Validates the Owner Condition
+    fn validate(
+        &self,
+        _attr: Option<i32>,
+        subject: Option<&'a str>,
+        _condition_value: &'a str,
+    ) -> bool {
+        matches!(subject, Some(_))
+    }
+
+    fn get_value_type(&self) -> ConditionValueType {
+        ConditionValueType::Boolean
+    }
+}
+
+
+#[derive(Debug, Clone)]
 pub enum ModelAttribResult {
     /// Owner Condition Result
     Owner(Owner),
+
+    /// Login Condition Result
+    Login(Login),
 }
 
 impl<'a> Condition<'a> for ModelAttribResult {
@@ -267,12 +290,14 @@ impl<'a> Condition<'a> for ModelAttribResult {
     ) -> bool {
         match self {
             Self::Owner(owner) => owner.validate(attribute, subject, condition_value),
+            Self::Login(login) => login.validate(attribute, subject, condition_value),
         }
     }
 
     fn get_value_type(&self) -> ConditionValueType {
         match self {
             Self::Owner(owner) => owner.get_value_type(),
+            Self::Login(login) => login.get_value_type(),
         }
     }
 }
@@ -280,6 +305,7 @@ impl<'a> Condition<'a> for ModelAttribResult {
 #[derive(Debug, Clone)]
 pub enum ModelAttrib {
     Owner,
+    Login,
 }
 
 impl From<ModelAttrib> for ModelAttribResult {
@@ -288,6 +314,7 @@ impl From<ModelAttrib> for ModelAttribResult {
     fn from(value: ModelAttrib) -> Self {
         match value {
             ModelAttrib::Owner => ModelAttribResult::Owner(Owner {}),
+            ModelAttrib::Login => ModelAttribResult::Login(Login {}),
         }
     }
 }
@@ -299,6 +326,7 @@ impl TryFrom<&str> for ModelAttrib {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
             "isOwner" => Ok(Self::Owner),
+            "isLoggedIn" => Ok(Self::Login),
 
             v => Err(RouterError::BadRequest(format!(
                 "Condition with name {} not found!",
@@ -313,6 +341,7 @@ impl ModelPermission<ModelAttrib, i32> for User {
     async fn get_attr(&self, name: ModelAttrib) -> Option<i32> {
         match name {
             ModelAttrib::Owner => Some(self.account_id),
+            ModelAttrib::Login => None
         }
     }
 }
@@ -322,6 +351,7 @@ impl ModelPermission<ModelAttrib, i32> for Organization {
     async fn get_attr(&self, name: ModelAttrib) -> Option<i32> {
         match name {
             ModelAttrib::Owner => Some(self.owner_account_id),
+            ModelAttrib::Login => None
         }
     }
 }
