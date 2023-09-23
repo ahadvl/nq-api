@@ -70,6 +70,7 @@ pub struct NewVerifyCode<'a> {
 pub struct User {
     #[serde(skip_serializing)]
     pub id: i32,
+    pub uuid: Uuid,
 
     #[serde(skip_serializing)]
     pub account_id: i32,
