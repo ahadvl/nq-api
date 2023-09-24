@@ -7,9 +7,7 @@ pub mod surah_view;
 use crate::models::QuranWord;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-/// The quran text format
-/// Each word has its own uuid
+/// The quran text format Each word has its own uuid
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Format {

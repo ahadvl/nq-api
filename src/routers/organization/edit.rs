@@ -3,7 +3,7 @@ use crate::{
     models::{Account, Organization, OrganizationName},
     DbPool,
 };
-use actix_web::web;
+use actix_web::web::{self};
 use diesel::prelude::*;
 use serde::Deserialize;
 
