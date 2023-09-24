@@ -1,7 +1,6 @@
--- Your SQL goes here
-
 CREATE TABLE app_organizations(
     id serial NOT NULL,
+    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     account_id serial REFERENCES app_accounts(id),
     creator_user_id serial NOT NULL,
     owner_account_id serial,
