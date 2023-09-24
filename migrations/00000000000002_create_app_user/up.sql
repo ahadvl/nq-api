@@ -1,6 +1,5 @@
 CREATE TABLE app_users (
     id serial NOT NULL,
-    uuid uuid DEFAULT uuid_generate_v4 () NOT NULL,
     account_id serial NOT NULL,
     birthday DATE,
     profile_image TEXT,
