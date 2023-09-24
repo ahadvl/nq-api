@@ -162,10 +162,10 @@ async fn main() -> std::io::Result<()> {
                             .route(web::post().to(mushaf_add::mushaf_add)),
                     )
                     .service(
-                        web::resource("/{uuid}").route(web::get().to(mushaf_view::mushaf_view)),
+                        web::resource("/{mushaf_uuid}").route(web::get().to(mushaf_view::mushaf_view)),
                     )
                     .service(
-                        web::resource("/{uuid}")
+                        web::resource("/{mushaf_uuid}")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
                             .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::post().to(mushaf_edit::mushaf_edit))
@@ -190,9 +190,9 @@ async fn main() -> std::io::Result<()> {
                     .route("/name/{uuid}", web::delete().to(name::delete_name))
                     .route("", web::get().to(list::get_list_of_organizations))
                     .route("", web::post().to(add::add))
-                    .route("/{org_id}", web::get().to(view::view))
-                    .route("/{org_id}", web::post().to(edit::edit_organization))
-                    .route("/{org_id}", web::delete().to(delete::delete_organization)),
+                    .route("/{account_uuid}", web::get().to(view::view))
+                    .route("/{account_uuid}", web::post().to(edit::edit_organization))
+                    .route("/{account_uuid}", web::delete().to(delete::delete_organization)),
             )
             .service(
                 web::scope("/permission")

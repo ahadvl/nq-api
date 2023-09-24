@@ -1,7 +1,6 @@
 use actix_web::web::{self, ReqData};
 use diesel::{dsl::exists, prelude::*, select};
 
-use crate::models::User;
 use crate::{
     error::RouterError,
     models::{
