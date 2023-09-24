@@ -48,6 +48,7 @@ diesel::table! {
 diesel::table! {
     app_organizations (id) {
         id -> Int4,
+        uuid -> Uuid,
         account_id -> Int4,
         creator_user_id -> Int4,
         owner_account_id -> Int4,
