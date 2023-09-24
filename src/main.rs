@@ -32,15 +32,16 @@ mod macros;
 use routers::account::logout;
 use routers::account::send_code;
 use routers::account::verify;
-use routers::organization::{add, edit, list, name, view};
+use routers::organization::{add, delete, edit, list, name, view};
 use routers::permission::{
     add_permission, delete_permission, edit_permission, permissions_list, view_permission,
 };
 use routers::quran::{
+    ayah::{ayah_delete, ayah_edit, ayah_list, ayah_view},
     mushaf::{mushaf_add, mushaf_delete, mushaf_edit, mushaf_list, mushaf_view},
     surah::{surah_add, surah_delete, surah_edit, surah_list, surah_view},
 };
-use routers::user::{edit_user, user, users_list, delete_user};
+use routers::user::{delete_user, edit_user, user, users_list};
 
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
 
@@ -122,15 +123,33 @@ async fn main() -> std::io::Result<()> {
                         web::resource("")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
                             .wrap(TokenAuth::new(user_id_from_token.clone(), true))
-                            .route(web::post().to(surah_add::surah_add))
+                            .route(web::post().to(surah_add::surah_add)),
                     )
                     .service(
                         web::resource("/{surah_uuid}")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
                             .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::post().to(surah_edit::surah_edit))
-                            .route(web::delete().to(surah_delete::surah_delete))
-                    )
+                            .route(web::delete().to(surah_delete::surah_delete)),
+                    ),
+            )
+            .service(
+                web::scope("/ayah")
+                    .route("", web::get().to(ayah_list::ayah_list))
+                    .route("/{ayah_uuid}", web::get().to(ayah_view::ayah_view))
+                    //.service(
+                    //    web::resource("")
+                    //        .wrap(AuthZ::new(auth_z_controller.clone()))
+                    //        .wrap(TokenAuth::new(user_id_from_token.clone(), true))
+                    //        .route(web::post().to(ayah_add::ayah_add)),
+                    //)
+                    .service(
+                        web::resource("/{ayah_uuid}")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
+                            .route(web::post().to(ayah_edit::ayah_edit))
+                            .route(web::delete().to(ayah_delete::ayah_delete)),
+                    ),
             )
             .service(
                 web::scope("/mushaf")
@@ -140,19 +159,18 @@ async fn main() -> std::io::Result<()> {
                         web::resource("")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
                             .wrap(TokenAuth::new(user_id_from_token.clone(), true))
-                            .route(web::post().to(mushaf_add::mushaf_add))
+                            .route(web::post().to(mushaf_add::mushaf_add)),
                     )
                     .service(
-                        web::resource("/{uuid}")
-                            .route(web::get().to(mushaf_view::mushaf_view))
+                        web::resource("/{uuid}").route(web::get().to(mushaf_view::mushaf_view)),
                     )
                     .service(
                         web::resource("/{uuid}")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
                             .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::post().to(mushaf_edit::mushaf_edit))
-                            .route(web::delete().to(mushaf_delete::mushaf_delete))
-                    )
+                            .route(web::delete().to(mushaf_delete::mushaf_delete)),
+                    ),
             )
             .service(
                 web::scope("/user")
@@ -173,7 +191,8 @@ async fn main() -> std::io::Result<()> {
                     .route("", web::get().to(list::get_list_of_organizations))
                     .route("", web::post().to(add::add))
                     .route("/{org_id}", web::get().to(view::view))
-                    .route("/{org_id}", web::post().to(edit::edit_organization)),
+                    .route("/{org_id}", web::post().to(edit::edit_organization))
+                    .route("/{org_id}", web::delete().to(delete::delete_organization)),
             )
             .service(
                 web::scope("/permission")

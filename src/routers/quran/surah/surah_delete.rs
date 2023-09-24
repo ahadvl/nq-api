@@ -20,7 +20,6 @@ pub async fn surah_delete<'a>(
 
         diesel::delete(quran_surahs.filter(surah_uuid.eq(uuid))).execute(&mut conn)?;
 
-        // Remove the Surah by uuid
         Ok("Deleted")
     })
     .await
