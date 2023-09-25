@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{
     error::RouterError,
     models::{Account, Organization, OrganizationName},
@@ -6,6 +8,7 @@ use crate::{
 use actix_web::web::{self};
 use diesel::prelude::*;
 use serde::Deserialize;
+use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct OrgInfoUpdatebleFileds {
@@ -17,15 +20,15 @@ pub struct OrgInfoUpdatebleFileds {
 
 /// Edits the org
 pub async fn edit_organization(
-    path: web::Path<u32>,
+    path: web::Path<String>,
     info: web::Json<OrgInfoUpdatebleFileds>,
     pool: web::Data<DbPool>,
 ) -> Result<String, RouterError> {
-    use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id, username};
+    use crate::schema::app_accounts::dsl::{app_accounts, username, uuid as acc_uuid};
     use crate::schema::app_organization_names::dsl::{language, name};
     use crate::schema::app_organizations::dsl::*;
 
-    let org_id = path.into_inner();
+    let account_uuid = path.into_inner();
     // TODO: check this user id
     //let user_id = user_id.into_inner();
     let new_org = info.into_inner();
@@ -33,9 +36,11 @@ pub async fn edit_organization(
     let update_result: Result<String, RouterError> = web::block(move || {
         let mut conn = pool.get().unwrap();
 
+        let account_uuid = Uuid::from_str(&account_uuid)?;
+
         // First find the org from id
         let account = app_accounts
-            .filter(acc_id.eq(org_id as i32))
+            .filter(acc_uuid.eq(account_uuid))
             .load::<Account>(&mut conn)?;
 
         let org =

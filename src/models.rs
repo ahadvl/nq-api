@@ -70,7 +70,6 @@ pub struct NewVerifyCode<'a> {
 pub struct User {
     #[serde(skip_serializing)]
     pub id: i32,
-    pub uuid: Uuid,
 
     #[serde(skip_serializing)]
     pub account_id: i32,
@@ -153,7 +152,6 @@ pub struct NewEmail<'a> {
 #[diesel(table_name = app_organizations)]
 pub struct Organization {
     pub id: i32,
-    pub uuid: Uuid,
     pub account_id: i32,
     pub owner_account_id: i32,
     pub creator_user_id: i32,

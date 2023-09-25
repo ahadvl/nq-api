@@ -11,7 +11,8 @@ pub async fn delete_user<'a>(
     path: web::Path<String>,
     pool: web::Data<DbPool>,
 ) -> Result<&'a str, RouterError> {
-    use crate::schema::app_users::dsl::{app_users, uuid as user_uuid};
+    use crate::schema::app_accounts::dsl::{app_accounts, id as acc_id, uuid as acc_uuid};
+    use crate::schema::app_users::dsl::{account_id as user_acc_id, app_users};
 
     let path = path.into_inner();
 
@@ -19,8 +20,13 @@ pub async fn delete_user<'a>(
         let mut conn = pool.get().unwrap();
         let uuid = Uuid::from_str(&path)?;
 
-        // remove uuid
-        diesel::delete(app_users.filter(user_uuid.eq(uuid))).execute(&mut conn)?;
+        // Select the account by uuid
+        let account_id: i32 = app_accounts
+            .filter(acc_uuid.eq(uuid))
+            .select(acc_id)
+            .get_result(&mut conn)?;
+
+        diesel::delete(app_users.filter(user_acc_id.eq(account_id))).execute(&mut conn)?;
 
         Ok("Deleted")
     })
