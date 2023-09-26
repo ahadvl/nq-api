@@ -37,7 +37,7 @@ use routers::permission::{
     add_permission, delete_permission, edit_permission, permissions_list, view_permission,
 };
 use routers::quran::{
-    ayah::{ayah_delete, ayah_edit, ayah_list, ayah_view},
+    ayah::{ayah_delete, ayah_edit, ayah_list, ayah_view, ayah_add},
     mushaf::{mushaf_add, mushaf_delete, mushaf_edit, mushaf_list, mushaf_view},
     surah::{surah_add, surah_delete, surah_edit, surah_list, surah_view},
 };
@@ -137,12 +137,12 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/ayah")
                     .route("", web::get().to(ayah_list::ayah_list))
                     .route("/{ayah_uuid}", web::get().to(ayah_view::ayah_view))
-                    //.service(
-                    //    web::resource("")
-                    //        .wrap(AuthZ::new(auth_z_controller.clone()))
-                    //        .wrap(TokenAuth::new(user_id_from_token.clone(), true))
-                    //        .route(web::post().to(ayah_add::ayah_add)),
-                    //)
+                    .service(
+                        web::resource("")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
+                            .route(web::post().to(ayah_add::ayah_add)),
+                    )
                     .service(
                         web::resource("/{ayah_uuid}")
                             .wrap(AuthZ::new(auth_z_controller.clone()))

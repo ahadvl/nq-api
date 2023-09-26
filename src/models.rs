@@ -248,6 +248,15 @@ pub struct QuranAyah {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Insertable)]
+#[diesel(table_name = quran_ayahs)]
+pub struct NewQuranAyah {
+    pub creator_user_id: i32,
+    pub surah_id: i32,
+    pub ayah_number: i32,
+    pub sajdeh: Option<String>,
+}
+
 #[derive(Clone, Selectable, Identifiable, Associations, Queryable, PartialEq, Debug, Serialize)]
 #[diesel(belongs_to(QuranAyah, foreign_key = ayah_id))]
 #[diesel(table_name = quran_words)]
@@ -266,6 +275,14 @@ pub struct QuranWord {
     pub created_at: NaiveDateTime,
     #[serde(skip_serializing)]
     pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = quran_words)]
+pub struct NewQuranWord<'a>{
+    pub creator_user_id: i32,
+    pub ayah_id: i32,
+    pub word: &'a str,
 }
 
 #[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Selectable, Debug)]

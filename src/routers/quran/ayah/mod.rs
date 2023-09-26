@@ -2,6 +2,7 @@ pub mod ayah_list;
 pub mod ayah_view;
 pub mod ayah_delete;
 pub mod ayah_edit;
+pub mod ayah_add;
 
 use serde::{Serialize, Deserialize};
 
