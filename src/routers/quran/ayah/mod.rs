@@ -1,21 +1,21 @@
-pub mod ayah_list;
-pub mod ayah_view;
+pub mod ayah_add;
 pub mod ayah_delete;
 pub mod ayah_edit;
-pub mod ayah_add;
+pub mod ayah_list;
+pub mod ayah_view;
 
 use std::fmt::Display;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")] 
-pub enum SajdehType {
+#[serde(rename_all = "lowercase")]
+pub enum Sajdeh {
     Mostahab,
     Vajib,
 }
 
-impl Display for SajdehType {
+impl Display for Sajdeh {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Mostahab => write!(f, "mostahab"),
@@ -28,5 +28,5 @@ impl Display for SajdehType {
 pub struct SimpleAyah {
     pub surah_uuid: String,
     pub ayah_number: i32,
-    pub sajdeh: Option<SajdehType>,
+    pub sajdeh: Option<Sajdeh>,
 }

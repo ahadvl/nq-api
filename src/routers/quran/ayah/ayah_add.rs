@@ -8,12 +8,12 @@ use diesel::prelude::*;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use super::SajdehType;
+use super::Sajdeh;
 
 #[derive(Deserialize)]
 pub struct AyahWithText {
     pub surah_uuid: String,
-    pub sajdeh: Option<SajdehType>,
+    pub sajdeh: Option<Sajdeh>,
     pub text: String,
 }
 
