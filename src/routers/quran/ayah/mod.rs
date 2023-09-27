@@ -4,6 +4,8 @@ pub mod ayah_delete;
 pub mod ayah_edit;
 pub mod ayah_add;
 
+use std::fmt::Display;
+
 use serde::{Serialize, Deserialize};
 
 #[derive(Deserialize, Serialize)]
@@ -11,6 +13,15 @@ use serde::{Serialize, Deserialize};
 pub enum SajdehType {
     Mostahab,
     Vajib,
+}
+
+impl Display for SajdehType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Mostahab => write!(f, "mostahab"),
+            Self::Vajib => write!(f, "vajib"),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
