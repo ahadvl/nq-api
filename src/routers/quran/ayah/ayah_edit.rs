@@ -33,11 +33,16 @@ pub async fn ayah_edit<'a>(
             .select(surah_id)
             .get_result(&mut conn)?;
 
+        let new_sajdeh = match new_ayah.sajdeh {
+                Some(sajdeh) => Some(sajdeh.to_string()),
+                None => None,
+            };
+
         diesel::update(quran_ayahs.filter(ayah_uuid.eq(new_ayah_uuid)))
             .set((
                 ayah_number.eq(new_ayah.ayah_number),
                 ayah_surah_id.eq(target_surah),
-                ayah_sajdeh.eq(new_ayah.sajdeh)
+                ayah_sajdeh.eq(new_sajdeh)
             ))
             .execute(&mut conn)?;
 

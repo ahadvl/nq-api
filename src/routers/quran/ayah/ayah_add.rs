@@ -8,10 +8,12 @@ use diesel::prelude::*;
 use serde::Deserialize;
 use uuid::Uuid;
 
+use super::Sajdeh;
+
 #[derive(Deserialize)]
 pub struct AyahWithText {
     pub surah_uuid: String,
-    pub sajdeh: Option<String>,
+    pub sajdeh: Option<Sajdeh>,
     pub text: String,
 }
 
@@ -53,7 +55,10 @@ pub async fn ayah_add(
         // Insert new ayah
         let ayah: QuranAyah = NewQuranAyah {
             surah_id: target_surah,
-            sajdeh: new_ayah.sajdeh,
+            sajdeh: match new_ayah.sajdeh {
+                Some(sajdeh) => Some(sajdeh.to_string()),
+                None => None,
+            },
             ayah_number: (latest_ayah_number + 1) as i32,
             creator_user_id: user,
         }

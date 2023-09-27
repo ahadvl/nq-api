@@ -37,9 +37,10 @@ use routers::permission::{
     add_permission, delete_permission, edit_permission, permissions_list, view_permission,
 };
 use routers::quran::{
-    ayah::{ayah_delete, ayah_edit, ayah_list, ayah_view, ayah_add},
+    ayah::{ayah_add, ayah_delete, ayah_edit, ayah_list, ayah_view},
     mushaf::{mushaf_add, mushaf_delete, mushaf_edit, mushaf_list, mushaf_view},
     surah::{surah_add, surah_delete, surah_edit, surah_list, surah_view},
+    word::{word_delete, word_edit, word_list, word_view},
 };
 use routers::user::{delete_user, edit_user, user, users_list};
 
@@ -152,6 +153,24 @@ async fn main() -> std::io::Result<()> {
                     ),
             )
             .service(
+                web::scope("/word")
+                    .route("", web::get().to(word_list::word_list))
+                    .route("/{word_uuid}", web::get().to(word_view::word_view))
+                    //.service(
+                    //    web::resource("")
+                    //        .wrap(AuthZ::new(auth_z_controller.clone()))
+                    //        .wrap(TokenAuth::new(user_id_from_token.clone(), true))
+                    //        .route(web::post().to(word_add::word_add)),
+                    //)
+                    .service(
+                        web::resource("/{word_uuid}")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
+                            .route(web::post().to(word_edit::word_edit))
+                            .route(web::delete().to(word_delete::word_delete)),
+                    ),
+            )
+            .service(
                 web::scope("/mushaf")
                     .route("", web::get().to(mushaf_list::mushaf_list))
                     .route("", web::post().to(mushaf_add::mushaf_add))
@@ -162,7 +181,8 @@ async fn main() -> std::io::Result<()> {
                             .route(web::post().to(mushaf_add::mushaf_add)),
                     )
                     .service(
-                        web::resource("/{mushaf_uuid}").route(web::get().to(mushaf_view::mushaf_view)),
+                        web::resource("/{mushaf_uuid}")
+                            .route(web::get().to(mushaf_view::mushaf_view)),
                     )
                     .service(
                         web::resource("/{mushaf_uuid}")
@@ -192,7 +212,10 @@ async fn main() -> std::io::Result<()> {
                     .route("", web::post().to(add::add))
                     .route("/{account_uuid}", web::get().to(view::view))
                     .route("/{account_uuid}", web::post().to(edit::edit_organization))
-                    .route("/{account_uuid}", web::delete().to(delete::delete_organization)),
+                    .route(
+                        "/{account_uuid}",
+                        web::delete().to(delete::delete_organization),
+                    ),
             )
             .service(
                 web::scope("/permission")
