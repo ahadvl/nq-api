@@ -6,12 +6,16 @@ pub mod ayah_add;
 
 use serde::{Serialize, Deserialize};
 
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")] 
 pub enum SajdehType {
+    Mostahab,
+    Vajib,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SimpleAyah {
     pub surah_uuid: String,
     pub ayah_number: i32,
-    pub sajdeh: Option<String>,
+    pub sajdeh: Option<SajdehType>,
 }
