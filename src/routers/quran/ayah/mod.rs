@@ -6,6 +6,9 @@ pub mod ayah_add;
 
 use serde::{Serialize, Deserialize};
 
+pub enum SajdehType {
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct SimpleAyah {
     pub surah_uuid: String,
