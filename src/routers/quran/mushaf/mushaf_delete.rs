@@ -20,7 +20,7 @@ pub async fn mushaf_delete<'a>(
         let uuid = Uuid::from_str(&path)?;
 
         // remove mushaf
-        diesel::delete(mushafs.filter(mushaf_uuid.eq(uuid))).execute(&mut conn)?;
+        diesel::delete(mushafs.filter(mushaf_uuid.eq(uuid))).execute(&mut conn).unwrap();
 
         Ok("Deleted")
     })
