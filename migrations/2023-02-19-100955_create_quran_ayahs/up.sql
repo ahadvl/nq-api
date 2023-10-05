@@ -10,4 +10,5 @@ CREATE TABLE quran_ayahs (
     CONSTRAINT quran_ayahs_id PRIMARY KEY (id),
     CONSTRAINT ayah_fk_user_id_rel FOREIGN KEY(creator_user_id) REFERENCES app_users(id),
     CONSTRAINT fk_surah_id FOREIGN KEY(surah_id) REFERENCES quran_surahs(id)
+        on delete cascade
 );

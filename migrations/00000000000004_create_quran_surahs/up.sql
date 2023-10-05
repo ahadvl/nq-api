@@ -13,4 +13,5 @@ CREATE TABLE quran_surahs (
     CONSTRAINT quran_surahs_id PRIMARY KEY (id),
     CONSTRAINT surah_fk_user_id_rel FOREIGN KEY(creator_user_id) REFERENCES app_users(id),
     CONSTRAINT fk_mushaf_id FOREIGN KEY(mushaf_id) REFERENCES mushafs(id)
+        on delete cascade
 );

@@ -9,4 +9,5 @@ CREATE TABLE quran_words(
     CONSTRAINT quran_words_id PRIMARY KEY (id),
     CONSTRAINT word_fk_user_id_rel FOREIGN KEY(creator_user_id) REFERENCES app_users(id),
     CONSTRAINT fk_w_ayah FOREIGN KEY(ayah_id) REFERENCES quran_ayahs(id)
+        on delete cascade
 );
