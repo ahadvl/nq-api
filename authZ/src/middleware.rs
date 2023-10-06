@@ -1,7 +1,7 @@
 use actix_utils::future::{ready, Ready};
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    error::ErrorUnauthorized,
+    error::ErrorForbidden,
     Error, HttpMessage,
 };
 use futures_util::future::LocalBoxFuture;
@@ -86,7 +86,7 @@ where
                 return Ok(res);
             }
 
-            return Err(ErrorUnauthorized("You don't have access to this resource!"));
+            return Err(ErrorForbidden("You don't have access to this resource!"));
         })
     }
 }

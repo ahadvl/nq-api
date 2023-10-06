@@ -7,6 +7,7 @@ pub mod surah_view;
 use crate::models::QuranWord;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
 /// The quran text format Each word has its own uuid
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -93,6 +94,7 @@ pub struct SurahListResponse {
     pub number_of_ayahs: i64,
 }
 
+// TODO: Remove number. number must be generated at api runtime
 /// User request body type
 #[derive(Serialize, Clone, Debug, Deserialize)]
 pub struct SimpleSurah {

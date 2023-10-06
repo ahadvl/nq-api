@@ -173,7 +173,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/mushaf")
                     .route("", web::get().to(mushaf_list::mushaf_list))
-                    .route("", web::post().to(mushaf_add::mushaf_add))
+                    .route("", web::get().to(mushaf_view::mushaf_view))
                     .service(
                         web::resource("")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
@@ -182,12 +182,8 @@ async fn main() -> std::io::Result<()> {
                     )
                     .service(
                         web::resource("/{mushaf_uuid}")
-                            .route(web::get().to(mushaf_view::mushaf_view)),
-                    )
-                    .service(
-                        web::resource("/{mushaf_uuid}")
                             .wrap(AuthZ::new(auth_z_controller.clone()))
-                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), false))
                             .route(web::post().to(mushaf_edit::mushaf_edit))
                             .route(web::delete().to(mushaf_delete::mushaf_delete)),
                     ),

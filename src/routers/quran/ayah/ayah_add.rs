@@ -49,6 +49,7 @@ pub async fn ayah_add(
         // Calculate amount of ayahs in surah
         let latest_ayah_number: i64 = quran_ayahs
             .inner_join(quran_surahs)
+            .filter(surah_id.eq(target_surah))
             .count()
             .get_result(&mut conn)?;
 

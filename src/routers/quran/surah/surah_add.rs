@@ -31,6 +31,13 @@ pub async fn surah_add<'a>(
             .select(mushaf_id)
             .get_result(&mut conn)?;
 
+        // Calculate amount of surahs in mushaf
+        let latest_surah_number: i64 = quran_surahs
+            .inner_join(mushafs)
+            .filter(mushaf_id.eq(mushaf))
+            .count()
+            .get_result(&mut conn)?;
+
         let user: User = app_users.filter(user_acc_id.eq(data as i32)).get_result(&mut conn)?;
 
         // Add a new surah
@@ -38,7 +45,7 @@ pub async fn surah_add<'a>(
             creator_user_id: user.id,
             name: new_surah.name,
             period: new_surah.period,
-            number: new_surah.number,
+            number: (latest_surah_number + 1) as i32,
             mushaf_id: mushaf,
             bismillah_status: new_surah.bismillah_status,
             bismillah_as_first_ayah: new_surah.bismillah_as_first_ayah,
