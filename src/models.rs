@@ -279,7 +279,7 @@ pub struct QuranWord {
 
 #[derive(Insertable)]
 #[diesel(table_name = quran_words)]
-pub struct NewQuranWord<'a>{
+pub struct NewQuranWord<'a> {
     pub creator_user_id: i32,
     pub ayah_id: i32,
     pub word: &'a str,
@@ -415,4 +415,37 @@ pub struct NewPermissionCondition {
     pub permission_id: i32,
     pub name: String,
     pub value: String,
+}
+
+#[derive(Deserialize, Serialize, Clone, Validate, Identifiable, Queryable, Debug, Selectable)]
+#[diesel(table_name = translations)]
+pub struct Translation {
+    #[serde(skip_serializing)]
+    pub id: i32,
+    pub uuid: Uuid,
+
+    #[serde(skip_serializing)]
+    pub creator_user_id: i32,
+
+    pub translator_account_id: i32,
+
+    pub language: String,
+    pub release_date: Option<NaiveDate>,
+    pub source: Option<String>,
+
+    #[serde(skip_serializing)]
+    pub created_at: NaiveDateTime,
+    #[serde(skip_serializing)]
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = translations)]
+pub struct NewTranslation {
+    pub creator_user_id: i32,
+    pub translator_account_id: i32,
+
+    pub language: String,
+    pub release_date: Option<NaiveDate>,
+    pub source: Option<String>,
 }
