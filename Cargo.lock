@@ -259,7 +259,7 @@ dependencies = [
 
 [[package]]
 name = "auth_n"
-version = "0.0.5"
+version = "1.0.0"
 dependencies = [
  "actix-utils",
  "actix-web",
@@ -270,7 +270,7 @@ dependencies = [
 
 [[package]]
 name = "auth_z"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "actix-utils",
  "actix-web",
