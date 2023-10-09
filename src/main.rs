@@ -36,12 +36,8 @@ use routers::organization::{add, delete, edit, list, name, view};
 use routers::permission::{
     add_permission, delete_permission, edit_permission, permissions_list, view_permission,
 };
-use routers::quran::{
-    ayah::{ayah_add, ayah_delete, ayah_edit, ayah_list, ayah_view},
-    mushaf::{mushaf_add, mushaf_delete, mushaf_edit, mushaf_list, mushaf_view},
-    surah::{surah_add, surah_delete, surah_edit, surah_list, surah_view},
-    word::{word_delete, word_edit, word_list, word_view},
-};
+use routers::quran::{ayah::*, mushaf::*, surah::*, word::*};
+use routers::translation::*;
 use routers::user::{delete_user, edit_user, user, users_list};
 
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
@@ -132,6 +128,27 @@ async fn main() -> std::io::Result<()> {
                             .wrap(TokenAuth::new(user_id_from_token.clone(), true))
                             .route(web::post().to(surah_edit::surah_edit))
                             .route(web::delete().to(surah_delete::surah_delete)),
+                    ),
+            )
+            .service(
+                web::scope("/translation")
+                    .route("", web::get().to(translation_list::translation_list))
+                    .route(
+                        "/{translation_uuid}",
+                        web::get().to(translation_view::translation_view),
+                    )
+                    .service(
+                        web::resource("")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
+                            .route(web::post().to(translation_add::translation_add)),
+                    )
+                    .service(
+                        web::resource("/{translation_uuid}")
+                            .wrap(AuthZ::new(auth_z_controller.clone()))
+                            .wrap(TokenAuth::new(user_id_from_token.clone(), true))
+                            .route(web::post().to(translation_edit::translation_edit))
+                            .route(web::delete().to(translation_delete::translation_delete)),
                     ),
             )
             .service(

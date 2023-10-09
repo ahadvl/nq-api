@@ -189,11 +189,11 @@ diesel::table! {
 diesel::table! {
     translations (id) {
         id -> Int4,
-        uuid -> Nullable<Uuid>,
+        uuid -> Uuid,
         creator_user_id -> Int4,
-        translator_id -> Int4,
+        translator_account_id -> Int4,
         language -> Varchar,
-        release_year -> Nullable<Date>,
+        release_date -> Nullable<Date>,
         source -> Nullable<Varchar>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
@@ -234,6 +234,7 @@ diesel::joinable!(quran_surahs -> app_users (creator_user_id));
 diesel::joinable!(quran_surahs -> mushafs (mushaf_id));
 diesel::joinable!(quran_words -> app_users (creator_user_id));
 diesel::joinable!(quran_words -> quran_ayahs (ayah_id));
+diesel::joinable!(translations -> app_accounts (translator_account_id));
 diesel::joinable!(translations -> app_users (creator_user_id));
 diesel::joinable!(translations_text -> app_users (creator_user_id));
 diesel::joinable!(translations_text -> quran_ayahs (ayah_id));
