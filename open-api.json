@@ -29,6 +29,10 @@
         {
             "name": "quran",
             "description": "All the quran related routers"
+        },
+        {
+            "name": "translation",
+            "description": "Manage translation"
         }
     ],
     "paths": {
@@ -1001,7 +1005,7 @@
                 }
             }
         },
-        "/surah/{suarh_uuid}": {
+        "/surah/{surah_uuid}": {
             "description": "Returns the single surah",
             "get": {
                 "parameters": [
@@ -1122,6 +1126,523 @@
                     }
                 }
             }
+        },
+        "/ayah": {
+            "description": "Returns the list of ayahs",
+            "get": {
+                "parameters": [
+                    {
+                        "in": "query",
+                        "required": true,
+                        "name": "mushaf",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the ayahs list"
+                    }
+                }
+            },
+            "post": {
+                "description": "Add the new ayah",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "surah_id": {
+                                        "type": "string",
+                                        "description": "The surah_uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "sajdeh": {
+                                        "type": "string",
+                                        "description": "Ayah have sajdeh or no",
+                                        "example": ""
+                                    },
+                                    "ayah_number": {
+                                        "type": "number",
+                                        "description": "Number of ayah",
+                                        "example": 1
+                                    },
+                                    "creator_user_id": {
+                                        "type": "string",
+                                        "description": "The user_uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means new ayah was added"
+                    }
+                }
+            }
+        },
+        "/ayah/{ayah_uuid}": {
+            "description": "Returns the single ayah",
+            "get": {
+                "parameters": [
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "ayah_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }   
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the single ayah"
+                    }
+                }
+            },
+            "post": {
+                "description": "Edit ayah with id you specified",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "ayah_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    } 
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "surah_id": {
+                                        "type": "string",
+                                        "description": "The surah_uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "sajdeh": {
+                                        "type": "string",
+                                        "description": "Ayah have sajdeh or no",
+                                        "example": ""
+                                    },
+                                    "ayah_number": {
+                                        "type": "number",
+                                        "description": "Number of ayah",
+                                        "example": 1
+                                    },
+                                    "creator_user_id": {
+                                        "type": "string",
+                                        "description": "The user_uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means the ayah was edited"
+                    }
+                }
+            },           
+            "delete": {
+                "description": "Delete ayah with id you specified",
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "ayah_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ayah with id you specified deleted"
+                    }
+                }
+            }
+        },
+        "/word": {
+            "description": "Returns the list of words",
+            "get": {
+                "parameters": [
+                    {
+                        "in": "query",
+                        "required": true,
+                        "name": "mushaf",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the words list"
+                    }
+                }
+            }
+        },
+        "/word/{word_uuid}": {
+            "description": "Returns the single word",
+            "get": {
+                "parameters": [
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "word_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }   
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the single word"
+                    }
+                }
+            },
+            "post": {
+                "description": "Edit word with id you specified",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "word_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    } 
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "ayah_uuid": {
+                                        "type": "string",
+                                        "description": "The ayah_uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "word": {
+                                        "type": "string",
+                                        "description": "New word that want to replace",
+                                        "example": ""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means the word was edited"
+                    }
+                }
+            },           
+            "delete": {
+                "description": "Delete word with id you specified",
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "word_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "quran"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Word with id you specified deleted"
+                    }
+                }
+            }
+        },
+        "/translaion":{
+            "get": {
+                "description": "Ruturn the list of all translations",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "translaion"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the list of all translations"
+                    }
+                }
+            },
+            "post": {
+                "description": "Add new translation",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "creator_user_id": {
+                                        "type": "string",
+                                        "description": "The creator user uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "translator_account_id": {
+                                        "type": "string",
+                                        "description": "The translator account uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "source": {
+                                        "type": "string",
+                                        "description": "The translation text source",
+                                        "example": ""
+                                    },
+                                    "language": {
+                                        "type": "string",
+                                        "description" : "The language of translation text",
+                                        "example": "English"
+                                    },
+                                    "release_date": {
+                                        "type": "string",
+                                        "description" : "",
+                                        "example": ""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "translation"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "This means new translaion was created"
+                    }
+                }
+            }
+        },
+        "/translation/{translation_uuid}":{
+            "get": {
+                "description": "View translation with id you specified",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "translation_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }                    
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the translation with id you specified"
+                    }
+                }
+            },
+            "post": {
+                "description": "Edit translation with id you specified",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "required": true,
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "translation_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }                    
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "creator_user_id": {
+                                        "type": "string",
+                                        "description": "The creator user uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "translator_account_id": {
+                                        "type": "string",
+                                        "description": "The translator account uuid",
+                                        "example": "f9339c7a-749a-408e-a03e-a22cd87fe3a1"
+                                    },
+                                    "source": {
+                                        "type": "string",
+                                        "description": "The translation text source",
+                                        "example": ""
+                                    },
+                                    "language": {
+                                        "type": "string",
+                                        "description" : "The language of translation text",
+                                        "example": "English"
+                                    },
+                                    "release_date": {
+                                        "type": "string",
+                                        "description" : "",
+                                        "example": ""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "translation"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Translation with id you specified edited"
+                    }
+                }
+            },            
+            "delete": {
+                "description": "Delete translation with id you specified",
+                "parameters": [
+                    {
+                        "required": true,
+                        "in": "header",
+                        "name": "Authorization",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "required": true,
+                        "name": "translation_uuid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "translation"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Translation with id you specified deleted"
+                    }
+                }
+            }              
         }
     }
 }
